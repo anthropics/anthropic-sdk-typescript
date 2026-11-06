@@ -1,0 +1,40 @@
+[
+  {
+    "name": "tool_span_blocks_go_from_the_end",
+    "note": "Blocks are removed from the END of anthropic.tool_result.content, the last one first, whole; gen_ai.tool.call.arguments fits in the bound, so it stays whole and counts.",
+    "bound": 152,
+    "size_before": 222,
+    "input": {
+      "tool_call_arguments": { "city": "Paris" },
+      "tool_result_content": [
+        { "type": "text", "text": "first 111111111111111111111111111111" },
+        { "type": "text", "text": "second 222222222222222222222222222222" },
+        { "type": "image" },
+        { "type": "text", "text": "fourth 444444444444444444444444444444" }
+      ]
+    },
+    "expected": {
+      "tool_result_content": [
+        { "type": "text", "text": "first 111111111111111111111111111111" },
+        { "type": "text", "text": "second 222222222222222222222222222222" }
+      ]
+    },
+    "expected_truncated": true,
+    "size_after": 142
+  },
+  {
+    "name": "tool_span_arguments_alone_over_the_bound",
+    "note": "The arguments alone exceed the bound, so gen_ai.tool.call.arguments is absent and truncated is true. The result then has the whole bound, and fits.",
+    "bound": 100,
+    "size_before": 190,
+    "input": {
+      "tool_call_arguments": {
+        "text": "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+      },
+      "tool_result_content": [{ "type": "text", "text": "ok" }]
+    },
+    "expected": { "tool_call_arguments": null, "tool_result_content": [{ "type": "text", "text": "ok" }] },
+    "expected_truncated": true,
+    "size_after": 29
+  }
+]

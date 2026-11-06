@@ -1,0 +1,190 @@
+import { type APIError } from './error';
+import { FileExpiredError, FileNotDownloadableError, StorageQuotaExceededError } from '../resources/files';
+import {
+  CMEKContextUnavailableError,
+  CMEKKeyDisabledError,
+  CMEKKeyNetworkBlockedError,
+  CMEKKeyUnreachableError,
+  ClaudeCodeKeyCreatorNotMemberError,
+  ClaudeCodeVersionTooOldError,
+  EnforcedSpendLimitReachedError,
+  OrganizationOnHoldError,
+  OrganizationTypeNotSupportedError,
+  RampLimitExceededError,
+  RequestBodyEncodingInvalidError,
+  RequestBodyEncodingUnsupportedError,
+  RequestBodyTooLargeAfterDecodingError,
+} from '../resources/shared';
+import { BetaOrganizationNotEnrolledInBetaError, BetaUnsupportedCharsetError } from '../resources/beta/beta';
+import {
+  AvailableToolsLimitExceededError,
+  CompactionBlockAmbiguousError,
+  CompactionBlockMisplacedError,
+  CompactionContentMismatchError,
+  CompactionIncompleteTurnError,
+  CompactionNothingToSummarizeError,
+  CompactionSignatureInvalidError,
+  CompactionTooManyToolReferencesError,
+  CompactionToolChangesMismatchError,
+  CompactionUnavailableError,
+  ThreadAlreadyContinuedError,
+  ThreadContinueInFlightError,
+  ThreadFingerprintMismatchError,
+  ThreadNotFoundError,
+  ThreadUnsupportedRequestError,
+  ToolNameConflictError,
+  ToolReferenceUnresolvedError,
+} from '../resources/messages/messages';
+import {
+  OrgAPIKeyLimitExceededError,
+  WorkspaceAPIKeyLimitExceededError,
+} from '../resources/organization/api-keys';
+import {
+  ExternalKeyChangedError,
+  ExternalKeyInWorkspacePolicyError,
+  ExternalKeyValidationFailedError,
+  ExternalKeyValidationTimedOutError,
+} from '../resources/organization/external-keys';
+import {
+  AlreadyMemberError,
+  CannotInviteEmailsWithUnverifiedDomainsError,
+  EmailDomainNotAllowedError,
+  InviteAlreadyExistsError,
+} from '../resources/organization/invites';
+import {
+  ConcurrentMembershipChangeError,
+  OrgMemberLimitExceededError,
+} from '../resources/organization/organization';
+import { CannotRemoveLastMemberError } from '../resources/organization/users';
+import { SkillReadBlockedUndecryptableError } from '../resources/skills/skills';
+import { UserProfileNotFoundError } from '../resources/user-profiles/user-profiles';
+import {
+  BetaEnvironmentArchivedError,
+  BetaEnvironmentCreateDisabledError,
+  BetaEnvironmentNotFoundError,
+  BetaEnvironmentUpdateDisabledError,
+  BetaInvalidConfigTypeChangeError,
+  BetaInvalidMetadataError,
+} from '../resources/beta/environments/environments';
+import { BetaHeartbeatPreconditionFailedError } from '../resources/beta/environments/work';
+import { BetaBillingFrozenError } from '../resources/beta/organization/organization';
+import {
+  BetaCannotSignOutManagedMemberError,
+  BetaCannotSignOutMembershipAdminError,
+  BetaCannotSignOutOwnerError,
+  BetaCannotSignOutPrimaryOwnerError,
+  BetaCannotSignOutPrivilegedMemberError,
+  BetaCannotSignOutSelfError,
+} from '../resources/beta/organization/users';
+import {
+  RBACGroupGrantsOwnerAccessError,
+  RBACGroupOwnerAccessUnconfirmedError,
+} from '../resources/organization/rbac-groups/rbac-groups';
+import {
+  KeyProfileMismatchError,
+  WorkspaceMemberLimitExceededError,
+  WorkspacePolicyViolationError,
+} from '../resources/organization/workspaces/workspaces';
+import {
+  BetaAPIKeyScopeMissingError,
+  BetaClaudeTagWritesNotEnabledError,
+  BetaComplianceConfigurationRestrictedError,
+  BetaOrganizationLevelScopedAPIKeyRequiredError,
+  BetaSlackChannelSetUpEnvironmentNotFoundError,
+  BetaSlackChannelSetUpSettingsConflictError,
+  BetaSlackChannelSetUpSettingsRefusedError,
+} from '../resources/beta/organization/claude-tag/claude-tag';
+import {
+  BetaPluginNameTakenError,
+  BetaRegistrationPendingError,
+  BetaScanFailedError,
+  BetaScanPendingError,
+  BetaSkillNameTakenError,
+} from '../resources/beta/organization/plugins/plugins';
+import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/organization/spend-limits/spend-limits';
+
+/** @internal */
+export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
+  ['400 already_member', AlreadyMemberError],
+  ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
+  ['400 cannot_invite_emails_with_unverified_domains', CannotInviteEmailsWithUnverifiedDomainsError],
+  ['400 cannot_remove_last_member', CannotRemoveLastMemberError],
+  ['400 cannot_sign_out_primary_owner', BetaCannotSignOutPrimaryOwnerError],
+  ['400 cannot_sign_out_self', BetaCannotSignOutSelfError],
+  ['400 claude_code_key_creator_not_member', ClaudeCodeKeyCreatorNotMemberError],
+  ['400 claude_code_version_too_old', ClaudeCodeVersionTooOldError],
+  ['400 cmek_key_disabled', CMEKKeyDisabledError],
+  ['400 cmek_key_network_blocked', CMEKKeyNetworkBlockedError],
+  ['400 compaction_block_ambiguous', CompactionBlockAmbiguousError],
+  ['400 compaction_block_misplaced', CompactionBlockMisplacedError],
+  ['400 compaction_content_mismatch', CompactionContentMismatchError],
+  ['400 compaction_incomplete_turn', CompactionIncompleteTurnError],
+  ['400 compaction_nothing_to_summarize', CompactionNothingToSummarizeError],
+  ['400 compaction_signature_invalid', CompactionSignatureInvalidError],
+  ['400 compaction_too_many_tool_references', CompactionTooManyToolReferencesError],
+  ['400 compaction_tool_changes_mismatch', CompactionToolChangesMismatchError],
+  ['400 email_domain_not_allowed', EmailDomainNotAllowedError],
+  ['400 environment_archived', BetaEnvironmentArchivedError],
+  ['400 external_key_in_workspace_policy', ExternalKeyInWorkspacePolicyError],
+  ['400 external_key_validation_failed', ExternalKeyValidationFailedError],
+  ['400 external_key_validation_timed_out', ExternalKeyValidationTimedOutError],
+  ['400 file_not_downloadable', FileNotDownloadableError],
+  ['400 invalid_config_type_change', BetaInvalidConfigTypeChangeError],
+  ['400 invalid_metadata', BetaInvalidMetadataError],
+  ['400 invite_already_exists', InviteAlreadyExistsError],
+  ['400 key_profile_mismatch', KeyProfileMismatchError],
+  ['400 org_api_key_limit_exceeded', OrgAPIKeyLimitExceededError],
+  ['400 org_member_limit_exceeded', OrgMemberLimitExceededError],
+  ['400 organization_not_enrolled_in_beta', BetaOrganizationNotEnrolledInBetaError],
+  ['400 organization_on_hold', OrganizationOnHoldError],
+  ['400 organization_type_not_supported', OrganizationTypeNotSupportedError],
+  ['400 rbac_group_grants_owner_access', RBACGroupGrantsOwnerAccessError],
+  ['400 rbac_group_owner_access_unconfirmed', RBACGroupOwnerAccessUnconfirmedError],
+  ['400 request_body_encoding_invalid', RequestBodyEncodingInvalidError],
+  ['400 request_body_encoding_unsupported', RequestBodyEncodingUnsupportedError],
+  ['400 scan_failed', BetaScanFailedError],
+  ['400 slack_channel_set_up_settings_refused', BetaSlackChannelSetUpSettingsRefusedError],
+  ['400 storage_quota_exceeded', StorageQuotaExceededError],
+  ['400 thread_already_continued', ThreadAlreadyContinuedError],
+  ['400 thread_continue_in_flight', ThreadContinueInFlightError],
+  ['400 thread_fingerprint_mismatch', ThreadFingerprintMismatchError],
+  ['400 thread_unsupported_request', ThreadUnsupportedRequestError],
+  ['400 tool_name_conflict', ToolNameConflictError],
+  ['400 tool_reference_unresolved', ToolReferenceUnresolvedError],
+  ['400 unsupported_charset', BetaUnsupportedCharsetError],
+  ['400 user_profile_not_found', UserProfileNotFoundError],
+  ['400 workspace_api_key_limit_exceeded', WorkspaceAPIKeyLimitExceededError],
+  ['400 workspace_member_limit_exceeded', WorkspaceMemberLimitExceededError],
+  ['400 workspace_policy_violation', WorkspacePolicyViolationError],
+  ['403 api_key_scope_missing', BetaAPIKeyScopeMissingError],
+  ['403 billing_frozen', BetaBillingFrozenError],
+  ['403 cannot_sign_out_managed_member', BetaCannotSignOutManagedMemberError],
+  ['403 cannot_sign_out_membership_admin', BetaCannotSignOutMembershipAdminError],
+  ['403 cannot_sign_out_owner', BetaCannotSignOutOwnerError],
+  ['403 cannot_sign_out_privileged_member', BetaCannotSignOutPrivilegedMemberError],
+  ['403 claude_tag_writes_not_enabled', BetaClaudeTagWritesNotEnabledError],
+  ['403 compliance_configuration_restricted', BetaComplianceConfigurationRestrictedError],
+  ['403 environment_create_disabled', BetaEnvironmentCreateDisabledError],
+  ['403 environment_update_disabled', BetaEnvironmentUpdateDisabledError],
+  ['403 organization_level_scoped_api_key_required', BetaOrganizationLevelScopedAPIKeyRequiredError],
+  ['403 spend_limits_admin_api_writes_not_enabled', BetaSpendLimitsAdminAPIWritesNotEnabledError],
+  ['404 environment_not_found', BetaEnvironmentNotFoundError],
+  ['404 file_expired', FileExpiredError],
+  ['404 slack_channel_set_up_environment_not_found', BetaSlackChannelSetUpEnvironmentNotFoundError],
+  ['404 thread_not_found', ThreadNotFoundError],
+  ['409 concurrent_membership_change', ConcurrentMembershipChangeError],
+  ['409 external_key_changed', ExternalKeyChangedError],
+  ['409 plugin_name_taken', BetaPluginNameTakenError],
+  ['409 scan_pending', BetaScanPendingError],
+  ['409 skill_name_taken', BetaSkillNameTakenError],
+  ['409 skill_read_blocked_undecryptable', SkillReadBlockedUndecryptableError],
+  ['409 slack_channel_set_up_settings_conflict', BetaSlackChannelSetUpSettingsConflictError],
+  ['412 heartbeat_precondition_failed', BetaHeartbeatPreconditionFailedError],
+  ['413 request_body_too_large_after_decoding', RequestBodyTooLargeAfterDecodingError],
+  ['429 enforced_spend_limit_reached', EnforcedSpendLimitReachedError],
+  ['429 ramp_limit_exceeded', RampLimitExceededError],
+  ['503 cmek_context_unavailable', CMEKContextUnavailableError],
+  ['503 cmek_key_unreachable', CMEKKeyUnreachableError],
+  ['503 registration_pending', BetaRegistrationPendingError],
+  ['529 compaction_unavailable', CompactionUnavailableError],
+]);

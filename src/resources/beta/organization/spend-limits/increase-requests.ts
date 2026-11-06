@@ -3,6 +3,7 @@ import * as SpendLimitsAPI from './spend-limits';
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class IncreaseRequests extends APIResource {
@@ -25,8 +26,22 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.get(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}?beta=true`,
-      options,
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}`,
+      {
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.retrieve',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -49,9 +64,22 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSpendLimitIncreaseRequestsPageCursor, BetaSpendLimitIncreaseRequest> {
     return this._client.getAPIList(
-      '/v1/organizations/spend_limit_increase_requests?beta=true',
+      '/v1/organizations/spend_limit_increase_requests',
       PageCursor<BetaSpendLimitIncreaseRequest>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.list',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests',
+            queryParams: ['actor_ids', 'limit', 'page', 'status'],
+          },
+        ),
+      },
     );
   }
 
@@ -77,8 +105,24 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<IncreaseRequestApproveResponse> {
     return this._client.post(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/approve?beta=true`,
-      { body, ...options },
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/approve`,
+      {
+        body,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.approve',
+          options,
+          {
+            route:
+              '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -93,6 +137,7 @@ export class IncreaseRequests extends APIResource {
    * const betaSpendLimitIncreaseRequest =
    *   await client.beta.organization.spendLimits.increaseRequests.deny(
    *     'spend_limit_increase_request_id',
+   *     {},
    *   );
    * ```
    */
@@ -102,8 +147,23 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.post(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/deny?beta=true`,
-      { body, ...options },
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/deny`,
+      {
+        body,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.deny',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 }
@@ -113,7 +173,10 @@ export type BetaSpendLimitIncreaseRequestsPageCursor = PageCursor<BetaSpendLimit
 export interface BetaSpendLimitIncreaseRequest {
   id: string;
 
-  actor: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+  /**
+   * Who submitted the increase request.
+   */
+  actor: BetaSpendLimitIncreaseRequestActor;
 
   created_at: string;
 
@@ -121,7 +184,10 @@ export interface BetaSpendLimitIncreaseRequest {
 
   resolved_at: string | null;
 
-  resolved_by: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor | null;
+  /**
+   * Who approved or denied the increase request.
+   */
+  resolved_by: BetaSpendLimitIncreaseRequestResolvedBy | null;
 
   /**
    * Per-member effective-limit report row (`GET /spend_limits/effective`).
@@ -133,12 +199,29 @@ export interface BetaSpendLimitIncreaseRequest {
   type: 'spend_limit_increase_request';
 }
 
+/**
+ * Who submitted the increase request.
+ */
+export type BetaSpendLimitIncreaseRequestActor =
+  | SpendLimitsAPI.BetaSpendLimitUserActor
+  | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+
+/**
+ * Who approved or denied the increase request.
+ */
+export type BetaSpendLimitIncreaseRequestResolvedBy =
+  | SpendLimitsAPI.BetaSpendLimitUserActor
+  | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+
 export type BetaSpendLimitIncreaseRequestStatus = 'approved' | 'denied' | 'pending';
 
 export interface IncreaseRequestApproveResponse {
   id: string;
 
-  actor: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+  /**
+   * Who submitted the increase request.
+   */
+  actor: BetaSpendLimitIncreaseRequestActor;
 
   created_at: string;
 
@@ -146,12 +229,15 @@ export interface IncreaseRequestApproveResponse {
 
   resolved_at: string | null;
 
-  resolved_by: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor | null;
+  /**
+   * Who approved or denied the increase request.
+   */
+  resolved_by: BetaSpendLimitIncreaseRequestResolvedBy | null;
 
   /**
    * A configured spend limit: a cap on metered spend for one scope and period.
    */
-  spend_limit: SpendLimitsAPI.BetaSpendLimit;
+  spend_limit: SpendLimitsAPI.BetaSpendLimit | null;
 
   /**
    * Per-member effective-limit report row (`GET /spend_limits/effective`).
@@ -193,6 +279,8 @@ export interface IncreaseRequestDenyParams {
 export declare namespace IncreaseRequests {
   export {
     type BetaSpendLimitIncreaseRequest as BetaSpendLimitIncreaseRequest,
+    type BetaSpendLimitIncreaseRequestActor as BetaSpendLimitIncreaseRequestActor,
+    type BetaSpendLimitIncreaseRequestResolvedBy as BetaSpendLimitIncreaseRequestResolvedBy,
     type BetaSpendLimitIncreaseRequestStatus as BetaSpendLimitIncreaseRequestStatus,
     type IncreaseRequestApproveResponse as IncreaseRequestApproveResponse,
     type BetaSpendLimitIncreaseRequestsPageCursor as BetaSpendLimitIncreaseRequestsPageCursor,

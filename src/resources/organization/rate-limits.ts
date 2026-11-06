@@ -1,14 +1,15 @@
 import { APIResource } from '../../core/resource';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 
 export class RateLimits extends APIResource {
   /**
    * List Messages API rate limits for your organization.
    *
    * Each entry corresponds to one rate-limit group (either a model family or an
-   * API-surface category such as the Files API or Message Batches) and contains the
-   * set of limiter values that apply to it.
+   * API-surface category such as the Message Batches API or the web search tool) and
+   * contains the set of limiter values that apply to it.
    *
    * When `limit` is omitted, every matching entry is returned in a single page; when
    * `limit` truncates the result, follow `next_page` to fetch the remaining entries.
@@ -28,6 +29,10 @@ export class RateLimits extends APIResource {
     return this._client.getAPIList('/v1/organizations/rate_limits', PageCursor<OrganizationRateLimit>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
+        route: '/v1/organizations/rate_limits',
+        queryParams: ['group_type', 'limit', 'model', 'page'],
+      }),
     });
   }
 }
@@ -37,13 +42,13 @@ export type OrganizationRateLimitsPageCursor = PageCursor<OrganizationRateLimit>
 export interface OrganizationRateLimit {
   /**
    * Identifier of this rate-limit entry. It is stable within the organization and
-   * differs between organizations; the group's own identifier is `group.id`.
+   * differs between organizations; the group's own identifier is `group.id`. Pass it
+   * as `rate_limit_id` to set a workspace's overrides for this group.
    */
   id: string;
 
   /**
-   * The rate-limit group this entry's limits apply to. Its `type` equals
-   * `group_type`.
+   * The rate-limit group this entry's limits apply to.
    */
   group:
     | OrganizationRateLimitModelGroup
@@ -60,7 +65,8 @@ export interface OrganizationRateLimit {
 
   /**
    * Model names this entry's limits apply to, including aliases. `null` when
-   * `group_type` is not `"model_group"`.
+   * `group.type` is not `"model_group"`. The list covers the models your
+   * organization has access to, so it can differ between organizations.
    */
   models: Array<string> | null;
 

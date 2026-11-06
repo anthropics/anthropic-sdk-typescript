@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource members', () => {
@@ -30,7 +31,7 @@ describe('resource members', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.beta.organization.rbacGroups.members.add('rbac_group_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -43,7 +44,7 @@ describe('resource members', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.beta.organization.rbacGroups.members.add('rbac_group_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
     });
   });
 

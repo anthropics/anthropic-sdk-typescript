@@ -14,6 +14,7 @@ import {
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class RBACRoles extends APIResource {
@@ -33,7 +34,14 @@ export class RBACRoles extends APIResource {
    * ```
    */
   retrieve(rbacRoleID: string, options?: RequestOptions): APIPromise<BetaRBACRole> {
-    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.retrieve', options, {
+        route: '/v1/organizations/rbac_roles/{rbac_role_id}',
+        attributes: { 'anthropic.organization.rbac_role.id': rbacRoleID },
+      }),
+    });
   }
 
   /**
@@ -53,9 +61,14 @@ export class RBACRoles extends APIResource {
     query: RBACRoleListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaRBACRolesPageCursor, BetaRBACRole> {
-    return this._client.getAPIList('/v1/organizations/rbac_roles?beta=true', PageCursor<BetaRBACRole>, {
+    return this._client.getAPIList('/v1/organizations/rbac_roles', PageCursor<BetaRBACRole>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.list', options, {
+        route: '/v1/organizations/rbac_roles',
+        queryParams: ['limit', 'page'],
+      }),
     });
   }
 }
@@ -74,9 +87,11 @@ export interface BetaRBACRole {
   created_at: string;
 
   /**
-   * Name of the RBAC Role.
+   * Name of the RBAC Role. For a role created by Anthropic, this name can differ
+   * from the label claude.ai shows, and Anthropic may change the name. To keep a
+   * lasting reference to a role, store its `id`.
    */
-  name: string;
+  display_name: string;
 
   /**
    * Object type.

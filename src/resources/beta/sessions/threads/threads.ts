@@ -9,6 +9,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Threads extends APIResource {
@@ -21,7 +22,7 @@ export class Threads extends APIResource {
    * ```ts
    * const betaManagedAgentsSessionThread =
    *   await client.beta.sessions.threads.retrieve(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
    * ```
@@ -32,7 +33,7 @@ export class Threads extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSessionThread> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}?beta=true`, {
+    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -41,6 +42,11 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.retrieve', options, {
+        route: '/v1/sessions/{session_id}/threads/{thread_id}',
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+      }),
     });
   }
 
@@ -64,7 +70,7 @@ export class Threads extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionThreadsPageCursor, BetaManagedAgentsSessionThread> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/threads?beta=true`,
+      path`/v1/sessions/${sessionID}/threads`,
       PageCursor<BetaManagedAgentsSessionThread>,
       {
         query,
@@ -76,6 +82,12 @@ export class Threads extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.list', options, {
+          route: '/v1/sessions/{session_id}/threads',
+          queryParams: ['limit', 'page', 'statuses'],
+          attributes: { 'anthropic.session.id': sessionID },
+        }),
       },
     );
   }
@@ -87,7 +99,7 @@ export class Threads extends APIResource {
    * ```ts
    * const betaManagedAgentsSessionThread =
    *   await client.beta.sessions.threads.archive(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
    * ```
@@ -98,7 +110,7 @@ export class Threads extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSessionThread> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.post(path`/v1/sessions/${session_id}/threads/${threadID}/archive?beta=true`, {
+    return this._client.post(path`/v1/sessions/${session_id}/threads/${threadID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -107,6 +119,11 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.archive', options, {
+        route: '/v1/sessions/{session_id}/threads/{thread_id}/archive',
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+      }),
     });
   }
 }
@@ -114,8 +131,46 @@ export class Threads extends APIResource {
 export type BetaManagedAgentsSessionThreadsPageCursor = PageCursor<BetaManagedAgentsSessionThread>;
 
 /**
+ * An agent that has no Agent resource, and so no `id` or `version`. It is defined
+ * inline, in a workflow run's plan or when a session thread is spawned, and is not
+ * saved.
+ */
+export interface BetaManagedAgentsInlineAgent {
+  description: string | null;
+
+  /**
+   * The session's execution principal.
+   */
+  execution_identity: AgentsAPI.BetaManagedAgentsExecutionIdentity;
+
+  mcp_servers: Array<AgentsAPI.BetaManagedAgentsMCPServerURLDefinition>;
+
+  /**
+   * Model identifier and configuration.
+   */
+  model: AgentsAPI.BetaManagedAgentsModelConfig;
+
+  /**
+   * The name that the agent's definition gave, or one that the server assigned.
+   */
+  name: string;
+
+  skills: Array<AgentsAPI.BetaManagedAgentsAnthropicSkill | AgentsAPI.BetaManagedAgentsCustomSkill>;
+
+  system: string | null;
+
+  tools: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401
+    | AgentsAPI.BetaManagedAgentsMCPToolset
+    | AgentsAPI.BetaManagedAgentsCustomTool
+  >;
+
+  type: 'inline';
+}
+
+/**
  * An execution thread within a `session`. Each session has one primary thread plus
- * zero or more child threads spawned by the coordinator.
+ * zero or more child threads.
  */
 export interface BetaManagedAgentsSessionThread {
   /**
@@ -127,7 +182,10 @@ export interface BetaManagedAgentsSessionThread {
    * Resolved agent definition for this thread. Snapshot of the agent at thread
    * creation time.
    */
-  agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor;
+  agent:
+    | AgentsAPI.BetaManagedAgentsSessionThreadAgent
+    | AgentsAPI.BetaManagedAgentsAdvisor
+    | BetaManagedAgentsInlineAgent;
 
   /**
    * When the thread was archived. Null if not archived.
@@ -172,6 +230,12 @@ export interface BetaManagedAgentsSessionThread {
    * transition.
    */
   usage: BetaManagedAgentsSessionThreadUsage | null;
+
+  /**
+   * Identifier of the workflow run that created the thread, or `null` for any other
+   * thread.
+   */
+  workflow_run_id: string | null;
 }
 
 /**
@@ -287,7 +351,14 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
   | SessionsAPI.BetaManagedAgentsStartEvent
   | SessionsAPI.BetaManagedAgentsDeltaEvent
   | SessionsAPI.BetaManagedAgentsSystemMessageEvent
-  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunCreatedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusEndedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunPhaseStartedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunPhaseEndedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusRunningEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusIdleEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunErrorEvent;
 
 export interface ThreadRetrieveParams {
   /**
@@ -296,7 +367,8 @@ export interface ThreadRetrieveParams {
   session_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -313,7 +385,16 @@ export interface ThreadRetrieveParams {
 
 export interface ThreadListParams extends PageCursorParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Query param: Return only threads that have one of these statuses.
+   *
+   * Repeat the parameter to give more than one status. Leave it out to return
+   * threads of every status.
+   */
+  statuses?: Array<BetaManagedAgentsSessionThreadStatus>;
+
+  /**
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -335,7 +416,8 @@ export interface ThreadArchiveParams {
   session_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -354,6 +436,7 @@ Threads.Events = Events;
 
 export declare namespace Threads {
   export {
+    type BetaManagedAgentsInlineAgent as BetaManagedAgentsInlineAgent,
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,

@@ -495,6 +495,7 @@ describe('GA Parser', () => {
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
+        speed: null,
       },
       container: null,
     };
@@ -672,6 +673,7 @@ describe('GA Parser', () => {
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
+        speed: null,
       },
       container: null,
     };

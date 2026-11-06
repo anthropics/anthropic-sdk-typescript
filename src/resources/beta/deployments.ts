@@ -8,6 +8,7 @@ import { APIPromise } from '../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
 export class Deployments extends APIResource {
@@ -37,7 +38,7 @@ export class Deployments extends APIResource {
    */
   create(params: DeploymentCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/deployments?beta=true', {
+    return this._client.post('/v1/deployments', {
       body,
       ...options,
       headers: buildHeaders([
@@ -47,6 +48,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.create', options, {
+        route: '/v1/deployments',
+        createdIDAttribute: 'anthropic.deployment.id',
+      }),
     });
   }
 
@@ -67,7 +73,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/deployments/${deploymentID}?beta=true`, {
+    return this._client.get(path`/v1/deployments/${deploymentID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -76,6 +82,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.retrieve', options, {
+        route: '/v1/deployments/{deployment_id}',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -87,6 +98,7 @@ export class Deployments extends APIResource {
    * const betaManagedAgentsDeployment =
    *   await client.beta.deployments.update(
    *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *     {},
    *   );
    * ```
    */
@@ -96,7 +108,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/deployments/${deploymentID}?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -106,6 +118,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.update', options, {
+        route: '/v1/deployments/{deployment_id}',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -125,7 +142,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsDeploymentsPageCursor, BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/deployments?beta=true', PageCursor<BetaManagedAgentsDeployment>, {
+    return this._client.getAPIList('/v1/deployments', PageCursor<BetaManagedAgentsDeployment>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -135,6 +152,19 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.list', options, {
+        route: '/v1/deployments',
+        queryParams: [
+          'agent_id',
+          'created_at[gte]',
+          'created_at[lte]',
+          'include_archived',
+          'limit',
+          'page',
+          'status',
+        ],
+      }),
     });
   }
 
@@ -155,7 +185,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/archive?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -164,6 +194,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.archive', options, {
+        route: '/v1/deployments/{deployment_id}/archive',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -184,7 +219,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/pause?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/pause`, {
       ...options,
       headers: buildHeaders([
         {
@@ -193,6 +228,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.pause', options, {
+        route: '/v1/deployments/{deployment_id}/pause',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -213,7 +253,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<DeploymentRunsAPI.BetaManagedAgentsDeploymentRun> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/run?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/run`, {
       ...options,
       headers: buildHeaders([
         {
@@ -222,6 +262,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.run', options, {
+        route: '/v1/deployments/{deployment_id}/run',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -242,7 +287,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/unpause?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/unpause`, {
       ...options,
       headers: buildHeaders([
         {
@@ -251,6 +296,11 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.unpause', options, {
+        route: '/v1/deployments/{deployment_id}/unpause',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 }
@@ -270,7 +320,7 @@ export interface BetaManagedAgentsAgentArchivedDeploymentPausedReasonError {
 export interface BetaManagedAgentsCronSchedule {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -307,7 +357,7 @@ export interface BetaManagedAgentsCronSchedule {
 export interface BetaManagedAgentsCronScheduleParams {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -626,8 +676,8 @@ export interface BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError
  */
 export interface BetaManagedAgentsMemoryStoreResourceConfig {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 
@@ -660,7 +710,7 @@ export interface BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErro
 export interface BetaManagedAgentsSchedule {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -696,7 +746,7 @@ export interface BetaManagedAgentsSchedule {
 export interface BetaManagedAgentsScheduleParams {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -839,7 +889,8 @@ export interface DeploymentCreateParams {
   vault_ids?: Array<string>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -856,7 +907,8 @@ export interface DeploymentCreateParams {
 
 export interface DeploymentRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -941,7 +993,8 @@ export interface DeploymentUpdateParams {
   vault_ids?: Array<string> | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -986,7 +1039,8 @@ export interface DeploymentListParams extends PageCursorParams {
   status?: BetaManagedAgentsDeploymentStatus;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1003,7 +1057,8 @@ export interface DeploymentListParams extends PageCursorParams {
 
 export interface DeploymentArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1020,7 +1075,8 @@ export interface DeploymentArchiveParams {
 
 export interface DeploymentPauseParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1037,7 +1093,8 @@ export interface DeploymentPauseParams {
 
 export interface DeploymentRunParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1054,7 +1111,8 @@ export interface DeploymentRunParams {
 
 export interface DeploymentUnpauseParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

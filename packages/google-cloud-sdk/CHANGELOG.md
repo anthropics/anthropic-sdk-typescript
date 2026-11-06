@@ -1,5 +1,86 @@
 # Changelog
 
+## [1.1.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.2...google-cloud-sdk-v1.1.3) (2026-11-04)
+
+### Bug Fixes
+
+* **google-cloud:** percent-encode the project, location and workspace ID in the derived base URL, and throw an `AnthropicError` for a value of `.` or `..`
+
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.1...google-cloud-sdk-v1.1.2) (2026-10-26)
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
+
+### Documentation
+
+* **examples:** use current model IDs
+
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.0...google-cloud-sdk-v1.1.1) (2026-10-23)
+
+### Bug Fixes
+
+* **google-cloud:** send user profile routes to the organization endpoint
+
+
+### Chores
+
+* **internal:** stop expecting the beta query param in tests
+
+
+### Documentation
+
+* **google-cloud:** update the product name in the package description
+* **google-cloud:** update the product name
+
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.0.0...google-cloud-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.2.0...google-cloud-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
+## [0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.1.0...google-cloud-sdk-v0.2.0) (2026-10-20)
+
+### Features
+
+* **google-cloud:** use the v1 endpoints and add the organization endpoint
+
+## [0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.1.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.0.19](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.18...google-cloud-sdk-v0.0.19) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.0.18 (2026-10-07)
+
+Full Changelog: [google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18)
+
 ## 0.0.17 (2026-09-30)
 
 Full Changelog: [google-cloud-sdk-v0.0.16...google-cloud-sdk-v0.0.17](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.16...google-cloud-sdk-v0.0.17)

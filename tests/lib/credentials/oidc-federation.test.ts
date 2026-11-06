@@ -47,6 +47,7 @@ describe('oidcFederationProvider', () => {
     const [url, init] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://api.anthropic.com/v1/oauth/token');
     expect(init.method).toBe('POST');
+    expect(init.redirect).toBe('manual');
     expect(init.headers['anthropic-beta']).toBe(`${OAUTH_API_BETA_HEADER},${FEDERATION_BETA_HEADER}`);
     expect(init.headers['User-Agent']).toMatch(/^anthropic-sdk-typescript\//);
 
@@ -133,6 +134,13 @@ describe('oidcFederationProvider', () => {
       expect((err as WorkloadIdentityError).statusCode).toBe(401);
       expect((err as WorkloadIdentityError).requestId).toBe('req_123');
     }
+  });
+
+  it('names the error it throws on non-ok response WorkloadIdentityError', async () => {
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(new Response('unauthorized', { status: 401 }));
+    const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
+
+    await expect(provider()).rejects.toHaveProperty('name', 'WorkloadIdentityError');
   });
 
   it('appends the full token-exchange hint on 401 when workspaceId is unset', async () => {

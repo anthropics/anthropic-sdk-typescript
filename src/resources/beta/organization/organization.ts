@@ -81,24 +81,64 @@ import {
 } from './rate-limits';
 import * as UsersAPI from './users';
 import {
+  BetaCannotSignOutManagedMemberError,
+  BetaCannotSignOutManagedMemberErrorDetails,
+  BetaCannotSignOutMembershipAdminError,
+  BetaCannotSignOutMembershipAdminErrorDetails,
+  BetaCannotSignOutOwnerError,
+  BetaCannotSignOutOwnerErrorDetails,
+  BetaCannotSignOutPrimaryOwnerError,
+  BetaCannotSignOutPrimaryOwnerErrorDetails,
+  BetaCannotSignOutPrivilegedMemberError,
+  BetaCannotSignOutPrivilegedMemberErrorDetails,
+  BetaCannotSignOutSelfError,
+  BetaCannotSignOutSelfErrorDetails,
   BetaOrganizationUser,
   BetaOrganizationUsersPage,
   UserListParams,
   UserRemoveResponse,
+  UserSignOutParams,
   UserUpdateParams,
   Users,
 } from './users';
+import * as WebhooksAPI from './webhooks';
+import {
+  BetaDeletedOrganizationWebhookEndpoint,
+  BetaNewOrganizationWebhookEndpoint,
+  BetaOrganizationWebhookEndpoint,
+  BetaOrganizationWebhookEndpointSigningSecret,
+  BetaOrganizationWebhookEndpointState,
+  BetaOrganizationWebhookEndpointsPage,
+  WebhookCreateParams,
+  WebhookDeleteParams,
+  WebhookListParams,
+  WebhookRegenerateSigningSecretParams,
+  WebhookRetrieveParams,
+  WebhookUpdateParams,
+  Webhooks,
+} from './webhooks';
 import * as AnalyticsAPI from './analytics/analytics';
 import {
   Analytics,
+  BetaAnalyticsAPIActor,
+  BetaAnalyticsActor,
+  BetaAnalyticsActorType,
   BetaAnalyticsArtifactActivity,
+  BetaAnalyticsArtifactGroupBy,
+  BetaAnalyticsChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsChatCoworkUnifiedMetrics,
+  BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
   BetaAnalyticsChatMetrics,
   BetaAnalyticsClaudeCodeMetrics,
   BetaAnalyticsClaudeTagCategory,
   BetaAnalyticsConnectorActivity,
+  BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsConnectorChatCoworkUnifiedMetrics,
+  BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
   BetaAnalyticsConnectorChatMetrics,
   BetaAnalyticsConnectorClaudeCodeMetrics,
   BetaAnalyticsConnectorCoworkMetrics,
+  BetaAnalyticsConnectorGroupBy,
   BetaAnalyticsConnectorOfficeMetrics,
   BetaAnalyticsConnectorOfficeProductMetrics,
   BetaAnalyticsContextWindow,
@@ -109,34 +149,93 @@ import {
   BetaAnalyticsCostUsersItem,
   BetaAnalyticsCoworkMetrics,
   BetaAnalyticsDesignMetrics,
+  BetaAnalyticsFederatedActor,
+  BetaAnalyticsFederatedActorAWSProvider,
+  BetaAnalyticsFederatedActorAzureProvider,
+  BetaAnalyticsFederatedActorGCPProvider,
+  BetaAnalyticsFederatedActorOIDCProvider,
+  BetaAnalyticsFederatedActorProvider,
+  BetaAnalyticsGroupedCostType,
   BetaAnalyticsInferenceGeoFilter,
   BetaAnalyticsLinesOfCode,
   BetaAnalyticsOfficeMetrics,
   BetaAnalyticsOfficeProductMetrics,
+  BetaAnalyticsOrder,
   BetaAnalyticsPluginActivity,
+  BetaAnalyticsPluginChatCoworkUnifiedMetrics,
   BetaAnalyticsPluginClaudeCodeMetrics,
   BetaAnalyticsPluginCoworkMetrics,
+  BetaAnalyticsPluginGroupBy,
   BetaAnalyticsProductFilter,
   BetaAnalyticsProjectActivity,
+  BetaAnalyticsProjectGroupBy,
+  BetaAnalyticsReportUserActor,
   BetaAnalyticsScienceMetrics,
   BetaAnalyticsServerToolUse,
+  BetaAnalyticsServiceAccountActor,
+  BetaAnalyticsServiceTier,
   BetaAnalyticsSingleDayActivitySummary,
   BetaAnalyticsSkillActivity,
+  BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsSkillChatCoworkUnifiedMetrics,
+  BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
   BetaAnalyticsSkillChatMetrics,
   BetaAnalyticsSkillClaudeCodeMetrics,
   BetaAnalyticsSkillCoworkMetrics,
+  BetaAnalyticsSkillGroupBy,
   BetaAnalyticsSkillOfficeMetrics,
   BetaAnalyticsSkillOfficeProductMetrics,
+  BetaAnalyticsSpeed,
+  BetaAnalyticsTimeBucketWidth,
   BetaAnalyticsTokenType,
   BetaAnalyticsToolActionCounts,
   BetaAnalyticsToolActions,
   BetaAnalyticsUsageBucketedResult,
+  BetaAnalyticsUsageCostInferenceGeo,
+  BetaAnalyticsUsageCostProductFilter,
+  BetaAnalyticsUsageCostSortOrder,
   BetaAnalyticsUsageReportTimeBucket,
   BetaAnalyticsUsageUsersItem,
   BetaAnalyticsUser,
   BetaAnalyticsUserActivity,
   BetaAnalyticsUserActor,
+  BetaAnalyticsUserGroupBy,
 } from './analytics/analytics';
+import * as ClaudeTagAPI from './claude-tag/claude-tag';
+import {
+  BetaAPIKeyScopeMissingError,
+  BetaAPIKeyScopeMissingErrorDetails,
+  BetaClaudeTagDefaultSettingSource,
+  BetaClaudeTagGuestPolicy,
+  BetaClaudeTagGuestPolicyAllow,
+  BetaClaudeTagGuestPolicyChannelOnly,
+  BetaClaudeTagGuestPolicyRestrict,
+  BetaClaudeTagSettingSource,
+  BetaClaudeTagSettingSources,
+  BetaClaudeTagSettings,
+  BetaClaudeTagSettingsCreate,
+  BetaClaudeTagSettingsUpdate,
+  BetaClaudeTagSlackChannelIdentifiers,
+  BetaClaudeTagSlackChannelSettingSource,
+  BetaClaudeTagSlackDefaultSettingSource,
+  BetaClaudeTagSlackGridChannelSettingSource,
+  BetaClaudeTagSlackParentChannelSettingSource,
+  BetaClaudeTagSlackWorkspaceIdentifiers,
+  BetaClaudeTagSlackWorkspaceSettingSource,
+  BetaClaudeTagWritesNotEnabledError,
+  BetaClaudeTagWritesNotEnabledErrorDetails,
+  BetaComplianceConfigurationRestrictedError,
+  BetaComplianceConfigurationRestrictedErrorDetails,
+  BetaOrganizationLevelScopedAPIKeyRequiredError,
+  BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  BetaSlackChannelSetUpEnvironmentNotFoundError,
+  BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  BetaSlackChannelSetUpSettingsConflictError,
+  BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  BetaSlackChannelSetUpSettingsRefusedError,
+  BetaSlackChannelSetUpSettingsRefusedErrorDetails,
+  ClaudeTag,
+} from './claude-tag/claude-tag';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
 import * as PluginsAPI from './plugins/plugins';
@@ -146,6 +245,8 @@ import {
   BetaPluginAPIActor,
   BetaPluginComponent,
   BetaPluginContentScan,
+  BetaPluginNameTakenError,
+  BetaPluginNameTakenErrorDetails,
   BetaPluginOwnerOrganization,
   BetaPluginOwnerUser,
   BetaPluginTargetOrganization,
@@ -153,6 +254,14 @@ import {
   BetaPluginTargetRBACGroup,
   BetaPluginUserActor,
   BetaPluginsPageCursor,
+  BetaRegistrationPendingError,
+  BetaRegistrationPendingErrorDetails,
+  BetaScanFailedError,
+  BetaScanFailedErrorDetails,
+  BetaScanPendingError,
+  BetaScanPendingErrorDetails,
+  BetaSkillNameTakenError,
+  BetaSkillNameTakenErrorDetails,
   PluginCreateParams,
   PluginDeleteParams,
   PluginListParams,
@@ -162,10 +271,10 @@ import {
 } from './plugins/plugins';
 import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
 import {
+  BetaDeletedRBACGroup,
   BetaRBACGroup,
   BetaRBACGroupsPageCursor,
   RBACGroupCreateParams,
-  RBACGroupDeleteResponse,
   RBACGroupListParams,
   RBACGroupUpdateParams,
   RBACGroups,
@@ -198,9 +307,12 @@ import {
   BetaSpendLimitRBACGroupScope,
   BetaSpendLimitScopedAPIKeyActor,
   BetaSpendLimitSeatTierScope,
+  BetaSpendLimitUsageTierScope,
   BetaSpendLimitUserActor,
   BetaSpendLimitUserScope,
   BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsAdminAPIWritesNotEnabledError,
+  BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   BetaSpendLimitsPageCursor,
   BetaSpendSummary,
   SpendLimitDeleteResponse,
@@ -208,6 +320,46 @@ import {
   SpendLimitSetParams,
   SpendLimits,
 } from './spend-limits/spend-limits';
+import * as TelemetryDestinationsAPI from './telemetry-destinations/telemetry-destinations';
+import {
+  BetaDeletedTelemetryDestination,
+  BetaTelemetryDestination,
+  BetaTelemetryDestinationContentMode,
+  BetaTelemetryDestinationDeliveryHealth,
+  BetaTelemetryDestinationDisabledReason,
+  BetaTelemetryDestinationDisabledReasonCaller,
+  BetaTelemetryDestinationDisabledReasonInvalidAddress,
+  BetaTelemetryDestinationDisabledReasonRedirect,
+  BetaTelemetryDestinationDisabledReasonSustainedFailure,
+  BetaTelemetryDestinationState,
+  BetaTelemetryDestinationStateDisabled,
+  BetaTelemetryDestinationStateDisabledParams,
+  BetaTelemetryDestinationStateEnabled,
+  BetaTelemetryDestinationStateEnabledParams,
+  BetaTelemetryDestinationStateParams,
+  BetaTelemetryDestinationTestFailure,
+  BetaTelemetryDestinationTestResponse,
+  BetaTelemetryDestinationTestResult,
+  BetaTelemetryDestinationTestSuccess,
+  BetaTelemetryDestinationTraces,
+  BetaTelemetryDestinationTracesParams,
+  BetaTelemetryDestinationWorkspaces,
+  BetaTelemetryDestinationWorkspacesAll,
+  BetaTelemetryDestinationWorkspacesAllParams,
+  BetaTelemetryDestinationWorkspacesExclude,
+  BetaTelemetryDestinationWorkspacesExcludeParams,
+  BetaTelemetryDestinationWorkspacesInclude,
+  BetaTelemetryDestinationWorkspacesIncludeParams,
+  BetaTelemetryDestinationWorkspacesParams,
+  BetaTelemetryDestinationsPageCursor,
+  TelemetryDestinationCreateParams,
+  TelemetryDestinationDeleteParams,
+  TelemetryDestinationListParams,
+  TelemetryDestinationRetrieveParams,
+  TelemetryDestinationTestParams,
+  TelemetryDestinationUpdateParams,
+  TelemetryDestinations,
+} from './telemetry-destinations/telemetry-destinations';
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   BetaAllowedInferenceGeo,
@@ -225,7 +377,21 @@ import {
   Workspaces,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
+import { PermissionDeniedError } from '../../../core/error';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
+
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export class BetaBillingFrozenError extends PermissionDeniedError {
+  declare readonly errorCode: 'billing_frozen';
+  declare readonly details: BetaBillingFrozenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBillingFrozenError';
+}
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -247,6 +413,10 @@ export class Organization extends APIResource {
   pluginMarketplaces: PluginMarketplacesAPI.PluginMarketplaces = new PluginMarketplacesAPI.PluginMarketplaces(
     this._client,
   );
+  telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
+    new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
+  webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
+  claudeTag: ClaudeTagAPI.ClaudeTag = new ClaudeTagAPI.ClaudeTag(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -259,8 +429,22 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', options);
+    return this._client.get('/v1/organizations/me', {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {
+        route: '/v1/organizations/me',
+      }),
+    });
   }
+}
+
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export interface BetaBillingFrozenErrorDetails {
+  error_code: 'billing_frozen';
 }
 
 export interface BetaOrganization {
@@ -293,24 +477,52 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
+Organization.BetaBillingFrozenError = BetaBillingFrozenError;
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
 Organization.Invites = Invites;
 Organization.ServiceAccounts = ServiceAccounts;
 Organization.Users = Users;
+Organization.BetaCannotSignOutPrimaryOwnerError = BetaCannotSignOutPrimaryOwnerError;
+Organization.BetaCannotSignOutSelfError = BetaCannotSignOutSelfError;
+Organization.BetaCannotSignOutManagedMemberError = BetaCannotSignOutManagedMemberError;
+Organization.BetaCannotSignOutMembershipAdminError = BetaCannotSignOutMembershipAdminError;
+Organization.BetaCannotSignOutOwnerError = BetaCannotSignOutOwnerError;
+Organization.BetaCannotSignOutPrivilegedMemberError = BetaCannotSignOutPrivilegedMemberError;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
 Organization.Analytics = Analytics;
 Organization.SpendLimits = SpendLimits;
+Organization.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 Organization.RBACGroups = RBACGroups;
 Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
+Organization.BetaScanFailedError = BetaScanFailedError;
+Organization.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Organization.BetaScanPendingError = BetaScanPendingError;
+Organization.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Organization.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Organization.PluginMarketplaces = PluginMarketplaces;
+Organization.TelemetryDestinations = TelemetryDestinations;
+Organization.Webhooks = Webhooks;
+Organization.ClaudeTag = ClaudeTag;
+Organization.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
+Organization.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
+Organization.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
+Organization.BetaComplianceConfigurationRestrictedError = BetaComplianceConfigurationRestrictedError;
+Organization.BetaOrganizationLevelScopedAPIKeyRequiredError = BetaOrganizationLevelScopedAPIKeyRequiredError;
+Organization.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSetUpEnvironmentNotFoundError;
+Organization.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 
 export declare namespace Organization {
-  export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
+  export {
+    BetaBillingFrozenError as BetaBillingFrozenError,
+    type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
+    type BetaOrganization as BetaOrganization,
+    type BetaOrganizationRole as BetaOrganizationRole,
+  };
 
   export {
     APIKeys as APIKeys,
@@ -367,11 +579,24 @@ export declare namespace Organization {
 
   export {
     Users as Users,
+    BetaCannotSignOutPrimaryOwnerError as BetaCannotSignOutPrimaryOwnerError,
+    BetaCannotSignOutSelfError as BetaCannotSignOutSelfError,
+    BetaCannotSignOutManagedMemberError as BetaCannotSignOutManagedMemberError,
+    BetaCannotSignOutMembershipAdminError as BetaCannotSignOutMembershipAdminError,
+    BetaCannotSignOutOwnerError as BetaCannotSignOutOwnerError,
+    BetaCannotSignOutPrivilegedMemberError as BetaCannotSignOutPrivilegedMemberError,
+    type BetaCannotSignOutManagedMemberErrorDetails as BetaCannotSignOutManagedMemberErrorDetails,
+    type BetaCannotSignOutMembershipAdminErrorDetails as BetaCannotSignOutMembershipAdminErrorDetails,
+    type BetaCannotSignOutOwnerErrorDetails as BetaCannotSignOutOwnerErrorDetails,
+    type BetaCannotSignOutPrimaryOwnerErrorDetails as BetaCannotSignOutPrimaryOwnerErrorDetails,
+    type BetaCannotSignOutPrivilegedMemberErrorDetails as BetaCannotSignOutPrivilegedMemberErrorDetails,
+    type BetaCannotSignOutSelfErrorDetails as BetaCannotSignOutSelfErrorDetails,
     type BetaOrganizationUser as BetaOrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type BetaOrganizationUsersPage as BetaOrganizationUsersPage,
     type UserUpdateParams as UserUpdateParams,
     type UserListParams as UserListParams,
+    type UserSignOutParams as UserSignOutParams,
   };
 
   export {
@@ -418,14 +643,25 @@ export declare namespace Organization {
 
   export {
     Analytics as Analytics,
+    type BetaAnalyticsActor as BetaAnalyticsActor,
+    type BetaAnalyticsActorType as BetaAnalyticsActorType,
+    type BetaAnalyticsAPIActor as BetaAnalyticsAPIActor,
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsArtifactGroupBy as BetaAnalyticsArtifactGroupBy,
+    type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsChatCoworkUnifiedMetrics as BetaAnalyticsChatCoworkUnifiedMetrics,
+    type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
     type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
     type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
     type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
+    type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedMetrics as BetaAnalyticsConnectorChatCoworkUnifiedMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics as BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
     type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
     type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
+    type BetaAnalyticsConnectorGroupBy as BetaAnalyticsConnectorGroupBy,
     type BetaAnalyticsConnectorOfficeMetrics as BetaAnalyticsConnectorOfficeMetrics,
     type BetaAnalyticsConnectorOfficeProductMetrics as BetaAnalyticsConnectorOfficeProductMetrics,
     type BetaAnalyticsContextWindow as BetaAnalyticsContextWindow,
@@ -436,37 +672,62 @@ export declare namespace Organization {
     type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
     type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
     type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
+    type BetaAnalyticsFederatedActor as BetaAnalyticsFederatedActor,
+    type BetaAnalyticsFederatedActorAWSProvider as BetaAnalyticsFederatedActorAWSProvider,
+    type BetaAnalyticsFederatedActorAzureProvider as BetaAnalyticsFederatedActorAzureProvider,
+    type BetaAnalyticsFederatedActorGCPProvider as BetaAnalyticsFederatedActorGCPProvider,
+    type BetaAnalyticsFederatedActorOIDCProvider as BetaAnalyticsFederatedActorOIDCProvider,
+    type BetaAnalyticsFederatedActorProvider as BetaAnalyticsFederatedActorProvider,
+    type BetaAnalyticsGroupedCostType as BetaAnalyticsGroupedCostType,
     type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
     type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
     type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
     type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
+    type BetaAnalyticsOrder as BetaAnalyticsOrder,
     type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
+    type BetaAnalyticsPluginChatCoworkUnifiedMetrics as BetaAnalyticsPluginChatCoworkUnifiedMetrics,
     type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
+    type BetaAnalyticsPluginGroupBy as BetaAnalyticsPluginGroupBy,
     type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
     type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsProjectGroupBy as BetaAnalyticsProjectGroupBy,
+    type BetaAnalyticsReportUserActor as BetaAnalyticsReportUserActor,
     type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
     type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
+    type BetaAnalyticsServiceAccountActor as BetaAnalyticsServiceAccountActor,
+    type BetaAnalyticsServiceTier as BetaAnalyticsServiceTier,
     type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
     type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
+    type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedMetrics as BetaAnalyticsSkillChatCoworkUnifiedMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics as BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
     type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
     type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
+    type BetaAnalyticsSkillGroupBy as BetaAnalyticsSkillGroupBy,
     type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
     type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
+    type BetaAnalyticsSpeed as BetaAnalyticsSpeed,
+    type BetaAnalyticsTimeBucketWidth as BetaAnalyticsTimeBucketWidth,
     type BetaAnalyticsTokenType as BetaAnalyticsTokenType,
     type BetaAnalyticsToolActionCounts as BetaAnalyticsToolActionCounts,
     type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
     type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
+    type BetaAnalyticsUsageCostInferenceGeo as BetaAnalyticsUsageCostInferenceGeo,
+    type BetaAnalyticsUsageCostProductFilter as BetaAnalyticsUsageCostProductFilter,
+    type BetaAnalyticsUsageCostSortOrder as BetaAnalyticsUsageCostSortOrder,
     type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
     type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
     type BetaAnalyticsUser as BetaAnalyticsUser,
     type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
     type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
+    type BetaAnalyticsUserGroupBy as BetaAnalyticsUserGroupBy,
   };
 
   export {
     SpendLimits as SpendLimits,
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
@@ -474,9 +735,11 @@ export declare namespace Organization {
     type BetaSpendLimitRBACGroupScope as BetaSpendLimitRBACGroupScope,
     type BetaSpendLimitScopedAPIKeyActor as BetaSpendLimitScopedAPIKeyActor,
     type BetaSpendLimitSeatTierScope as BetaSpendLimitSeatTierScope,
+    type BetaSpendLimitUsageTierScope as BetaSpendLimitUsageTierScope,
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
@@ -486,8 +749,8 @@ export declare namespace Organization {
 
   export {
     RBACGroups as RBACGroups,
+    type BetaDeletedRBACGroup as BetaDeletedRBACGroup,
     type BetaRBACGroup as BetaRBACGroup,
-    type RBACGroupDeleteResponse as RBACGroupDeleteResponse,
     type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,
@@ -503,17 +766,27 @@ export declare namespace Organization {
 
   export {
     Plugins as Plugins,
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,
@@ -535,5 +808,96 @@ export declare namespace Organization {
     type PluginMarketplaceListParams as PluginMarketplaceListParams,
     type PluginMarketplaceValidateArchiveParams as PluginMarketplaceValidateArchiveParams,
     type PluginMarketplaceValidateRepositoryParams as PluginMarketplaceValidateRepositoryParams,
+  };
+
+  export {
+    TelemetryDestinations as TelemetryDestinations,
+    type BetaDeletedTelemetryDestination as BetaDeletedTelemetryDestination,
+    type BetaTelemetryDestination as BetaTelemetryDestination,
+    type BetaTelemetryDestinationContentMode as BetaTelemetryDestinationContentMode,
+    type BetaTelemetryDestinationDeliveryHealth as BetaTelemetryDestinationDeliveryHealth,
+    type BetaTelemetryDestinationDisabledReason as BetaTelemetryDestinationDisabledReason,
+    type BetaTelemetryDestinationDisabledReasonCaller as BetaTelemetryDestinationDisabledReasonCaller,
+    type BetaTelemetryDestinationDisabledReasonInvalidAddress as BetaTelemetryDestinationDisabledReasonInvalidAddress,
+    type BetaTelemetryDestinationDisabledReasonRedirect as BetaTelemetryDestinationDisabledReasonRedirect,
+    type BetaTelemetryDestinationDisabledReasonSustainedFailure as BetaTelemetryDestinationDisabledReasonSustainedFailure,
+    type BetaTelemetryDestinationState as BetaTelemetryDestinationState,
+    type BetaTelemetryDestinationStateDisabled as BetaTelemetryDestinationStateDisabled,
+    type BetaTelemetryDestinationStateDisabledParams as BetaTelemetryDestinationStateDisabledParams,
+    type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
+    type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
+    type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
+    type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResponse as BetaTelemetryDestinationTestResponse,
+    type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
+    type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
+    type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
+    type BetaTelemetryDestinationTracesParams as BetaTelemetryDestinationTracesParams,
+    type BetaTelemetryDestinationWorkspaces as BetaTelemetryDestinationWorkspaces,
+    type BetaTelemetryDestinationWorkspacesAll as BetaTelemetryDestinationWorkspacesAll,
+    type BetaTelemetryDestinationWorkspacesAllParams as BetaTelemetryDestinationWorkspacesAllParams,
+    type BetaTelemetryDestinationWorkspacesExclude as BetaTelemetryDestinationWorkspacesExclude,
+    type BetaTelemetryDestinationWorkspacesExcludeParams as BetaTelemetryDestinationWorkspacesExcludeParams,
+    type BetaTelemetryDestinationWorkspacesInclude as BetaTelemetryDestinationWorkspacesInclude,
+    type BetaTelemetryDestinationWorkspacesIncludeParams as BetaTelemetryDestinationWorkspacesIncludeParams,
+    type BetaTelemetryDestinationWorkspacesParams as BetaTelemetryDestinationWorkspacesParams,
+    type BetaTelemetryDestinationsPageCursor as BetaTelemetryDestinationsPageCursor,
+    type TelemetryDestinationCreateParams as TelemetryDestinationCreateParams,
+    type TelemetryDestinationRetrieveParams as TelemetryDestinationRetrieveParams,
+    type TelemetryDestinationUpdateParams as TelemetryDestinationUpdateParams,
+    type TelemetryDestinationListParams as TelemetryDestinationListParams,
+    type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
+    type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
+  };
+
+  export {
+    Webhooks as Webhooks,
+    type BetaDeletedOrganizationWebhookEndpoint as BetaDeletedOrganizationWebhookEndpoint,
+    type BetaNewOrganizationWebhookEndpoint as BetaNewOrganizationWebhookEndpoint,
+    type BetaOrganizationWebhookEndpoint as BetaOrganizationWebhookEndpoint,
+    type BetaOrganizationWebhookEndpointSigningSecret as BetaOrganizationWebhookEndpointSigningSecret,
+    type BetaOrganizationWebhookEndpointState as BetaOrganizationWebhookEndpointState,
+    type BetaOrganizationWebhookEndpointsPage as BetaOrganizationWebhookEndpointsPage,
+    type WebhookCreateParams as WebhookCreateParams,
+    type WebhookRetrieveParams as WebhookRetrieveParams,
+    type WebhookUpdateParams as WebhookUpdateParams,
+    type WebhookListParams as WebhookListParams,
+    type WebhookDeleteParams as WebhookDeleteParams,
+    type WebhookRegenerateSigningSecretParams as WebhookRegenerateSigningSecretParams,
+  };
+
+  export {
+    ClaudeTag as ClaudeTag,
+    BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
+    BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
+    BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
+    BetaComplianceConfigurationRestrictedError as BetaComplianceConfigurationRestrictedError,
+    BetaOrganizationLevelScopedAPIKeyRequiredError as BetaOrganizationLevelScopedAPIKeyRequiredError,
+    BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
+    BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
+    type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
+    type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
+    type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
+    type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
+    type BetaClaudeTagGuestPolicyChannelOnly as BetaClaudeTagGuestPolicyChannelOnly,
+    type BetaClaudeTagGuestPolicyRestrict as BetaClaudeTagGuestPolicyRestrict,
+    type BetaClaudeTagSettingSource as BetaClaudeTagSettingSource,
+    type BetaClaudeTagSettingSources as BetaClaudeTagSettingSources,
+    type BetaClaudeTagSettings as BetaClaudeTagSettings,
+    type BetaClaudeTagSettingsCreate as BetaClaudeTagSettingsCreate,
+    type BetaClaudeTagSettingsUpdate as BetaClaudeTagSettingsUpdate,
+    type BetaClaudeTagSlackChannelIdentifiers as BetaClaudeTagSlackChannelIdentifiers,
+    type BetaClaudeTagSlackChannelSettingSource as BetaClaudeTagSlackChannelSettingSource,
+    type BetaClaudeTagSlackDefaultSettingSource as BetaClaudeTagSlackDefaultSettingSource,
+    type BetaClaudeTagSlackGridChannelSettingSource as BetaClaudeTagSlackGridChannelSettingSource,
+    type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
+    type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
+    type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
+    type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
+    type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
+    type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+    type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+    type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,
+    type BetaSlackChannelSetUpSettingsRefusedErrorDetails as BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   };
 }

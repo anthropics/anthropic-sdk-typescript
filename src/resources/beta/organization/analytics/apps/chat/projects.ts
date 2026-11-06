@@ -3,6 +3,7 @@ import * as AnalyticsAPI from '../../analytics';
 import { BetaAnalyticsProjectActivitiesPageCursor } from '../../analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../../../core/pagination';
 import { RequestOptions } from '../../../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../../../internal/tracing';
 
 export class Projects extends APIResource {
   /**
@@ -27,9 +28,32 @@ export class Projects extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsProjectActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsProjectActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/apps/chat/projects?beta=true',
+      '/v1/organizations/analytics/apps/chat/projects',
       PageCursor<AnalyticsAPI.BetaAnalyticsProjectActivity>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.analytics.apps.chat.projects.list',
+          options,
+          {
+            route: '/v1/organizations/analytics/apps/chat/projects',
+            queryParams: [
+              'date',
+              'ending_date',
+              'filter',
+              'group_by',
+              'limit',
+              'order',
+              'order_by',
+              'page',
+              'starting_date',
+            ],
+          },
+        ),
+      },
     );
   }
 }
@@ -75,7 +99,7 @@ export interface ProjectListParams extends PageCursorParams {
    * grouped rows are not an exclusive partition and can sum above org-level totals.
    * At most 100 entries.
    */
-  group_by?: Array<'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsProjectGroupBy> | null;
 
   /**
    * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
@@ -83,7 +107,7 @@ export interface ProjectListParams extends PageCursorParams {
    * to `order_by`, or to the endpoint's default sort field when `order_by` is
    * omitted.
    */
-  order?: 'asc' | 'desc' | null;
+  order?: AnalyticsAPI.BetaAnalyticsOrder | null;
 
   /**
    * Sort field. Restricted to the endpoint's sort column plus its rankable metrics

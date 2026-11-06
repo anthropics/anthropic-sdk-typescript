@@ -16,6 +16,10 @@ echo "==> Building"
 echo "==> Checking types"
 ./node_modules/typescript/bin/tsc
 
+echo "==> Checking published types"
+./node_modules/typescript/bin/tsc -p tsconfig.dist.json
+./node_modules/typescript/bin/tsc -p tsconfig.dist-tests.json
+
 echo "==> Running Are The Types Wrong?"
 node scripts/utils/attw.mjs dist
 node scripts/utils/attw-report.cjs

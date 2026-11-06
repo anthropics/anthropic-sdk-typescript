@@ -6,6 +6,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
 
@@ -42,6 +43,12 @@ export class Versions extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaUnsupportedCharsetError}
+   * @throws {BetaSkillNameTakenError}
+   * @throws {BetaRegistrationPendingError}
+   *
    * @example
    * ```ts
    * const betaPluginVersion =
@@ -58,7 +65,7 @@ export class Versions extends APIResource {
   ): APIPromise<BetaPluginVersion> {
     const { betas, ...body } = params;
     return this._client.post(
-      path`/v1/organizations/plugins/${pluginID}/versions?beta=true`,
+      path`/v1/organizations/plugins/${pluginID}/versions`,
       multipartFormRequestOptions(
         {
           body,
@@ -67,6 +74,12 @@ export class Versions extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
+          __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.create', options, {
+            route: '/v1/organizations/plugins/{plugin_id}/versions',
+            attributes: { 'anthropic.organization.plugin.id': pluginID },
+            createdIDAttribute: 'anthropic.organization.plugin.version.id',
+          }),
         },
         this._client,
       ),
@@ -102,13 +115,22 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginVersion> {
     const { plugin_id, betas, ...query } = params;
-    return this._client.get(path`/v1/organizations/plugins/${plugin_id}/versions/${version}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugins/${plugin_id}/versions/${version}`, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.retrieve', options, {
+        route: '/v1/organizations/plugins/{plugin_id}/versions/{version}',
+        queryParams: ['organization_id'],
+        attributes: {
+          'anthropic.organization.plugin.id': plugin_id,
+          'anthropic.organization.plugin.version.id': version,
+        },
+      }),
     });
   }
 
@@ -146,7 +168,7 @@ export class Versions extends APIResource {
   ): PagePromise<BetaPluginVersionsPageCursor, BetaPluginVersion> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/plugins/${pluginID}/versions?beta=true`,
+      path`/v1/organizations/plugins/${pluginID}/versions`,
       PageCursor<BetaPluginVersion>,
       {
         query,
@@ -155,6 +177,12 @@ export class Versions extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.list', options, {
+          route: '/v1/organizations/plugins/{plugin_id}/versions',
+          queryParams: ['limit', 'organization_id', 'page'],
+          attributes: { 'anthropic.organization.plugin.id': pluginID },
+        }),
       },
     );
   }
@@ -189,6 +217,9 @@ export class Versions extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -203,21 +234,27 @@ export class Versions extends APIResource {
    */
   download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
     const { plugin_id, betas, ...query } = params;
-    return this._client.get(
-      path`/v1/organizations/plugins/${plugin_id}/versions/${version}/content?beta=true`,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString(),
-            Accept: 'application/binary',
-          },
-          options?.headers,
-        ]),
-        __binaryResponse: true,
-      },
-    );
+    return this._client.get(path`/v1/organizations/plugins/${plugin_id}/versions/${version}/content`, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString(),
+          Accept: 'application/binary',
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __binaryResponse: true,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.download', options, {
+        route: '/v1/organizations/plugins/{plugin_id}/versions/{version}/content',
+        queryParams: ['organization_id'],
+        attributes: {
+          'anthropic.organization.plugin.id': plugin_id,
+          'anthropic.organization.plugin.version.id': version,
+        },
+      }),
+    });
   }
 }
 
@@ -250,7 +287,12 @@ export interface BetaPluginVersion {
   created_by: PluginsAPI.BetaPluginUserActor | PluginsAPI.BetaPluginAPIActor | null;
 
   /**
-   * The manifest's description; null when it declares none.
+   * The manifest's description; null when it declares none. The value can be longer
+   * than 500 characters, the limit on `description` in an uploaded manifest. A
+   * description that the manifest takes from a `SKILL.md` is cut to its first 500
+   * characters. So if the manifest's description is the first 500 characters of
+   * exactly one distinct skill `description` in `components`, that skill
+   * `description` is returned instead.
    */
   description: string | null;
 
@@ -260,7 +302,13 @@ export interface BetaPluginVersion {
   display_name: string | null;
 
   /**
-   * The version string the manifest declares; null when it declares none.
+   * The manifest's `version`, normalized for display: one leading `v` or `V` is
+   * dropped, and the result is returned only if it is 1 to 64 characters, starts
+   * with a digit, and uses only ASCII letters, digits, `.`, `+`, and `-`; otherwise
+   * `null`. For example, `"v1.4.0"` is returned as `"1.4.0"`, and `"latest"` as
+   * `null`. For a synchronized plugin, the `version` of its `marketplace.json` entry
+   * can take the place of the manifest's `version`. It is also `null` for a version
+   * stored before claude.ai began recording this field (August 2026).
    */
   manifest_version: string | null;
 
@@ -270,8 +318,8 @@ export interface BetaPluginVersion {
   plugin_id: string;
 
   /**
-   * How far the version reaches: `remote`, `privileged` or `contained`, as on the
-   * Plugin; null when not classifiable.
+   * How far the version reaches: `remote`, `privileged`, `contained`, or `null`, as
+   * defined on the Plugin's `reach`.
    */
   reach: 'contained' | 'privileged' | 'remote' | null;
 

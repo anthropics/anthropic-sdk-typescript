@@ -5,6 +5,7 @@ import { BetaManagedAgentsAgentsPageCursor } from './agents';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Versions extends APIResource {
@@ -28,7 +29,7 @@ export class Versions extends APIResource {
   ): PagePromise<BetaManagedAgentsAgentsPageCursor, AgentsAPI.BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/agents/${agentID}/versions?beta=true`,
+      path`/v1/agents/${agentID}/versions`,
       PageCursor<AgentsAPI.BetaManagedAgentsAgent>,
       {
         query,
@@ -40,6 +41,12 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.agents.versions.list', options, {
+          route: '/v1/agents/{agent_id}/versions',
+          queryParams: ['limit', 'page'],
+          attributes: { 'gen_ai.agent.id': agentID },
+        }),
       },
     );
   }
@@ -47,7 +54,8 @@ export class Versions extends APIResource {
 
 export interface VersionListParams extends PageCursorParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

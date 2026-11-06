@@ -4,6 +4,7 @@ import { APIPromise } from '../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
 export class Dreams extends APIResource {
@@ -30,7 +31,7 @@ export class Dreams extends APIResource {
    */
   create(params: DreamCreateParams, options?: RequestOptions): APIPromise<BetaDream> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/dreams?beta=true', {
+    return this._client.post('/v1/dreams', {
       body,
       ...options,
       headers: buildHeaders([
@@ -40,6 +41,11 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.dreams.create', options, {
+        route: '/v1/dreams',
+        createdIDAttribute: 'anthropic.dream.id',
+      }),
     });
   }
 
@@ -65,7 +71,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/dreams/${dreamID}?beta=true`, {
+    return this._client.get(path`/v1/dreams/${dreamID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -74,6 +80,11 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.dreams.retrieve', options, {
+        route: '/v1/dreams/{dream_id}',
+        attributes: { 'anthropic.dream.id': dreamID },
+      }),
     });
   }
 
@@ -99,7 +110,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaDreamsPageCursor, BetaDream> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/dreams?beta=true', PageCursor<BetaDream>, {
+    return this._client.getAPIList('/v1/dreams', PageCursor<BetaDream>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -109,6 +120,11 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.dreams.list', options, {
+        route: '/v1/dreams',
+        queryParams: ['created_at[gt]', 'created_at[lt]', 'include_archived', 'limit', 'page', 'statuses'],
+      }),
     });
   }
 
@@ -137,7 +153,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/archive?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -146,6 +162,11 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.dreams.archive', options, {
+        route: '/v1/dreams/{dream_id}/archive',
+        attributes: { 'anthropic.dream.id': dreamID },
+      }),
     });
   }
 
@@ -174,7 +195,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {
@@ -183,6 +204,11 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.dreams.cancel', options, {
+        route: '/v1/dreams/{dream_id}/cancel',
+        attributes: { 'anthropic.dream.id': dreamID },
+      }),
     });
   }
 }
@@ -198,8 +224,8 @@ export type BetaDreamsPageCursor = PageCursor<BetaDream>;
  * writes its result into the input memory store instead.
  *
  * The Dreams API is in research preview: the request and response shapes are
- * volatile and may change without the deprecation period that applies to
- * generally-available endpoints.
+ * volatile and may change without the deprecation period that applies to stable
+ * endpoints.
  *
  * See the
  * [Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#how-it-works)
@@ -393,7 +419,7 @@ export interface BetaDreamModelConfigParam {
    * The ID can be 1 to 256 characters long.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   id: string;
@@ -431,10 +457,6 @@ export interface BetaDreamSessionsInput {
    *
    * Give 1 to 100 IDs, with no duplicates. Each session must be in the same
    * workspace as the dream. Responses list the IDs in sorted order.
-   *
-   * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
-   * lists all the limits on a dream.
    */
   session_ids: Array<string>;
 
@@ -454,18 +476,15 @@ export interface BetaDreamSessionsInput {
  * - `pending` - The dream is waiting to start and hasn't read its inputs yet.
  *
  *   `outputs` is empty and every `usage` count is zero.
- *
  * - `running` - The dream is reading its inputs and writing its result.
  *
  *   `usage` updates while the dream has this status.
- *
  * - `completed` - The dream finished and its output memory store holds the
  *   complete result.
  * - `failed` - The dream stopped with an error, which `error` describes.
  *
  *   If `outputs` references a memory store, that memory store keeps what the dream
  *   wrote before it stopped.
- *
  * - `canceled` - A cancel request stopped the dream before it reached `completed`
  *   or `failed`.
  *
@@ -571,10 +590,6 @@ export interface BetaOutputBehaviorUpdateExisting {
 export interface BetaTargetStoreHeldError {
   type: 'conflict_error';
 
-  /**
-   * A human-readable explanation of why the memory store can't be used yet, with the
-   * ID of the dream that is using it when the server can identify it.
-   */
   message?: string;
 }
 
@@ -592,7 +607,7 @@ export interface DreamCreateParams {
    * In the object form, `speed` can only be `standard`.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   model: string | BetaDreamModelConfigParam;
@@ -614,7 +629,8 @@ export interface DreamCreateParams {
   output_behavior?: BetaOutputBehavior;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send `dreaming-2026-04-21`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -631,7 +647,8 @@ export interface DreamCreateParams {
 
 export interface DreamRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -673,7 +690,8 @@ export interface DreamListParams extends PageCursorParams {
   statuses?: Array<BetaDreamStatus>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send `dreaming-2026-04-21`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -690,7 +708,8 @@ export interface DreamListParams extends PageCursorParams {
 
 export interface DreamArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -707,7 +726,8 @@ export interface DreamArchiveParams {
 
 export interface DreamCancelParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

@@ -82,6 +82,7 @@ export function oidcFederationProvider(config: OIDCFederationConfig): AccessToke
     try {
       resp = await config.fetch(url, {
         method: 'POST',
+        redirect: 'manual',
         headers: {
           'Content-Type': 'application/json',
           'anthropic-beta': `${OAUTH_API_BETA_HEADER},${FEDERATION_BETA_HEADER}`,

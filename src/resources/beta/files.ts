@@ -5,6 +5,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagin
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { stainlessHelperHeaderFromFile } from '../../internal/stainless-helper-header';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
@@ -12,6 +13,11 @@ import { path } from '../../internal/utils/path';
 export class Files extends APIResource {
   /**
    * List Files
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -26,7 +32,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaFileMetadataPageCursor, BetaFileMetadata> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files?beta=true', PageCursor<BetaFileMetadata>, {
+    return this._client.getAPIList('/v1/files', PageCursor<BetaFileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -36,11 +42,21 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.files.list', options, {
+        route: '/v1/files',
+        queryParams: ['ids', 'limit', 'page', 'scope_id'],
+      }),
     });
   }
 
   /**
    * Delete File
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -55,7 +71,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedFile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
+    return this._client.delete(path`/v1/files/${fileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -64,11 +80,23 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.files.delete', options, {
+        route: '/v1/files/{file_id}',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
   /**
    * Download File
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {FileNotDownloadableError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {FileExpiredError}
    *
    * @example
    * ```ts
@@ -86,7 +114,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Response> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
+    return this._client.get(path`/v1/files/${fileID}/content`, {
       ...options,
       headers: buildHeaders([
         {
@@ -96,12 +124,22 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __binaryResponse: true,
+      __span: startApiCallSpan(this._client, 'anthropic.files.download', options, {
+        route: '/v1/files/{file_id}/content',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
   /**
    * Get File Metadata
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -115,7 +153,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFileMetadata> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}?beta=true`, {
+    return this._client.get(path`/v1/files/${fileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -124,11 +162,22 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.files.retrieve_metadata', options, {
+        route: '/v1/files/{file_id}',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
   /**
    * Upload File
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {StorageQuotaExceededError}
    *
    * @example
    * ```ts
@@ -140,7 +189,7 @@ export class Files extends APIResource {
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<BetaFileMetadata> {
     const { betas, workspace_id, ...body } = params;
     return this._client.post(
-      '/v1/files?beta=true',
+      '/v1/files',
       multipartFormRequestOptions(
         {
           body,
@@ -153,6 +202,11 @@ export class Files extends APIResource {
             stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
+          __span: startApiCallSpan(this._client, 'anthropic.files.upload', options, {
+            route: '/v1/files',
+            createdIDAttribute: 'anthropic.file.id',
+          }),
         },
         this._client,
       ),

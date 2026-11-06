@@ -1,6 +1,6 @@
 import { FromSchema, JSONSchema } from 'json-schema-to-ts';
 import { Promisable, BetaRunnableTool, BetaToolRunContext } from '../../lib/tools/BetaRunnableTool';
-import { BetaToolResultContentBlockParam } from '../../resources/beta';
+import { BetaTool, BetaToolResultContentBlockParam } from '../../resources/beta';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { AnthropicError } from '../..';
 import { transformJSONSchema } from '../../lib/transform-json-schema';
@@ -11,36 +11,41 @@ type NoInfer<T> = T extends infer R ? R : never;
  * Creates a Tool with a provided JSON schema that can be passed
  * to the `.toolRunner()` method. The schema is used to automatically validate
  * the input arguments for the tool.
+ *
+ * Every other field of the tool definition, such as `strict` or `cache_control`,
+ * can be passed too and is sent to the API as given.
  */
-export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { type: 'object' }>(options: {
-  name: string;
-  inputSchema: Schema;
-  description: string;
-  run: (
-    args: NoInfer<FromSchema<Schema>>,
-    context?: BetaToolRunContext,
-  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-  /**
-   * Optional cleanup hook for tools that hold process-level resources (e.g. a
-   * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
-   * when iteration ends.
-   */
-  close?: () => void | Promise<void>;
-}): BetaRunnableTool<NoInfer<FromSchema<Schema>>> {
-  if (options.inputSchema.type !== 'object') {
-    throw new Error(
-      `JSON schema for tool "${options.name}" must be an object, but got ${options.inputSchema.type}`,
-    );
+export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { type: 'object' }>(
+  options: {
+    name: string;
+    inputSchema: Schema;
+    description: string;
+    run: (
+      args: NoInfer<FromSchema<Schema>>,
+      context?: BetaToolRunContext,
+    ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+    /**
+     * Optional cleanup hook for tools that hold process-level resources (e.g. a
+     * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
+     * when iteration ends.
+     */
+    close?: () => void | Promise<void>;
+  } & Omit<BetaTool, 'type' | 'name' | 'description' | 'input_schema'>,
+): BetaRunnableTool<NoInfer<FromSchema<Schema>>> {
+  const { name, inputSchema, description, run, ...extraProps } = options;
+
+  if (inputSchema.type !== 'object') {
+    throw new Error(`JSON schema for tool "${name}" must be an object, but got ${inputSchema.type}`);
   }
 
   return {
+    ...extraProps,
     type: 'custom',
-    name: options.name,
-    input_schema: options.inputSchema,
-    description: options.description,
-    run: options.run,
+    name,
+    input_schema: inputSchema,
+    description,
+    run,
     parse: (content: unknown) => content as FromSchema<Schema>,
-    ...(options.close ? { close: options.close } : {}),
   } as any;
 }
 

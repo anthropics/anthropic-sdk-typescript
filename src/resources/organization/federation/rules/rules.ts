@@ -10,6 +10,7 @@ import {
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Rules extends APIResource {
@@ -52,7 +53,14 @@ export class Rules extends APIResource {
    * ```
    */
   create(body: RuleCreateParams, options?: RequestOptions): APIPromise<FederationRule> {
-    return this._client.post('/v1/organizations/federation_rules', { body, ...options });
+    return this._client.post('/v1/organizations/federation_rules', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.create', options, {
+        route: '/v1/organizations/federation_rules',
+        createdIDAttribute: 'anthropic.organization.federation_rule.id',
+      }),
+    });
   }
 
   /**
@@ -72,7 +80,13 @@ export class Rules extends APIResource {
    * ```
    */
   retrieve(federationRuleID: string, options?: RequestOptions): APIPromise<FederationRule> {
-    return this._client.get(path`/v1/organizations/federation_rules/${federationRuleID}`, options);
+    return this._client.get(path`/v1/organizations/federation_rules/${federationRuleID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.retrieve', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
+    });
   }
 
   /**
@@ -103,6 +117,7 @@ export class Rules extends APIResource {
    * const federationRule =
    *   await client.organization.federation.rules.update(
    *     'federation_rule_id',
+   *     {},
    *   );
    * ```
    */
@@ -114,6 +129,10 @@ export class Rules extends APIResource {
     return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.update', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 
@@ -143,6 +162,10 @@ export class Rules extends APIResource {
     return this._client.getAPIList('/v1/organizations/federation_rules', PageCursor<FederationRule>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.list', options, {
+        route: '/v1/organizations/federation_rules',
+        queryParams: ['include_archived', 'issuer_id', 'limit', 'page'],
+      }),
     });
   }
 
@@ -170,7 +193,13 @@ export class Rules extends APIResource {
    * ```
    */
   archive(federationRuleID: string, options?: RequestOptions): APIPromise<FederationRule> {
-    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/archive`, options);
+    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/archive`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.archive', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}/archive',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
+    });
   }
 }
 
@@ -253,8 +282,9 @@ export interface FederationRule {
   oauth_scope: string;
 
   /**
-   * Identity that tokens minted via this rule act as. Currently always a
-   * `service_account` target.
+   * What this rule targets. Check `type` before reading the other fields. Tokens
+   * minted via a rule whose target `type` is `service_account` act as that service
+   * account.
    */
   target: ServiceAccountTarget;
 

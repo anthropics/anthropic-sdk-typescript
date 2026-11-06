@@ -3,13 +3,14 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource memories', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.memoryStores.memories.create('memory_store_id', {
       content: 'content',
-      path: 'xx',
+      path: '/P',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -23,7 +24,7 @@ describe('resource memories', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.memoryStores.memories.create('memory_store_id', {
       content: 'content',
-      path: 'xx',
+      path: '/P',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -70,15 +71,17 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       view: 'basic',
       content: 'content',
-      path: 'xx',
-      precondition: { type: 'content_sha256', content_sha256: 'content_sha256' },
+      path: '/P',
+      precondition: {
+        type: 'content_sha256',
+        content_sha256: '210b9798eb53baa4e69d31c1071cf03d212b8ad0ca30cf321e0ea82e120aac26',
+      },
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.memoryStores.memories.list('memory_store_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -89,8 +92,7 @@ describe('resource memories', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.memoryStores.memories.list(

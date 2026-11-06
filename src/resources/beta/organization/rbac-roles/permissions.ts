@@ -1,6 +1,7 @@
 import { APIResource } from '../../../../core/resource';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Permissions extends APIResource {
@@ -25,9 +26,23 @@ export class Permissions extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaRBACRolePermissionsPageCursor, BetaRBACRolePermission> {
     return this._client.getAPIList(
-      path`/v1/organizations/rbac_roles/${rbacRoleID}/permissions?beta=true`,
+      path`/v1/organizations/rbac_roles/${rbacRoleID}/permissions`,
       PageCursor<BetaRBACRolePermission>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.rbac_roles.permissions.list',
+          options,
+          {
+            route: '/v1/organizations/rbac_roles/{rbac_role_id}/permissions',
+            queryParams: ['limit', 'page'],
+            attributes: { 'anthropic.organization.rbac_role.id': rbacRoleID },
+          },
+        ),
+      },
     );
   }
 }
@@ -117,17 +132,18 @@ export interface BetaRBACRolePermission {
    * The vocabulary follows the resource: an `organization` grant carries a
    * product-feature entitlement (for example `chat`), an admin-panel permission
    * entitlement (`permission_*`), or a blanket capability-access mode —
-   * `capability_access_all` grants every product-feature entitlement, and
-   * `capability_access_all_ga` grants the generally-available subset as it stands at
-   * permission-check time; neither mode grants model-access entitlements. A consumer
-   * enumerating a role's per-feature grants should treat a blanket row as granting
-   * every product-feature entitlement it covers, or it will under-report the role's
-   * effective access. A `connector_tool` grant carries a tool-access action (`use`
-   * or `always_allow`); a `connector_scope` grant carries the scope action `grant`
-   * (the role may receive the named OAuth scope when tokens are minted for the
-   * connector); `connector` and `all_connectors` grants carry a tool-access action,
-   * the scope action, or an authentication-method action (`interactive` or
-   * `managed`).
+   * `capability_access_all` grants every product-feature entitlement except
+   * `inference_hooks_inspection`, which a role holds only through its own row, and
+   * `capability_access_all_ga` grants the subset of those for stable features as it
+   * stands at permission-check time; neither mode grants model-access entitlements.
+   * A consumer enumerating a role's per-feature grants should treat a blanket row as
+   * granting every product-feature entitlement it covers, or it will under-report
+   * the role's effective access. A `connector_tool` grant carries a tool-access
+   * action (`use` or `always_allow`); a `connector_scope` grant carries the scope
+   * action `grant` (the role may receive the named OAuth scope when tokens are
+   * minted for the connector); `connector` and `all_connectors` grants carry a
+   * tool-access action, the scope action, or an authentication-method action
+   * (`interactive` or `managed`).
    */
   action: string;
 

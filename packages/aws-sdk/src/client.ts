@@ -1,10 +1,12 @@
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
-import { readEnv, loggerFor } from './internal/utils';
+import { readEnv, loggerFor, rejectUnsupportedCredentials, type PlatformCredentials } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
+import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
@@ -13,6 +15,12 @@ import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
 
 const DEFAULT_SERVICE_NAME = 'aws-external-anthropic';
+
+const CREDENTIALS: PlatformCredentials = {
+  accepts: ['apiKey', 'authToken'],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicAws; authentication uses an API key (\`apiKey\`) or AWS credentials (SigV4).`,
+};
 
 export interface AwsClientOptions extends ClientOptions {
   /**
@@ -29,13 +37,16 @@ export interface AwsClientOptions extends ClientOptions {
   awsRegion?: string | undefined;
 
   /**
-   * API key for x-api-key authentication.
+   * API key, sent as `Authorization: Bearer <key>`.
    *
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `ANTHROPIC_AWS_API_KEY`
    * environment variable, then to `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
    * from the environment, then to the default AWS credential chain. `null`
-   * is treated like `undefined` (all fallbacks still apply).
+   * skips `ANTHROPIC_AWS_API_KEY`.
+   *
+   * Mutually exclusive with `authToken`. When `authToken` is passed,
+   * `ANTHROPIC_AWS_API_KEY` is not read.
    */
   apiKey?: string | null | undefined;
 
@@ -100,6 +111,16 @@ const noRegionError = () =>
 
 /** API Client for interfacing with the Anthropic AWS API. */
 export class AnthropicAws extends Anthropic {
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'aws', version: PACKAGE_VERSION };
+  }
+
+  override userProfiles: WithoutActionURLs<Resources.UserProfiles> = withoutActionURLs(
+    new Resources.UserProfiles(this),
+  );
+  override beta: BetaResource = makeBetaResource(this);
+
   awsRegion: string | undefined;
   awsAccessKey: string | null;
   awsSecretAccessKey: string | null;
@@ -124,9 +145,10 @@ export class AnthropicAws extends Anthropic {
    * Auth is resolved by precedence: `apiKey` constructor arg > explicit AWS
    * credentials > `awsProfile` > `ANTHROPIC_AWS_API_KEY` env var >
    * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
-   * credential chain.
+   * credential chain. The `credentials`, `config`, and `profile` options
+   * throw an `AnthropicError`.
    *
-   * @param {string | undefined} [opts.apiKey] - API key for x-api-key authentication.
+   * @param {string | undefined} [opts.apiKey] - API key for Bearer token authentication.
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSecretAccessKey] - AWS secret access key for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSessionToken] - AWS session token for temporary credentials.
@@ -155,15 +177,10 @@ export class AnthropicAws extends Anthropic {
     providerChainResolver = null,
     workspaceId,
     skipAuth = false,
-    // Never forwarded to `super()`: they are not valid auth for the AWS
-    // gateway, and resolving them would pollute requests with OAuth headers
-    // and let a config-supplied `base_url` redirect signed traffic. A warning
-    // is emitted below instead (after `super()`, once the logger exists).
-    credentials,
-    config,
-    profile,
     ...opts
   }: AwsClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
     // Region resolution: arg > AWS_REGION env > AWS_DEFAULT_REGION env > ~/.aws/config (async).
     // The first three are resolved here; config-file fallback is kicked off below and
     // awaited on `ready` / first request.
@@ -185,7 +202,9 @@ export class AnthropicAws extends Anthropic {
     // 1. apiKey constructor arg
     // 2. awsAccessKey/awsSecretAccessKey constructor args (SigV4)
     // 3. awsProfile constructor arg (SigV4)
-    // 4. ANTHROPIC_AWS_API_KEY env var
+    // 4. ANTHROPIC_AWS_API_KEY env var, unless `apiKey` is `null`, which clears
+    //    the key as in `withOptions({ apiKey: null })`, or an `authToken` was
+    //    passed: the base client rejects a key together with a token
     // 5. Default AWS credential chain (SigV4)
     const hasExplicitApiKey = apiKey != null;
     const hasPartialAwsCreds = (awsAccessKey != null) !== (awsSecretAccessKey != null);
@@ -200,7 +219,7 @@ export class AnthropicAws extends Anthropic {
     let resolvedApiKey: string | undefined;
     if (hasExplicitApiKey) {
       resolvedApiKey = apiKey;
-    } else if (!hasExplicitAwsCreds && !hasAwsProfile) {
+    } else if (apiKey === undefined && !hasExplicitAwsCreds && !hasAwsProfile && opts.authToken == null) {
       resolvedApiKey = readEnv('ANTHROPIC_AWS_API_KEY') ?? undefined;
     }
 
@@ -215,8 +234,7 @@ export class AnthropicAws extends Anthropic {
       // `null`, not `undefined`: `undefined` makes the base client fall back
       // to the ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN env vars, which are
       // not auth sources for the AWS gateway — the key would flip
-      // `withOptions()` clones out of SigV4 mode, and the token would be sent
-      // as a stray bearer header in API-key mode. An `authToken` passed in
+      // `withOptions()` clones out of SigV4 mode. An `authToken` passed in
       // `opts` (as the environment helpers' clones do) still wins here.
       apiKey: resolvedApiKey ?? null,
       authToken: null,
@@ -228,17 +246,6 @@ export class AnthropicAws extends Anthropic {
       // header, which a `workspaceId` override must beat.
       defaultHeaders: buildHeaders([opts.defaultHeaders, { 'anthropic-workspace-id': resolvedWorkspaceId }]),
     });
-
-    // Warn rather than throw so existing constructions keep working — these
-    // options never authenticated anything against the AWS gateway anyway.
-    // `credentials: null` stays silent: the base `withOptions()` forwards it
-    // on every clone.
-    if (credentials != null || config != null || profile != null) {
-      loggerFor(this).warn(
-        '`credentials`, `config`, and `profile` are not supported by the AWS client and were ignored. ' +
-          'Authenticate with `apiKey` or AWS credentials (SigV4) instead.',
-      );
-    }
 
     // Only a caller-supplied base URL (arg or env) is an explicit choice; the
     // region-derived one must stay re-derivable so clones honour an
@@ -287,7 +294,7 @@ export class AnthropicAws extends Anthropic {
     }
   }
 
-  // Auth is SigV4 or x-api-key only; never resolve unrelated local Anthropic
+  // Auth is SigV4 or an API key only; never resolve unrelated local Anthropic
   // credentials (which could also supply a base URL).
   protected override _shouldResolveDefaultCredentials(): boolean {
     return false;
@@ -334,7 +341,7 @@ export class AnthropicAws extends Anthropic {
     }
 
     if (!this._useSigV4) {
-      // API key mode — use inherited x-api-key auth
+      // API key mode — use inherited API key auth
       return super.authHeaders(opts);
     }
 
@@ -387,4 +394,27 @@ export class AnthropicAws extends Anthropic {
     // over the wire, so it can't be overridden by other header sources.
     return { ...request, headers: buildHeaders([request.headers, headers]).values };
   }
+}
+
+/**
+ * The AWS gateway serves user profiles but not their action URLs.
+ */
+type WithoutActionURLs<Resource> = Resource & { actionURLs: never };
+
+type BetaResource = Resources.Beta & { userProfiles: WithoutActionURLs<Resources.Beta['userProfiles']> };
+
+function makeBetaResource(client: AnthropicAws): BetaResource {
+  const resource = new Resources.Beta(client);
+  withoutActionURLs(resource.userProfiles);
+  return resource as BetaResource;
+}
+
+function withoutActionURLs<Resource extends object>(resource: Resource): WithoutActionURLs<Resource> {
+  Object.defineProperty(resource, 'actionURLs', {
+    enumerable: false,
+    get() {
+      throw new Errors.AnthropicError('User profile action URLs are not available on `AnthropicAws`.');
+    },
+  });
+  return resource as WithoutActionURLs<Resource>;
 }

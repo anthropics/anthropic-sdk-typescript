@@ -53,6 +53,30 @@ export const validatePositiveInteger = (name: string, n: unknown): number => {
   return n;
 };
 
+export const CREDENTIAL_OPTIONS = ['apiKey', 'authToken', 'credentials', 'config', 'profile'] as const;
+
+export type CredentialOption = (typeof CREDENTIAL_OPTIONS)[number];
+
+export type PlatformCredentials = {
+  /** The first-party credential options the platform client takes. It rejects the rest. */
+  accepts: readonly CredentialOption[];
+  unsupportedOptionMessage: (option: CredentialOption) => string;
+};
+
+/**
+ * Throws when `options` holds a first-party credential option that a platform
+ * client does not accept, so that a new one is rejected until the client opts
+ * in. `null` passes, because the base `withOptions` fills the credential
+ * options it clears with `null`.
+ */
+export const rejectUnsupportedCredentials = (options: object, platform: PlatformCredentials): void => {
+  for (const name of CREDENTIAL_OPTIONS) {
+    if (!platform.accepts.includes(name) && (options as Record<string, unknown>)[name] != null) {
+      throw new AnthropicError(platform.unsupportedOptionMessage(name));
+    }
+  }
+};
+
 export const coerceInteger = (value: unknown): number => {
   if (typeof value === 'number') return Math.round(value);
   if (typeof value === 'string') return parseInt(value, 10);

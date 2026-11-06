@@ -6,6 +6,27 @@ const client = new Anthropic({
 });
 
 describe('resource rateLimits', () => {
+  test('update: only required params', async () => {
+    const responsePromise = client.organization.workspaces.rateLimits.update('rate_limit_id', {
+      workspace_id: 'workspace_id',
+      limits: [{ type: 'fast_itpmca', value: 0 }],
+    });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('update: required and optional params', async () => {
+    const response = await client.organization.workspaces.rateLimits.update('rate_limit_id', {
+      workspace_id: 'workspace_id',
+      limits: [{ type: 'fast_itpmca', value: 0 }],
+    });
+  });
+
   test('list', async () => {
     const responsePromise = client.organization.workspaces.rateLimits.list('workspace_id');
     const rawResponse = await responsePromise.asResponse();

@@ -9,6 +9,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core
 import { Stream } from '../../../../core/streaming';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Events extends APIResource {
@@ -19,7 +20,7 @@ export class Events extends APIResource {
    * ```ts
    * // Automatically fetches more pages as needed.
    * for await (const betaManagedAgentsSessionEvent of client.beta.sessions.threads.events.list(
-   *   'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *   'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *   { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    * )) {
    *   // ...
@@ -33,7 +34,7 @@ export class Events extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, EventsAPI.BetaManagedAgentsSessionEvent> {
     const { session_id, betas, workspace_id, ...query } = params;
     return this._client.getAPIList(
-      path`/v1/sessions/${session_id}/threads/${threadID}/events?beta=true`,
+      path`/v1/sessions/${session_id}/threads/${threadID}/events`,
       PageCursor<EventsAPI.BetaManagedAgentsSessionEvent>,
       {
         query,
@@ -45,6 +46,12 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.list', options, {
+          route: '/v1/sessions/{session_id}/threads/{thread_id}/events',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+        }),
       },
     );
   }
@@ -54,11 +61,14 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionThreadEvents =
+   * const stream =
    *   await client.beta.sessions.threads.events.stream(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
+   * for await (const betaManagedAgentsStreamSessionThreadEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(
@@ -67,7 +77,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Stream<ThreadsAPI.BetaManagedAgentsStreamSessionThreadEvents>> {
     const { session_id, betas, workspace_id, ...query } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}/stream?beta=true`, {
+    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}/stream`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -78,6 +88,12 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.stream', options, {
+        route: '/v1/sessions/{session_id}/threads/{thread_id}/stream',
+        queryParams: ['event_deltas'],
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+      }),
     }) as APIPromise<Stream<ThreadsAPI.BetaManagedAgentsStreamSessionThreadEvents>>;
   }
 }
@@ -89,7 +105,8 @@ export interface EventListParams extends PageCursorParams {
   session_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -125,7 +142,8 @@ export interface EventStreamParams {
   event_deltas?: Array<SessionsAPI.BetaManagedAgentsDeltaType>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

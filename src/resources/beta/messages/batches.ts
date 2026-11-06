@@ -5,6 +5,7 @@ import * as BetaMessagesAPI from './messages';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 import { AnthropicError } from '../../../error';
 import { path } from '../../../internal/utils/path';
@@ -21,6 +22,11 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {EnforcedSpendLimitReachedError}
+   *
    * @example
    * ```ts
    * const betaMessageBatch =
@@ -33,7 +39,7 @@ export class Batches extends APIResource {
    *           messages: [
    *             { content: 'Hello, world', role: 'user' },
    *           ],
-   *           model: 'claude-opus-5',
+   *           model: 'claude-opus-5-5',
    *         },
    *       },
    *     ],
@@ -42,7 +48,7 @@ export class Batches extends APIResource {
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
     const { betas, user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/batches?beta=true', {
+    return this._client.post('/v1/messages/batches', {
       body,
       ...options,
       headers: buildHeaders([
@@ -53,6 +59,13 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
+        route: '/v1/messages/batches',
+        // A request without `requests` is for the API to refuse, not for this line to throw on.
+        attributes: { 'anthropic.message.batch.request_count': body.requests?.length },
+        createdIDAttribute: 'anthropic.message.batch.id',
+      }),
     });
   }
 
@@ -63,6 +76,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -78,7 +94,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -87,6 +103,11 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.retrieve', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -96,6 +117,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -110,7 +134,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
+    return this._client.getAPIList('/v1/messages/batches', Page<BetaMessageBatch>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -120,6 +144,11 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.list', options, {
+        route: '/v1/messages/batches',
+        queryParams: ['after_id', 'before_id', 'limit'],
+      }),
     });
   }
 
@@ -131,6 +160,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -146,7 +178,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -155,6 +187,11 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.delete', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -172,6 +209,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaMessageBatch =
@@ -186,7 +226,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {
@@ -195,6 +235,11 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.cancel', options, {
+        route: '/v1/messages/batches/{message_batch_id}/cancel',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -208,12 +253,18 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
-   * const betaMessageBatchIndividualResponse =
-   *   await client.beta.messages.batches.results(
-   *     'message_batch_id',
-   *   );
+   * const stream = await client.beta.messages.batches.results(
+   *   'message_batch_id',
+   * );
+   * for await (const betaMessageBatchIndividualResponse of stream) {
+   *   // ...
+   * }
    * ```
    */
   async results(
@@ -241,7 +292,12 @@ export class Batches extends APIResource {
           options?.headers,
         ]),
         stream: true,
+        __qualifiers: { beta: 'true' },
         __binaryResponse: true,
+        __span: startApiCallSpan(this._client, 'anthropic.messages.batches.results', options, {
+          route: '/v1/messages/batches/{message_batch_id}/results',
+          attributes: { 'anthropic.message.batch.id': messageBatchID },
+        }),
       })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
       JSONLDecoder<BetaMessageBatchIndividualResponse>
@@ -442,10 +498,9 @@ export interface BatchCreateParams {
 
   /**
    * Header param: The user profile ID to attribute the requests in this batch to.
-   * Use when acting on behalf of a party other than your organization. Requires the
-   * `user-profiles` beta header. Applies to every request in the batch; an
-   * individual request whose `user_profile_id` body field conflicts with this header
-   * is errored.
+   * Use when acting on behalf of a party other than your organization. Applies to
+   * every request in the batch; an individual request whose `user_profile_id` body
+   * field conflicts with this header is errored.
    */
   user_profile_id?: string;
 
@@ -520,7 +575,10 @@ export namespace BatchCreateParams {
        *
        * If the final message uses the `assistant` role, the response content will
        * continue immediately from the content in that message. This can be used to
-       * constrain part of the model's response.
+       * constrain part of the model's response. This is called prefill. On models that
+       * don't support prefill, creating a message that ends with a partial `assistant`
+       * response returns a 400 error. See
+       * [Prefill not supported](https://platform.claude.com/docs/en/api/errors#prefill-not-supported).
        *
        * Example with a single `user` message:
        *
@@ -538,7 +596,8 @@ export namespace BatchCreateParams {
        * ]
        * ```
        *
-       * Example with a partially-filled response from Claude:
+       * Example with a partially-filled response from Claude, for models that support
+       * prefill:
        *
        * ```json
        * [
@@ -568,8 +627,7 @@ export namespace BatchCreateParams {
        *
        * Note that if you want to include a
        * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
-       * you can use the top-level `system` parameter — there is no `"system"` role for
-       * input messages in the Messages API.
+       * you can use the top-level `system` parameter.
        *
        * There is a limit of 100,000 messages in a single request.
        */
@@ -648,8 +706,12 @@ export namespace BatchCreateParams {
       /**
        * Opt-in server-side retry on one or more substitute models when the requested
        * model declines for policy reasons. Tried in order: if the first entry also
-       * declines, the second is tried, and so on. The string "default" requests the
-       * requested model's server-defined default fallback configuration.
+       * declines, the second is tried, and so on. Some models don't support fallbacks;
+       * on those models, a list of fallback models returns a 400 error. See
+       * [Server-side fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#server-side-fallback).
+       * The string "default" requests the requested model's server-defined default
+       * fallback configuration. On a model that doesn't support fallbacks, the request
+       * runs on the requested model alone, so a declined request stays declined.
        */
       fallbacks?: BetaMessagesAPI.BetaFallbacksParam | null;
 
@@ -696,6 +758,11 @@ export namespace BatchCreateParams {
       /**
        * The inference speed mode for this request. `"fast"` enables high
        * output-tokens-per-second inference.
+       *
+       * Some models require the `fast-mode-2026-02-01` beta header for any `speed`
+       * value. See
+       * [fast mode](https://platform.claude.com/docs/en/build-with-claude/fast-mode) for
+       * which models.
        */
       speed?: 'standard' | 'fast' | null;
 
@@ -734,24 +801,27 @@ export namespace BatchCreateParams {
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 will be accepted for backwards
-       * compatibility, all other values will be rejected with a 400 error.
-       */
-      temperature?: number;
-
-      /**
-       * Configuration for enabling Claude's extended thinking.
+       * Configuration for Claude's thinking.
        *
-       * When enabled, responses include `thinking` content blocks showing Claude's
-       * thinking process before the final answer. Requires a minimum budget of 1,024
-       * tokens and counts towards your `max_tokens` limit.
+       * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
+       * `{"type": "enabled"}` (manual extended thinking), you set a `budget_tokens` of
+       * at least 1,024. Thinking tokens count toward your `max_tokens` limit.
        *
-       * See
-       * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
-       * for details.
+       * Which `type` values are accepted, and what happens when you omit `thinking`,
+       * depend on the model. See
+       * [thinking](https://platform.claude.com/docs/en/build-with-claude/thinking#configuring-thinking)
+       * for each model's behavior.
        */
       thinking?: BetaMessagesAPI.BetaThinkingConfigParam;
+
+      /**
+       * Server-held conversation state (a Thread). `{"type": "create"}` asks the server
+       * to hold this conversation's state under the response's `id`;
+       * `{"type": "continue", "previous_message_id": ...}` resumes from a previous
+       * response so only the new turn's messages are sent. The response shape is
+       * unchanged.
+       */
+      thread?: BetaMessagesAPI.BetaMessageThreadParam | null;
 
       /**
        * How the model should use the provided tools. The model can use a specific tool,
@@ -839,19 +909,6 @@ export namespace BatchCreateParams {
        * for more details.
        */
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-       * top_k; any value will be rejected with a 400 error.
-       */
-      top_k?: number;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-       * other values will be rejected with a 400 error.
-       */
-      top_p?: number;
     }
   }
 }

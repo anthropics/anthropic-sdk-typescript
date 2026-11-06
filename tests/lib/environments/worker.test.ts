@@ -5,7 +5,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { APIError } from '@anthropic-ai/sdk/core/error';
 
 /**
- * Build a work-item `secret` the way the control plane does: URL-safe base64
+ * Build a work-item `secret` the way the API does: URL-safe base64
  * of a JSON payload, without padding.
  */
 function encodeSecret(payload: Record<string, unknown>): string {
@@ -17,7 +17,7 @@ function loggedText(calls: WorkerCalls): string {
 }
 
 /**
- * The 412 the control plane answers a heartbeat with once the item's lease was
+ * The 412 the API answers a heartbeat with once the item's lease was
  * cleared (re-queued) or is held by another worker.
  */
 function leaseLostError(): APIError {
@@ -64,7 +64,7 @@ interface WorkerCalls {
   send: AnyEvent[][];
   retrieve: number;
   withOptions: Array<Record<string, unknown>>;
-  // The `options` (last) argument captured per control-plane / session method.
+  // The `options` (last) argument captured per work-item / session method.
   opts: Record<string, unknown[]>;
   // `[level, line]` for everything the worker logged; `line` is the message and
   // structured args flattened, so tests can assert on wording per level and on
@@ -131,9 +131,9 @@ function makeFake(opts: {
   const fake = {
     // The per-item handler scopes a client to the environment key via
     // `copyClientForHelper`, which calls `withOptions` with the bearer
-    // override, `apiKey: null` to clear the parent's `X-Api-Key`, and the
-    // helper-telemetry default header. The fake records each `withOptions`
-    // override and reuses itself so the rest of the surface stays wired up.
+    // override and the helper-telemetry default header. The fake records each
+    // `withOptions` override and reuses itself so the rest of the surface
+    // stays wired up.
     _options: { defaultHeaders: undefined },
     logLevel: 'debug',
     logger: { error: logAt('error'), warn: logAt('warn'), info: logAt('info'), debug: logAt('debug') },
@@ -287,10 +287,8 @@ describe('EnvironmentWorker', () => {
     expect(sentResults[0]!['tool_use_id']).toBe('tu_1');
     // Force-stopped the work item on exit.
     expect(calls.stop.some((s) => s.force === true)).toBe(true);
-    // The per-session calls were scoped to the environment key, with the
-    // parent's `apiKey` cleared so `X-Api-Key` doesn't ride alongside the
-    // bearer credential.
-    expect(calls.withOptions).toContainEqual(expect.objectContaining({ apiKey: null, authToken: 'env_key' }));
+    // The per-session calls were scoped to the environment key.
+    expect(calls.withOptions).toContainEqual(expect.objectContaining({ authToken: 'env_key' }));
   });
 
   test('a memory sync interval under the minimum is refused at construction', () => {
@@ -416,7 +414,6 @@ describe('EnvironmentWorker', () => {
     // sessions token carried inside the work item's secret payload — and that
     // client also carries the session tool runner and the skill download.
     expect(calls.withOptions.map((o) => o['authToken'])).toEqual(['env_key', 'sessions-token-item-1']);
-    expect(calls.withOptions[1]).toEqual(expect.objectContaining({ apiKey: null }));
     expect(calls.retrieve).toBe(1);
     // The work item was still heartbeated and force-stopped as usual.
     expect(calls.heartbeat).toBeGreaterThanOrEqual(1);
@@ -565,9 +562,8 @@ describe('EnvironmentWorker', () => {
   });
 
   test('handleItem runs keyless when the work secret carries a sessions token', async () => {
-    // A host that receives only the per-item secret (the Kubernetes sandbox
-    // hands the pod nothing else) runs the item on the sessions token alone —
-    // it never holds the environment key.
+    // A host that receives only the per-item secret runs the item on the
+    // sessions token alone — it never holds the environment key.
     const secret = encodeSecret({ sessions_token: 'sessions-token-keyless' });
     const { client, calls } = makeFake({ sessionStream: [TERMINATED] });
 
@@ -627,9 +623,7 @@ describe('EnvironmentWorker', () => {
       workdir: '/tmp',
       maxIdleMs: 0,
     }).handleItem({ workId: 'work_1', environmentId: 'env_1', sessionId: 'sesn_1' });
-    expect(calls.withOptions).toContainEqual(
-      expect.objectContaining({ apiKey: null, authToken: 'worker_key' }),
-    );
+    expect(calls.withOptions).toContainEqual(expect.objectContaining({ authToken: 'worker_key' }));
 
     // An explicit option wins over the worker's key.
     await new EnvironmentWorker({
@@ -644,9 +638,7 @@ describe('EnvironmentWorker', () => {
       sessionId: 'sesn_1',
       environmentKey: 'explicit_key',
     });
-    expect(calls.withOptions).toContainEqual(
-      expect.objectContaining({ apiKey: null, authToken: 'explicit_key' }),
-    );
+    expect(calls.withOptions).toContainEqual(expect.objectContaining({ authToken: 'explicit_key' }));
   });
 
   test('handleItem without an environment key or a work secret throws', async () => {
@@ -750,7 +742,7 @@ describe('EnvironmentWorker', () => {
       expect(logText).not.toContain('work item failed');
     });
 
-    test('a control-plane stop still force-stops the item', async () => {
+    test('a heartbeat stop still force-stops the item', async () => {
       // A heartbeat reporting `state === "stopped"` ends the run and the item is
       // still force-stopped on the way out — only a *lost* lease skips that.
       const { calls } = await runOneSession(

@@ -5,6 +5,8 @@ import { Effective, EffectiveListParams } from './effective';
 import * as IncreaseRequestsAPI from './increase-requests';
 import {
   BetaSpendLimitIncreaseRequest,
+  BetaSpendLimitIncreaseRequestActor,
+  BetaSpendLimitIncreaseRequestResolvedBy,
   BetaSpendLimitIncreaseRequestStatus,
   BetaSpendLimitIncreaseRequestsPageCursor,
   IncreaseRequestApproveParams,
@@ -14,10 +16,24 @@ import {
   IncreaseRequests,
 } from './increase-requests';
 import { APIPromise } from '../../../../core/api-promise';
+import { PermissionDeniedError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export class BetaSpendLimitsAdminAPIWritesNotEnabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'spend_limits_admin_api_writes_not_enabled';
+  declare readonly details: BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSpendLimitsAdminAPIWritesNotEnabledError';
+}
 
 export class SpendLimits extends APIResource {
   effective: EffectiveAPI.Effective = new EffectiveAPI.Effective(this._client);
@@ -28,6 +44,8 @@ export class SpendLimits extends APIResource {
   /**
    * Retrieve a spend limit by ID.
    *
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
+   *
    * @example
    * ```ts
    * const betaSpendLimit =
@@ -37,16 +55,27 @@ export class SpendLimits extends APIResource {
    * ```
    */
   retrieve(spendLimitID: string, options?: RequestOptions): APIPromise<BetaSpendLimit> {
-    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.retrieve', options, {
+        route: '/v1/organizations/spend_limits/{spend_limit_id}',
+        attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
+      }),
+    });
   }
 
   /**
    * List the organization's spend limits.
    *
-   * A Claude Console organization's limits come in an order that is stable across
-   * pages. A Claude Enterprise organization's are grouped by scope type, in the
-   * order `organization`, `seat_tier`, `rbac_group`, `organization_service`, `user`;
-   * within a type they come in a fixed order that is not creation order.
+   * A Claude Console organization's limits, including any read-only `usage_tier`
+   * limit, come newest first. Listing them is in an early access preview. To request
+   * access, contact your Anthropic account team. A Claude Enterprise organization's
+   * limits are grouped by scope type, in the order `organization`, `seat_tier`,
+   * `rbac_group`, `organization_service`, `user`; within a type they come in a fixed
+   * order that is not creation order.
+   *
+   * @throws {OrganizationTypeNotSupportedError}
    *
    * @example
    * ```ts
@@ -61,13 +90,18 @@ export class SpendLimits extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSpendLimitsPageCursor, BetaSpendLimit> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/organizations/spend_limits?beta=true', PageCursor<BetaSpendLimit>, {
+    return this._client.getAPIList('/v1/organizations/spend_limits', PageCursor<BetaSpendLimit>, {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { 'anthropic-beta': [...(betas ?? []), 'spend-limit-reads-2026-09-26'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.list', options, {
+        route: '/v1/organizations/spend_limits',
+        queryParams: ['limit', 'page', 'scope_type', 'workspace_id'],
+      }),
     });
   }
 
@@ -77,8 +111,12 @@ export class SpendLimits extends APIResource {
    * For a Claude Enterprise organization, this deletes a per-user override, and the
    * member falls back to any inherited spend limit at that period. Its seat-tier,
    * group, and organization-level rows cannot be deleted via this endpoint. A Claude
-   * Console organization deletes its organization and workspace limits. Deleting
-   * them through the API is in an early access preview.
+   * Console organization deletes its organization and workspace limits, but not its
+   * `usage_tier` limit. Deleting organization and workspace limits through the API
+   * is in an early access preview.
+   *
+   * @throws {BetaBillingFrozenError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
    * ```ts
@@ -89,7 +127,14 @@ export class SpendLimits extends APIResource {
    * ```
    */
   delete(spendLimitID: string, options?: RequestOptions): APIPromise<SpendLimitDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, options);
+    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.delete', options, {
+        route: '/v1/organizations/spend_limits/{spend_limit_id}',
+        attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
+      }),
+    });
   }
 
   /**
@@ -102,6 +147,9 @@ export class SpendLimits extends APIResource {
    * monthly and always carry an amount. Setting those limits is in an early access
    * preview. To request access, contact your Anthropic account team.
    *
+   * @throws {BetaBillingFrozenError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
+   *
    * @example
    * ```ts
    * const betaSpendLimit =
@@ -109,13 +157,26 @@ export class SpendLimits extends APIResource {
    *     amount: '50000',
    *     scope: {
    *       type: 'user',
-   *       user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+   *       user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
    *     },
    *   });
    * ```
    */
-  set(body: SpendLimitSetParams, options?: RequestOptions): APIPromise<BetaSpendLimit> {
-    return this._client.post('/v1/organizations/spend_limits?beta=true', { body, ...options });
+  set(params: SpendLimitSetParams, options?: RequestOptions): APIPromise<BetaSpendLimit> {
+    const { betas, ...body } = params;
+    return this._client.post('/v1/organizations/spend_limits', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.set', options, {
+        route: '/v1/organizations/spend_limits',
+        createdIDAttribute: 'anthropic.organization.spend_limit.id',
+      }),
+    });
   }
 }
 
@@ -151,8 +212,8 @@ export interface BetaSpendLimit {
 
   /**
    * Read-only. `false` when extra usage is switched off for this organization
-   * (`organization` limit) or for this member (`user` limit); `amount` is kept and
-   * applies again when it's switched back on. Always `true` for other limits.
+   * (`organization` limit); `amount` is kept and applies again when it's switched
+   * back on. Always `true` for other limits.
    */
   is_enabled: boolean;
 
@@ -172,7 +233,8 @@ export interface BetaSpendLimit {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   /**
    * Object type. Always `spend_limit`.
@@ -216,6 +278,19 @@ export interface BetaSpendLimitSeatTierScope {
   seat_tier: string;
 
   type: 'seat_tier';
+}
+
+/**
+ * Scope of the monthly spend cap Anthropic sets for a Claude Console organization
+ * from its usage tier, or a higher cap Anthropic granted the organization.
+ * Read-only; its `created_at` and `updated_at` are the organization's creation
+ * time, so `amount` can change while `updated_at` stays the same.
+ */
+export interface BetaSpendLimitUsageTierScope {
+  /**
+   * Scope type. Always `usage_tier` for this scope.
+   */
+  type: 'usage_tier';
 }
 
 /**
@@ -283,6 +358,14 @@ export interface BetaSpendLimitWorkspaceScope {
 }
 
 /**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export interface BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails {
+  error_code: 'spend_limits_admin_api_writes_not_enabled';
+}
+
+/**
  * Per-member effective-limit report row (`GET /spend_limits/effective`).
  */
 export interface BetaSpendSummary {
@@ -322,7 +405,8 @@ export interface BetaSpendSummary {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   source:
     | BetaSpendLimitUserScope
@@ -330,7 +414,8 @@ export interface BetaSpendSummary {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   spend_limit_id: string;
 }
@@ -343,14 +428,19 @@ export interface SpendLimitDeleteResponse {
 
 export interface SpendLimitListParams extends PageCursorParams {
   /**
-   * Query param: Return only limits with these scope types. A Claude Console
-   * organization has `organization` and `workspace` limits; a Claude Enterprise
-   * organization has `organization`, `seat_tier`, `rbac_group`,
-   * `organization_service` and `user` limits. Omit for all.
+   * Query param: Return only limits with these scope types. Omit for all. A scope
+   * type that doesn't apply to the organization gets a 400 error.
    */
   scope_type?: Array<
-    'organization' | 'organization_service' | 'rbac_group' | 'seat_tier' | 'user' | 'workspace'
+    'organization' | 'organization_service' | 'rbac_group' | 'seat_tier' | 'usage_tier' | 'user' | 'workspace'
   > | null;
+
+  /**
+   * Query param: Return only the limits whose `scope.workspace_id` is this workspace
+   * (`wrkspc_...`). Claude Console organizations only; other organizations get a 400
+   * error.
+   */
+  workspace_id?: string | null;
 
   /**
    * Header param: This endpoint is in beta: requests must send
@@ -361,30 +451,40 @@ export interface SpendLimitListParams extends PageCursorParams {
 
 export interface SpendLimitSetParams {
   /**
-   * Limit amount as a non-negative integer decimal string in the minor unit of the
-   * organization's billing currency (cents for USD): "50000" is $500.00. `null` sets
-   * an explicit no-limit override for this scope and `period` only — each period
-   * resolves independently, so caps for other periods still apply.
+   * Body param: Limit amount as a non-negative integer decimal string in the minor
+   * unit of the organization's billing currency (cents for USD): "50000" is $500.00.
+   * `null` sets an explicit no-limit override for this scope and `period` only —
+   * each period resolves independently, so caps for other periods still apply.
    */
   amount: string | null;
 
   /**
-   * What the limit applies to. Claude Enterprise organizations set `user` limits.
-   * Claude Console organizations set `organization` and `workspace` limits. Any
-   * other combination returns 400. Setting `organization` and `workspace` limits
-   * through the API is in an early access preview. To request access, contact your
-   * Anthropic account team.
+   * Body param: What the limit applies to. Claude Enterprise organizations set
+   * `user` limits. Claude Console organizations set `organization` and `workspace`
+   * limits. Any other combination returns 400. Setting `organization` and
+   * `workspace` limits through the API is in an early access preview. To request
+   * access, contact your Anthropic account team.
    */
   scope: BetaSpendLimitUserScope | BetaSpendLimitOrganizationScope | BetaSpendLimitWorkspaceScope;
 
+  /**
+   * Body param
+   */
   period?: BetaSpendLimitPeriod;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+SpendLimits.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 SpendLimits.Effective = Effective;
 SpendLimits.IncreaseRequests = IncreaseRequests;
 
 export declare namespace SpendLimits {
   export {
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
@@ -392,9 +492,11 @@ export declare namespace SpendLimits {
     type BetaSpendLimitRBACGroupScope as BetaSpendLimitRBACGroupScope,
     type BetaSpendLimitScopedAPIKeyActor as BetaSpendLimitScopedAPIKeyActor,
     type BetaSpendLimitSeatTierScope as BetaSpendLimitSeatTierScope,
+    type BetaSpendLimitUsageTierScope as BetaSpendLimitUsageTierScope,
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
@@ -407,6 +509,8 @@ export declare namespace SpendLimits {
   export {
     IncreaseRequests as IncreaseRequests,
     type BetaSpendLimitIncreaseRequest as BetaSpendLimitIncreaseRequest,
+    type BetaSpendLimitIncreaseRequestActor as BetaSpendLimitIncreaseRequestActor,
+    type BetaSpendLimitIncreaseRequestResolvedBy as BetaSpendLimitIncreaseRequestResolvedBy,
     type BetaSpendLimitIncreaseRequestStatus as BetaSpendLimitIncreaseRequestStatus,
     type IncreaseRequestApproveResponse as IncreaseRequestApproveResponse,
     type BetaSpendLimitIncreaseRequestsPageCursor as BetaSpendLimitIncreaseRequestsPageCursor,

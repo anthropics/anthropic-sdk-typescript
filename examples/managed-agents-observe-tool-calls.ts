@@ -71,7 +71,7 @@ async function main() {
   //    tool, then a session and the initial prompt.
   const agent = await client.beta.agents.create({
     name: 'observe-tool-calls-example',
-    model: 'claude-haiku-4-5',
+    model: 'claude-haiku-5-5',
     system: 'You are running in a sandbox. Use the available tools to answer.',
     tools: [
       { type: 'agent_toolset_20260401' },
@@ -158,15 +158,9 @@ async function observeAsSelfHostedWorker(): Promise<void> {
   const environmentKey = requireEnv('ANTHROPIC_ENVIRONMENT_KEY');
 
   // Every per-session call (the `toolRunner` event stream, the lease heartbeat,
-  // the force-stop) authenticates with the environment key. `apiKey: null`
-  // clears the parent client's `X-Api-Key` — without it, both `X-Api-Key`
-  // AND `Authorization: Bearer …` would land on the wire and the server
-  // rejects the dual auth on the events stream with 401.
-  const sessionClient = client.withOptions({
-    apiKey: null,
-    authToken: environmentKey,
-    credentials: undefined,
-  });
+  // the force-stop) authenticates with the environment key, which replaces
+  // the parent client's credential on this copy.
+  const sessionClient = client.withOptions({ authToken: environmentKey });
 
   // The work poller claims items and yields them; it ack's each one and posts
   // `work.stop` after the loop body returns.
@@ -210,7 +204,7 @@ async function observeAsSelfHostedWorker(): Promise<void> {
  * {@link observeAsSelfHostedWorker}. Beats on a fixed 30s interval; the first
  * beat uses the `NO_HEARTBEAT` sentinel, each later one echoes the server's
  * previous `last_heartbeat`. Returns (letting the shared controller abort the
- * `toolRunner` loop) as soon as the control plane reports the work is
+ * `toolRunner` loop) as soon as the API reports the work is
  * stopping/stopped or the lease was not extended.
  */
 async function heartbeatLease(

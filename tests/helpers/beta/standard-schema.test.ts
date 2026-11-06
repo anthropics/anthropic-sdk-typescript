@@ -173,7 +173,7 @@ describe('beta Messages.parse() with betaStandardSchemaOutputFormat', () => {
     });
 
     expect(mockPost).toHaveBeenCalledWith(
-      '/v1/messages?beta=true',
+      '/v1/messages',
       expect.objectContaining({
         body: expect.objectContaining({
           output_config: {

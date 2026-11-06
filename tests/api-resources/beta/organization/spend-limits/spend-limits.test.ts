@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource spendLimits', () => {
@@ -36,6 +37,7 @@ describe('resource spendLimits', () => {
           limit: 1,
           page: 'page',
           scope_type: ['organization'],
+          workspace_id: 'workspace_id',
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
@@ -57,7 +59,7 @@ describe('resource spendLimits', () => {
   test('set: only required params', async () => {
     const responsePromise = client.beta.organization.spendLimits.set({
       amount: '50000',
-      scope: { type: 'user', user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q' },
+      scope: { type: 'user', user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu' },
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -71,8 +73,9 @@ describe('resource spendLimits', () => {
   test('set: required and optional params', async () => {
     const response = await client.beta.organization.spendLimits.set({
       amount: '50000',
-      scope: { type: 'user', user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q' },
+      scope: { type: 'user', user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu' },
       period: 'monthly',
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

@@ -1,0 +1,450 @@
+[
+  {
+    "name": "under_the_bound_is_unchanged",
+    "note": "Nothing is over, so nothing is removed and anthropic.content.truncated is absent.",
+    "bound": 1000,
+    "size_before": 163,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "Be brief." }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "hi" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "hello" }] }]
+    },
+    "expected": {
+      "system_instructions": [{ "type": "text", "content": "Be brief." }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "hi" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "hello" }] }]
+    },
+    "expected_truncated": false,
+    "size_after": 163
+  },
+  {
+    "name": "exactly_at_the_bound_is_unchanged",
+    "note": "The bound is inclusive: a total equal to the bound is not over it.",
+    "bound": 163,
+    "size_before": 163,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "Be brief." }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "hi" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "hello" }] }]
+    },
+    "expected": {
+      "system_instructions": [{ "type": "text", "content": "Be brief." }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "hi" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "hello" }] }]
+    },
+    "expected_truncated": false,
+    "size_after": 163
+  },
+  {
+    "name": "system_parts_go_first",
+    "note": "One over the bound: the first system part is removed whole; the second system part, the input and the output stay.",
+    "bound": 260,
+    "size_before": 261,
+    "input": {
+      "system_instructions": [
+        { "type": "text", "content": "S1-ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss" },
+        { "type": "text", "content": "S2 stays" }
+      ],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "answer" }] }]
+    },
+    "expected": {
+      "system_instructions": [{ "type": "text", "content": "S2 stays" }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "answer" }] }]
+    },
+    "expected_truncated": true,
+    "size_after": 169
+  },
+  {
+    "name": "input_parts_follow_and_a_message_is_left_without_parts",
+    "note": "The system list is emptied to [] and stays. Both parts of the oldest input message go, so it stays as a message with parts []. Later messages are whole.",
+    "bound": 222,
+    "size_before": 380,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "sys-ssssssssssssssssssssssssssssss" }],
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            { "type": "text", "content": "old-oooooooooooooooooooooooooooooooooooooooo" },
+            { "type": "anthropic_image" }
+          ]
+        },
+        { "role": "assistant", "parts": [{ "type": "text", "content": "mid" }] },
+        { "role": "user", "parts": [{ "type": "text", "content": "last" }] }
+      ],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "answer" }] }]
+    },
+    "expected": {
+      "system_instructions": [],
+      "input_messages": [
+        { "role": "user", "parts": [] },
+        { "role": "assistant", "parts": [{ "type": "text", "content": "mid" }] },
+        { "role": "user", "parts": [{ "type": "text", "content": "last" }] }
+      ],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "answer" }] }]
+    },
+    "expected_truncated": true,
+    "size_after": 219
+  },
+  {
+    "name": "parts_not_whole_messages_are_removed_and_absent_attributes_stay_absent",
+    "note": "No system and no output attribute (a request-only span). Two of three parts of the first message go; the third stays in the same message. An absent attribute is not created.",
+    "bound": 180,
+    "size_before": 246,
+    "input": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            { "type": "text", "content": "a-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+            { "type": "text", "content": "b-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+            { "type": "text", "content": "c stays" }
+          ]
+        },
+        { "role": "user", "parts": [{ "type": "text", "content": "newest" }] }
+      ],
+      "output_messages": null
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": [
+        { "role": "user", "parts": [{ "type": "text", "content": "c stays" }] },
+        { "role": "user", "parts": [{ "type": "text", "content": "newest" }] }
+      ],
+      "output_messages": null
+    },
+    "expected_truncated": true,
+    "size_after": 124
+  },
+  {
+    "name": "output_parts_go_from_the_start_and_reasoning_goes_whole",
+    "note": "System and input are emptied, then the first output part, a reasoning part, is removed whole (never cut). The last text part stays whole.",
+    "bound": 183,
+    "size_before": 281,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "sys" }],
+      "input_messages": [
+        { "role": "user", "parts": [{ "type": "text", "content": "question qqqqqqqqqqqqqqqqqqqq" }] }
+      ],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [
+            { "type": "reasoning", "content": "think-tttttttttttttttttttttttttttttttttttttttttttttttttt" },
+            { "type": "text", "content": "final answer" }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "system_instructions": [],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [{ "role": "assistant", "parts": [{ "type": "text", "content": "final answer" }] }]
+    },
+    "expected_truncated": true,
+    "size_after": 103
+  },
+  {
+    "name": "last_remaining_text_part_is_cut_from_its_end",
+    "note": "Everything before the last part is removed (the tool_call whole). One part is left and it is text, so its content keeps the longest start that fits: the total is exactly the bound.",
+    "bound": 126,
+    "size_before": 304,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "sys" }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [
+            { "type": "tool_call", "id": "toolu_1", "name": "get_weather", "arguments": { "city": "Paris" } },
+            { "type": "text", "content": "012345678901234567890123456789012345678901234567890123456789" }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "system_instructions": [],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [{ "type": "text", "content": "01234567890123456789012345678901234" }]
+        }
+      ]
+    },
+    "expected_truncated": true,
+    "size_after": 126
+  },
+  {
+    "name": "cut_counts_the_serialized_escapes",
+    "note": "A quote or a newline takes two characters of JSON. The kept start is the longest whose serialized form fits, and it does not end inside an escape.",
+    "bound": 133,
+    "size_before": 152,
+    "input": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "say \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\n"
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "say \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay \"hi\"\nsay "
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected_truncated": true,
+    "size_after": 132
+  },
+  {
+    "name": "cut_is_at_a_character_boundary",
+    "note": "The kept content ends between two characters, never inside the UTF-8 encoding of one, and one more character would be over the bound.",
+    "bound": 117,
+    "size_before": 121,
+    "input": {
+      "system_instructions": null,
+      "input_messages": null,
+      "output_messages": [
+        { "role": "assistant", "parts": [{ "type": "text", "content": "a€😀éa€😀éa€😀éa€😀éa€😀éa€😀é" }] }
+      ]
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": null,
+      "output_messages": [
+        { "role": "assistant", "parts": [{ "type": "text", "content": "a€😀éa€😀éa€😀éa€😀éa€😀éa€" }] }
+      ]
+    },
+    "expected_truncated": true,
+    "size_after": 115
+  },
+  {
+    "name": "last_remaining_part_that_is_not_text_is_removed_whole",
+    "note": "The one part left is a tool_call, which is never cut, so it is removed whole. The assistant message stays with parts [].",
+    "bound": 120,
+    "size_before": 304,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "sys" }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "tool_call",
+              "id": "toolu_1",
+              "name": "write_file",
+              "arguments": {
+                "path": "a.txt",
+                "text": "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "system_instructions": [],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [{ "role": "assistant", "parts": [] }]
+    },
+    "expected_truncated": true,
+    "size_after": 63
+  },
+  {
+    "name": "last_remaining_reasoning_part_is_removed_whole",
+    "note": "Only a text part's content is cut. A reasoning part that is the one part left is removed whole.",
+    "bound": 110,
+    "size_before": 223,
+    "input": {
+      "system_instructions": null,
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "q" }] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "reasoning",
+              "content": "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [{ "role": "assistant", "parts": [] }]
+    },
+    "expected_truncated": true,
+    "size_after": 61
+  },
+  {
+    "name": "stop_sequences_alone_over_the_bound_are_removed_whole_then_parts",
+    "note": "The stop sequences alone exceed the bound, so gen_ai.request.stop_sequences is absent and counts as 0. The rest is still over the bound, so every part goes (the last one is not text) and the emptied lists and messages stay. truncated is true.",
+    "bound": 100,
+    "size_before": 296,
+    "input": {
+      "stop_sequences": [
+        "STOP-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "system_instructions": [{ "type": "text", "content": "sys" }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [{ "type": "tool_call", "id": "toolu_1", "name": "f", "arguments": {} }]
+        }
+      ]
+    },
+    "expected": {
+      "stop_sequences": null,
+      "system_instructions": [],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [{ "role": "assistant", "parts": [] }]
+    },
+    "expected_truncated": true,
+    "size_after": 63
+  },
+  {
+    "name": "stop_sequences_alone_over_the_bound_are_removed_whole",
+    "note": "The stop sequences alone exceed the bound, so gen_ai.request.stop_sequences is absent and truncated is true. There is no message part to remove, and the rest fits.",
+    "bound": 100,
+    "size_before": 133,
+    "input": {
+      "stop_sequences": [
+        "STOP-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "system_instructions": null,
+      "output_messages": null
+    },
+    "expected": {
+      "stop_sequences": null,
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "system_instructions": null,
+      "output_messages": null
+    },
+    "expected_truncated": true,
+    "size_after": 28
+  },
+  {
+    "name": "kept_structure_alone_over_a_tiny_bound_is_exported_as_it_is",
+    "note": "Every part goes (the last one is not text). The emptied lists and the messages without parts stay and alone exceed the bound, so truncated is true and the span is exported over the bound.",
+    "bound": 10,
+    "size_before": 191,
+    "input": {
+      "system_instructions": [{ "type": "text", "content": "sys" }],
+      "input_messages": [{ "role": "user", "parts": [{ "type": "text", "content": "question" }] }],
+      "output_messages": [
+        {
+          "role": "assistant",
+          "parts": [{ "type": "tool_call", "id": "toolu_1", "name": "f", "arguments": {} }]
+        }
+      ]
+    },
+    "expected": {
+      "system_instructions": [],
+      "input_messages": [{ "role": "user", "parts": [] }],
+      "output_messages": [{ "role": "assistant", "parts": [] }]
+    },
+    "expected_truncated": true,
+    "size_after": 63
+  },
+  {
+    "name": "multibyte_text_is_measured_in_utf8_bytes",
+    "note": "Each é is one character and one UTF-16 unit but two bytes of UTF-8. The values have 86 characters, under the bound, and 116 bytes, over it. The bound is in bytes, so the text is cut: 22 of the 30 é fit, and the total is exactly the bound.",
+    "bound": 100,
+    "size_before": 116,
+    "input": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "éééééééééééééééééééééééééééééé"
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "éééééééééééééééééééééé"
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected_truncated": true,
+    "size_after": 100
+  },
+  {
+    "name": "cut_lands_on_a_whole_character_in_multibyte_text",
+    "note": "44 bytes of content fit. The first 42 end after the third €, and the next character, 😀, takes four bytes (two UTF-16 units), so the 44th byte falls inside it. The kept content ends before that character: no part of it stays, and the total is 2 bytes under the bound.",
+    "bound": 100,
+    "size_before": 148,
+    "input": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "cost 5€ 😀 cost 5€ 😀 total: 10€😀 thanks, see you again next week! Bye for now."
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected": {
+      "system_instructions": null,
+      "input_messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "content": "cost 5€ 😀 cost 5€ 😀 total: 10€"
+            }
+          ]
+        }
+      ],
+      "output_messages": null
+    },
+    "expected_truncated": true,
+    "size_after": 98
+  }
+]

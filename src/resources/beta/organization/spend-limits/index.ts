@@ -1,15 +1,5 @@
-export { Effective, type EffectiveListParams } from './effective';
 export {
-  IncreaseRequests,
-  type BetaSpendLimitIncreaseRequest,
-  type BetaSpendLimitIncreaseRequestStatus,
-  type IncreaseRequestApproveResponse,
-  type IncreaseRequestListParams,
-  type IncreaseRequestApproveParams,
-  type IncreaseRequestDenyParams,
-  type BetaSpendLimitIncreaseRequestsPageCursor,
-} from './increase-requests';
-export {
+  BetaSpendLimitsAdminAPIWritesNotEnabledError,
   SpendLimits,
   type BetaSpendLimit,
   type BetaSpendLimitOrganizationScope,
@@ -18,9 +8,11 @@ export {
   type BetaSpendLimitRBACGroupScope,
   type BetaSpendLimitScopedAPIKeyActor,
   type BetaSpendLimitSeatTierScope,
+  type BetaSpendLimitUsageTierScope,
   type BetaSpendLimitUserActor,
   type BetaSpendLimitUserScope,
   type BetaSpendLimitWorkspaceScope,
+  type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   type BetaSpendSummary,
   type SpendLimitDeleteResponse,
   type SpendLimitListParams,
@@ -28,3 +20,16 @@ export {
   type BetaSpendSummariesPageCursor,
   type BetaSpendLimitsPageCursor,
 } from './spend-limits';
+export { Effective, type EffectiveListParams } from './effective';
+export {
+  IncreaseRequests,
+  type BetaSpendLimitIncreaseRequest,
+  type BetaSpendLimitIncreaseRequestActor,
+  type BetaSpendLimitIncreaseRequestResolvedBy,
+  type BetaSpendLimitIncreaseRequestStatus,
+  type IncreaseRequestApproveResponse,
+  type IncreaseRequestListParams,
+  type IncreaseRequestApproveParams,
+  type IncreaseRequestDenyParams,
+  type BetaSpendLimitIncreaseRequestsPageCursor,
+} from './increase-requests';

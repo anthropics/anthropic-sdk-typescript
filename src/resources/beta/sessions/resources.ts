@@ -5,6 +5,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Resources extends APIResource {
@@ -26,7 +27,7 @@ export class Resources extends APIResource {
     options?: RequestOptions,
   ): APIPromise<ResourceRetrieveResponse> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+    return this._client.get(path`/v1/sessions/${session_id}/resources/${resourceID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -35,6 +36,11 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.retrieve', options, {
+        route: '/v1/sessions/{session_id}/resources/{resource_id}',
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
+      }),
     });
   }
 
@@ -59,7 +65,7 @@ export class Resources extends APIResource {
     options?: RequestOptions,
   ): APIPromise<ResourceUpdateResponse> {
     const { session_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+    return this._client.post(path`/v1/sessions/${session_id}/resources/${resourceID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -69,6 +75,11 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.update', options, {
+        route: '/v1/sessions/{session_id}/resources/{resource_id}',
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
+      }),
     });
   }
 
@@ -92,7 +103,7 @@ export class Resources extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionResourcesPageCursor, BetaManagedAgentsSessionResource> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/resources?beta=true`,
+      path`/v1/sessions/${sessionID}/resources`,
       PageCursor<BetaManagedAgentsSessionResource>,
       {
         query,
@@ -104,6 +115,12 @@ export class Resources extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.list', options, {
+          route: '/v1/sessions/{session_id}/resources',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.session.id': sessionID },
+        }),
       },
     );
   }
@@ -126,7 +143,7 @@ export class Resources extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeleteSessionResource> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.delete(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+    return this._client.delete(path`/v1/sessions/${session_id}/resources/${resourceID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -135,6 +152,11 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.delete', options, {
+        route: '/v1/sessions/{session_id}/resources/{resource_id}',
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
+      }),
     });
   }
 
@@ -159,7 +181,7 @@ export class Resources extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsFileResource> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/resources?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}/resources`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -169,6 +191,12 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.add', options, {
+        route: '/v1/sessions/{session_id}/resources',
+        attributes: { 'anthropic.session.id': sessionID },
+        createdIDAttribute: 'anthropic.session.resource.id',
+      }),
     });
   }
 }
@@ -231,8 +259,8 @@ export interface BetaManagedAgentsGitHubRepositoryResource {
  */
 export interface BetaManagedAgentsMemoryStoreResource {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 
@@ -297,7 +325,8 @@ export interface ResourceRetrieveParams {
   session_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -325,7 +354,8 @@ export interface ResourceUpdateParams {
   authorization_token: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -342,7 +372,8 @@ export interface ResourceUpdateParams {
 
 export interface ResourceListParams extends PageCursorParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -364,7 +395,8 @@ export interface ResourceDeleteParams {
   session_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -397,7 +429,8 @@ export interface ResourceAddParams {
   mount_path?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

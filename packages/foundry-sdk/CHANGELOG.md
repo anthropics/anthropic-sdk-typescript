@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v1.1.0...foundry-sdk-v1.1.1) (2026-10-26)
+
+### Bug Fixes
+
+* **foundry:** make client.d.ts type-check with skipLibCheck off
+
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v1.0.0...foundry-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.6.0...foundry-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
+## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.4...foundry-sdk-v0.6.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.5.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.3...foundry-sdk-v0.5.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.5.3 (2026-10-07)
+
+Full Changelog: [foundry-sdk-v0.5.2...foundry-sdk-v0.5.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.2...foundry-sdk-v0.5.3)
+
 ## 0.5.2 (2026-09-30)
 
 Full Changelog: [foundry-sdk-v0.5.1...foundry-sdk-v0.5.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.1...foundry-sdk-v0.5.2)

@@ -1,6 +1,7 @@
 import type { Mock } from 'vitest';
 import { getAuthHeaders } from '@anthropic-ai/bedrock-sdk/core/auth';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { copyClientForHelper } from '@anthropic-ai/sdk/lib/helper-client';
 import AnthropicBedrock from '../src';
 import * as fs from 'fs';
 import { mkdtempSync } from 'fs';
@@ -170,6 +171,146 @@ describe('Bedrock bearer token authentication', () => {
     const headers = new Headers(init.headers);
 
     expect(headers.get('Authorization')).toBe('Bearer test-bearer-token');
+  });
+
+  test('withOptions keeps the apiKey, and an apiKey override replaces it', async () => {
+    const { AnthropicBedrock } = await import('../src');
+
+    const client = new AnthropicBedrock({
+      apiKey: 'test-bearer-token',
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    for (const clone of [
+      client.withOptions({ timeout: 1234 }),
+      client.withOptions({ apiKey: 'new-token' }),
+    ]) {
+      try {
+        await clone.messages.create({
+          model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+          max_tokens: 1024,
+          messages: [{ content: 'Hello', role: 'user' }],
+        });
+      } catch (e) {
+        // may error due to mocking, we only care about the request
+      }
+    }
+
+    const sent = mockFetch.mock.calls.map(([, init]) => new Headers(init.headers).get('Authorization'));
+    expect(sent).toEqual(['Bearer test-bearer-token', 'Bearer new-token']);
+  });
+
+  test('a copy signs with the region, AWS keys and resolver of its parent', async () => {
+    vi.stubEnv('AWS_REGION', 'us-east-1');
+    const providerChainResolver = vi.fn();
+
+    try {
+      const client = new AnthropicBedrock({
+        awsRegion: 'eu-west-1',
+        awsAccessKey: 'my-access-key',
+        awsSecretKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        providerChainResolver,
+      });
+      await client.withOptions({ timeout: 1234 }).messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Hello', role: 'user' }],
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+
+    expect(getAuthHeaders).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        regionName: 'eu-west-1',
+        awsAccessKey: 'my-access-key',
+        awsSecretKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        providerChainResolver,
+      }),
+    );
+  });
+
+  const otherResolver = vi.fn();
+
+  test.each<[string, object]>([
+    ['keys', { awsAccessKey: 'other-access-key', awsSecretKey: 'other-secret-key' }],
+    ['a resolver', { providerChainResolver: otherResolver }],
+  ])('a copy given %s uses none of the AWS credentials of its parent', async (_what, extra) => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'eu-west-1',
+      awsAccessKey: 'my-access-key',
+      awsSecretKey: 'my-secret-key',
+      awsSessionToken: 'my-session-token',
+      providerChainResolver: vi.fn(),
+    });
+
+    await client.withOptions(extra).messages.create({
+      model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' }],
+    });
+
+    expect(getAuthHeaders).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        regionName: 'eu-west-1',
+        awsAccessKey: null,
+        awsSecretKey: null,
+        awsSessionToken: null,
+        providerChainResolver: null,
+        ...extra,
+      }),
+    );
+  });
+
+  describe.each<[string, (extra: object) => AnthropicBedrock]>([
+    ['the constructor', (extra) => new AnthropicBedrock({ apiKey: 'test-bearer-token', ...extra })],
+    ['withOptions', (extra) => new AnthropicBedrock({ apiKey: 'test-bearer-token' }).withOptions(extra)],
+  ])('%s', (_where, build) => {
+    test.each<[string, object]>([
+      ['authToken', { authToken: 'first-party-token' }],
+      ['credentials', { credentials: async () => ({ token: 'first-party-token', expiresAt: null }) }],
+      ['config', { config: { authentication: { type: 'user_oauth' } } }],
+      ['profile', { profile: 'my-profile' }],
+    ])('rejects `%s`', (name, extra) => {
+      expect(() => build(extra)).toThrow(
+        `The \`${name}\` option is not supported by AnthropicBedrock; ` +
+          'authentication uses a Bedrock API key (`apiKey`) or AWS credentials (SigV4).',
+      );
+    });
+  });
+
+  test('a copy that clears the apiKey signs, and reads no key from the parent or AWS_BEARER_TOKEN_BEDROCK', async () => {
+    vi.stubEnv('AWS_BEARER_TOKEN_BEDROCK', 'env-bearer-token');
+
+    try {
+      const client = new AnthropicBedrock({ apiKey: 'test-bearer-token', awsRegion: 'us-east-1' });
+      await client.withOptions({ apiKey: null }).messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Hello', role: 'user' }],
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+
+    const [, init] = mockFetch.mock.calls[0]!;
+    expect(new Headers(init.headers).get('Authorization')).toBeNull();
+    expect(getAuthHeaders).toHaveBeenCalledTimes(1);
+  });
+
+  test('a helper sub-client is refused rather than sent out with the environment key', () => {
+    const client = new AnthropicBedrock({ apiKey: 'test-bearer-token' });
+
+    expect(() =>
+      // @ts-expect-error the helpers take an `Anthropic` client
+      copyClientForHelper(client, { authToken: 'environment-key', helper: 'environments-work-poller' }),
+    ).toThrow('The `authToken` option is not supported by AnthropicBedrock');
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   test('does not send Authorization header when no apiKey is provided', async () => {
@@ -363,7 +504,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
   };
 
   test('middleware observes the canonical Anthropic request; the wire receives the Bedrock shape', async () => {
-    const observed: { url?: string; body?: any } = {};
+    const observed: { url?: string; body?: any; version?: string | null } = {};
     const client = new AnthropicBedrock({
       awsRegion: 'us-east-1',
       baseURL: 'http://localhost:4010',
@@ -373,6 +514,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
         async (request, next) => {
           observed.url = request.url;
           observed.body = JSON.parse(request.body as string);
+          observed.version = request.headers.get('anthropic-version');
           return next(request);
         },
       ],
@@ -386,9 +528,30 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
 
     const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
     expect(wireUrl).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
+    expect(new Headers(wireInit.headers).has('anthropic-version')).toBe(false);
     const wireBody = JSON.parse(wireInit.body);
     expect(wireBody.model).toBeUndefined();
-    expect(wireBody.anthropic_version).toBe('bedrock-2023-05-31');
+    expect(wireBody.anthropic_version).toBe(observed.version);
+  });
+
+  test.each([
+    { name: 'a header the caller set', headers: { 'anthropic-version': '2030-01-01' }, sent: '2030-01-01' },
+    { name: 'a header the caller removed', headers: { 'anthropic-version': null }, sent: undefined },
+    { name: 'a body value the caller set', body: { anthropic_version: '2030-01-02' }, sent: '2030-01-02' },
+  ])('$name sends $sent in the body', async ({ headers, body, sent }) => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+      defaultHeaders: headers,
+    });
+
+    await client.messages.create({ ...createParams, ...body });
+
+    const [, wireInit] = mockFetch.mock.calls[0]!;
+    expect(new Headers(wireInit.headers).has('anthropic-version')).toBe(false);
+    expect(JSON.parse(wireInit.body).anthropic_version).toBe(sent);
   });
 
   test('preserves base URL path prefixes when rewriting', async () => {
@@ -428,6 +591,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
     const signedBody = JSON.parse(signedRequest.body);
     expect(signedBody.metadata).toEqual({ user_id: 'user-123' });
     expect(signedBody.model).toBeUndefined();
+    expect(signedRequest.headers.has('anthropic-version')).toBe(false);
     expect(signedProps.url).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
   });
 
@@ -497,6 +661,27 @@ describe('AnthropicBedrock constructor deprecation warnings', () => {
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated'),
     );
+  });
+});
+
+describe('AnthropicBedrock user profiles', () => {
+  const unavailable = 'User profiles are not available on `AnthropicBedrock`';
+  const newClient = () =>
+    new AnthropicBedrock({ awsAccessKey: 'access-key', awsSecretKey: 'secret-key', awsRegion: 'us-east-1' });
+
+  test('userProfiles throws an explanatory error', () => {
+    expect(() => newClient().userProfiles).toThrow(unavailable);
+  });
+
+  test('beta.userProfiles throws an explanatory error', () => {
+    expect(() => (newClient().beta as any).userProfiles).toThrow(unavailable);
+  });
+
+  test('a clone from withOptions has no user profiles either', () => {
+    const clone = newClient().withOptions({ maxRetries: 0 });
+
+    expect(() => clone.userProfiles).toThrow(unavailable);
+    expect(() => (clone.beta as any).userProfiles).toThrow(unavailable);
   });
 });
 

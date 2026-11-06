@@ -4,6 +4,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Certificates extends APIResource {
@@ -32,7 +33,7 @@ export class Certificates extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelCertificate> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/tunnels/${tunnelID}/certificates?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/certificates`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -42,6 +43,12 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.create', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+        createdIDAttribute: 'anthropic.tunnel.certificate.id',
+      }),
     });
   }
 
@@ -68,7 +75,7 @@ export class Certificates extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelCertificate> {
     const { tunnel_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}?beta=true`, {
+    return this._client.get(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -77,6 +84,11 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.retrieve', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 
@@ -106,7 +118,7 @@ export class Certificates extends APIResource {
   ): PagePromise<BetaTunnelCertificatesPageCursor, BetaTunnelCertificate> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/tunnels/${tunnelID}/certificates?beta=true`,
+      path`/v1/tunnels/${tunnelID}/certificates`,
       PageCursor<BetaTunnelCertificate>,
       {
         query,
@@ -118,6 +130,12 @@ export class Certificates extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.list', options, {
+          route: '/v1/tunnels/{tunnel_id}/certificates',
+          queryParams: ['include_archived', 'limit', 'page'],
+          attributes: { 'anthropic.tunnel.id': tunnelID },
+        }),
       },
     );
   }
@@ -148,7 +166,7 @@ export class Certificates extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelCertificate> {
     const { tunnel_id, betas, workspace_id } = params;
-    return this._client.post(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}/archive?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -157,6 +175,11 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.archive', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 }
@@ -210,7 +233,8 @@ export interface CertificateCreateParams {
   ca_certificate_pem: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -232,7 +256,8 @@ export interface CertificateRetrieveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -255,7 +280,8 @@ export interface CertificateListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -277,7 +303,8 @@ export interface CertificateArchiveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

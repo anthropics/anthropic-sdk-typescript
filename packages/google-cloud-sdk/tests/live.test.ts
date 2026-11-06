@@ -68,4 +68,39 @@ live('AnthropicGoogleCloud — live', () => {
       }),
     ).rejects.toBeInstanceOf(APIError);
   });
+
+  test("an organization route returns the client's own workspace", async (ctx) => {
+    const client = newClient();
+    if (!client.workspaceId) {
+      return ctx.skip('Set ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID to run this test');
+    }
+
+    const workspace = await client.organization.workspaces.retrieve(client.workspaceId);
+    expect(workspace.id).toBe(client.workspaceId);
+  });
+
+  // An explicit base URL takes every route, so there is no organization endpoint to check.
+  test.skipIf(process.env['ANTHROPIC_GOOGLE_CLOUD_BASE_URL'])(
+    'a user profile route lists profiles',
+    async () => {
+      const { response } = await newClient().userProfiles.list({ limit: 1 }).withResponse();
+
+      expect(response.status).toBe(200);
+      expect(new URL(response.url).pathname).toMatch(/\/claudeOrganization\/invoke\/v1\/user_profiles$/);
+    },
+  );
+
+  test('the Managed Agents routes create, retrieve, list and archive an agent', async () => {
+    const client = newClient();
+    const agent = await client.beta.agents.create({ model: MODEL, name: 'sdk-live-test' });
+
+    let archived;
+    try {
+      expect((await client.beta.agents.retrieve(agent.id)).id).toBe(agent.id);
+      expect((await client.beta.agents.list({ limit: 1 })).data.length).toBeGreaterThan(0);
+    } finally {
+      archived = await client.beta.agents.archive(agent.id);
+    }
+    expect(archived.archived_at).toBeTruthy();
+  });
 });

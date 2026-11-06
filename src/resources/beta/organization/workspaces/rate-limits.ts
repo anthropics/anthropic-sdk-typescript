@@ -1,10 +1,61 @@
 import { APIResource } from '../../../../core/resource';
 import * as RateLimitsAPI from '../rate-limits';
+import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class RateLimits extends APIResource {
+  /**
+   * Set or clear rate-limit overrides for one rate-limit group in a workspace.
+   *
+   * Only the limiter types named in `limits` change: an integer `value` sets that
+   * type's override and `null` clears it. Types not named keep their current value.
+   * A value above the organization's own limit is stored, but the organization limit
+   * still applies, so the lower of the two is enforced.
+   *
+   * Returns the targeted group's entry with this request applied, in the shape
+   * `GET /v1/organizations/workspaces/{workspace_id}/rate_limits` returns. Changes
+   * take effect within about an hour.
+   *
+   * @example
+   * ```ts
+   * const betaWorkspaceRateLimit =
+   *   await client.beta.organization.workspaces.rateLimits.update(
+   *     'rate_limit_id',
+   *     {
+   *       workspace_id: 'workspace_id',
+   *       limits: [{ type: 'fast_itpmca', value: 0 }],
+   *     },
+   *   );
+   * ```
+   */
+  update(
+    rateLimitID: string,
+    params: RateLimitUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaWorkspaceRateLimit> {
+    const { workspace_id, ...body } = params;
+    return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/rate_limits/${rateLimitID}`, {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.workspaces.rate_limits.update',
+        options,
+        {
+          route: '/v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}',
+          attributes: {
+            'anthropic.organization.workspace.id': workspace_id,
+            'anthropic.organization.workspace.rate_limit.id': rateLimitID,
+          },
+        },
+      ),
+    });
+  }
+
   /**
    * List a workspace's rate limits.
    *
@@ -33,9 +84,23 @@ export class RateLimits extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaWorkspaceRateLimitsPageCursor, BetaWorkspaceRateLimit> {
     return this._client.getAPIList(
-      path`/v1/organizations/workspaces/${workspaceID}/rate_limits?beta=true`,
+      path`/v1/organizations/workspaces/${workspaceID}/rate_limits`,
       PageCursor<BetaWorkspaceRateLimit>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.rate_limits.list',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/rate_limits',
+            queryParams: ['group_type', 'include_inherited', 'limit', 'page'],
+            attributes: { 'anthropic.organization.workspace.id': workspaceID },
+          },
+        ),
+      },
     );
   }
 }
@@ -44,8 +109,7 @@ export type BetaWorkspaceRateLimitsPageCursor = PageCursor<BetaWorkspaceRateLimi
 
 export interface BetaWorkspaceRateLimit {
   /**
-   * The rate-limit group this entry's limits apply to. Its `type` equals
-   * `group_type`.
+   * The rate-limit group this entry's limits apply to.
    */
   group:
     | RateLimitsAPI.BetaOrganizationRateLimitModelGroup
@@ -54,12 +118,6 @@ export interface BetaWorkspaceRateLimit {
     | RateLimitsAPI.BetaOrganizationRateLimitFilesGroup
     | RateLimitsAPI.BetaOrganizationRateLimitSkillsGroup
     | RateLimitsAPI.BetaOrganizationRateLimitWebSearchGroup;
-
-  /**
-   * @deprecated Use `group.type` instead. `group_type` is still returned and always
-   * equals `group.type`.
-   */
-  group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
 
   /**
    * The workspace's limiter values for this group. By default only the limiter types
@@ -71,7 +129,8 @@ export interface BetaWorkspaceRateLimit {
 
   /**
    * Model names this entry's limits apply to, including aliases. `null` when
-   * `group_type` is not `"model_group"`.
+   * `group.type` is not `"model_group"`. The list covers the models this workspace
+   * has access to, so it can differ between workspaces.
    */
   models: Array<string> | null;
 
@@ -97,6 +156,33 @@ export interface BetaWorkspaceRateLimitOrganizationSource {
    * organization's value applies.
    */
   type: 'organization';
+}
+
+/**
+ * Rate limiter type.
+ */
+export type BetaWorkspaceRateLimitType =
+  | 'fast_itpmca'
+  | 'fast_otpm'
+  | 'input_tokens_per_minute'
+  | 'input_tokens_per_minute_cache_aware'
+  | 'output_tokens_per_minute'
+  | 'requests_per_minute'
+  | 'tokens_per_day'
+  | 'tokens_per_minute'
+  | 'tool_uses_per_second';
+
+export interface BetaWorkspaceRateLimitUpdateValue {
+  /**
+   * Rate limiter type.
+   */
+  type: BetaWorkspaceRateLimitType;
+
+  /**
+   * New limit value. Set to null to clear the workspace override and fall back to
+   * the organization limit.
+   */
+  value: number | null;
 }
 
 export interface BetaWorkspaceRateLimitValue {
@@ -132,6 +218,18 @@ export interface BetaWorkspaceRateLimitWorkspaceSource {
   type: 'workspace';
 }
 
+export interface RateLimitUpdateParams {
+  /**
+   * Path param: The ID of the workspace.
+   */
+  workspace_id: string;
+
+  /**
+   * Body param: Limits to set or clear. Unspecified limit types are unchanged.
+   */
+  limits: Array<BetaWorkspaceRateLimitUpdateValue>;
+}
+
 export interface RateLimitListParams extends PageCursorParams {
   /**
    * Filter by group type.
@@ -149,9 +247,12 @@ export declare namespace RateLimits {
   export {
     type BetaWorkspaceRateLimit as BetaWorkspaceRateLimit,
     type BetaWorkspaceRateLimitOrganizationSource as BetaWorkspaceRateLimitOrganizationSource,
+    type BetaWorkspaceRateLimitType as BetaWorkspaceRateLimitType,
+    type BetaWorkspaceRateLimitUpdateValue as BetaWorkspaceRateLimitUpdateValue,
     type BetaWorkspaceRateLimitValue as BetaWorkspaceRateLimitValue,
     type BetaWorkspaceRateLimitWorkspaceSource as BetaWorkspaceRateLimitWorkspaceSource,
     type BetaWorkspaceRateLimitsPageCursor as BetaWorkspaceRateLimitsPageCursor,
+    type RateLimitUpdateParams as RateLimitUpdateParams,
     type RateLimitListParams as RateLimitListParams,
   };
 }

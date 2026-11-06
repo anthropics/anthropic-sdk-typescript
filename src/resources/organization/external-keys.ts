@@ -1,12 +1,64 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError, ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
+  declare readonly errorCode: 'external_key_in_workspace_policy';
+  declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyInWorkspacePolicyError';
+}
+
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export class ExternalKeyValidationFailedError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_failed';
+  declare readonly details: ExternalKeyValidationFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationFailedError';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export class ExternalKeyValidationTimedOutError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_timed_out';
+  declare readonly details: ExternalKeyValidationTimedOutErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationTimedOutError';
+}
+
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export class ExternalKeyChangedError extends ConflictError {
+  declare readonly errorCode: 'external_key_changed';
+  declare readonly details: ExternalKeyChangedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyChangedError';
+}
 
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
+   *
+   * @throws {UserProfileNotFoundError}
    *
    * @example
    * ```ts
@@ -21,7 +73,14 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   create(body: ExternalKeyCreateParams, options?: RequestOptions): APIPromise<ExternalKey> {
-    return this._client.post('/v1/organizations/external_keys', { body, ...options });
+    return this._client.post('/v1/organizations/external_keys', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.create', options, {
+        route: '/v1/organizations/external_keys',
+        createdIDAttribute: 'anthropic.organization.external_key.id',
+      }),
+    });
   }
 
   /**
@@ -36,7 +95,13 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   retrieve(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKey> {
-    return this._client.get(path`/v1/organizations/external_keys/${externalKeyID}`, options);
+    return this._client.get(path`/v1/organizations/external_keys/${externalKeyID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.retrieve', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 
   /**
@@ -46,11 +111,14 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   *
    * @example
    * ```ts
    * const externalKey =
    *   await client.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */
@@ -59,7 +127,14 @@ export class ExternalKeys extends APIResource {
     body: ExternalKeyUpdateParams,
     options?: RequestOptions,
   ): APIPromise<ExternalKey> {
-    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}`, { body, ...options });
+    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}`, {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.update', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 
   /**
@@ -83,6 +158,10 @@ export class ExternalKeys extends APIResource {
     return this._client.getAPIList('/v1/organizations/external_keys', PageCursor<ExternalKey>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.list', options, {
+        route: '/v1/organizations/external_keys',
+        queryParams: ['limit', 'page'],
+      }),
     });
   }
 
@@ -90,6 +169,8 @@ export class ExternalKeys extends APIResource {
    * Delete an external key config.
    *
    * The request is rejected if any workspace still references this config.
+   *
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts
@@ -100,7 +181,13 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   delete(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/external_keys/${externalKeyID}`, options);
+    return this._client.delete(path`/v1/organizations/external_keys/${externalKeyID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.delete', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 
   /**
@@ -120,7 +207,13 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   validate(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyValidateResponse> {
-    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}/validate`, options);
+    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}/validate`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.validate', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}/validate',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 }
 
@@ -128,9 +221,9 @@ export type ExternalKeysPageCursor = PageCursor<ExternalKey>;
 
 export interface AWSExternalKeyConfig {
   /**
-   * Full ARN of the AWS KMS key. On Claude Platform on AWS the key must be a
-   * single-Region key in your organization's own AWS account; cross-account keys,
-   * multi-Region keys, and alias ARNs are rejected.
+   * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
+   * and your organization's own key must be a single-Region key in your
+   * organization's AWS account.
    */
   kms_arn: string;
 
@@ -208,8 +301,8 @@ export interface AzureExternalKeyConfigParam {
  */
 export interface ExternalKey {
   /**
-   * Identifier of the external key config. A tagged ID prefixed `ekey_`, or — for
-   * organizations on the Claude Platform on AWS — the AWS KMS key ARN.
+   * Identifier of the external key config: a tagged ID prefixed `ekey_`, or, on
+   * Claude Platform on AWS, an AWS KMS key's ARN.
    */
   id: string;
 
@@ -229,8 +322,7 @@ export interface ExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects which regional validator handles this key's
-   * encrypt/decrypt roundtrips.
+   * Data residency geo. Selects the region this key is used in.
    */
   geo: string;
 
@@ -242,14 +334,54 @@ export interface ExternalKey {
   type: 'external_key';
 
   updated_at: string;
+
+  /**
+   * ID of the user profile the key is bound to, or null if the key is not bound to
+   * one. A key bound to a user profile can only be attached to a Workspace that has
+   * the same user profile. A key that isn't bound can be attached to a Workspace
+   * whatever its user profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface ExternalKeyAttachedAttachment {
   type: 'attached';
 }
 
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export interface ExternalKeyChangedErrorDetails {
+  error_code: 'external_key_changed';
+}
+
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export interface ExternalKeyInWorkspacePolicyErrorDetails {
+  error_code: 'external_key_in_workspace_policy';
+}
+
 export interface ExternalKeyUnattachedAttachment {
   type: 'unattached';
+}
+
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export interface ExternalKeyValidationFailedErrorDetails {
+  error_code: 'external_key_validation_failed';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export interface ExternalKeyValidationTimedOutErrorDetails {
+  error_code: 'external_key_validation_timed_out';
 }
 
 export interface GCPExternalKeyConfig {
@@ -306,6 +438,14 @@ export interface ExternalKeyCreateParams {
    * Data residency geo. Only `us` is supported.
    */
   geo?: 'us';
+
+  /**
+   * ID of a user profile to bind the key to. Omit this field for a key that isn't
+   * bound to a user profile. Such a key can be attached to a Workspace whatever its
+   * user profile. The binding cannot be changed later. A key bound to a user profile
+   * can only be attached to a Workspace that has the same user profile.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface ExternalKeyUpdateParams {
@@ -327,14 +467,27 @@ export interface ExternalKeyUpdateParams {
 
 export interface ExternalKeyListParams extends PageCursorParams {}
 
+ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+ExternalKeys.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
+ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
+
 export declare namespace ExternalKeys {
   export {
+    ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
+    ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
+    type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,

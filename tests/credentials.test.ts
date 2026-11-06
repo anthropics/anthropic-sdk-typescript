@@ -5,6 +5,7 @@ import {
   loadConfig,
   loadCredentials,
 } from '@anthropic-ai/sdk/core/credentials';
+import { AnthropicError } from '@anthropic-ai/sdk/core/error';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -26,11 +27,13 @@ describe('credentials', () => {
     'ANTHROPIC_BASE_URL',
     'ANTHROPIC_CONFIG_DIR',
     'ANTHROPIC_FEDERATION_RULE_ID',
+    'ANTHROPIC_IDENTITY_TOKEN',
     'ANTHROPIC_IDENTITY_TOKEN_FILE',
     'ANTHROPIC_ORGANIZATION_ID',
     'ANTHROPIC_PROFILE',
     'ANTHROPIC_SCOPE',
     'ANTHROPIC_SERVICE_ACCOUNT_ID',
+    'ANTHROPIC_WORKSPACE_ID',
     'APPDATA',
     'HOME',
     'XDG_CONFIG_HOME',
@@ -59,6 +62,12 @@ describe('credentials', () => {
     }
   };
 
+  const setFederationVariables = () => {
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid-123';
+    process.env['ANTHROPIC_IDENTITY_TOKEN_FILE'] = '/var/run/secrets/token';
+  };
+
   beforeEach(() => {
     isRunningInBrowserMock.mockClear().mockReturnValue(false);
     runtimeMock.mockClear().mockReturnValue('node');
@@ -70,6 +79,9 @@ describe('credentials', () => {
       osNameMock.mockReturnValue('Linux');
     }
 
+    for (const name of Object.keys(originalEnv)) {
+      delete process.env[name];
+    }
     testFolder = mkdtempSync(path.join(tmpdir(), 'credentials-test-'));
     process.env['ANTHROPIC_CONFIG_DIR'] = testFolder;
   });
@@ -259,6 +271,105 @@ describe('credentials', () => {
     });
   });
 
+  test.each([
+    {
+      name: 'a default profile in the default config directory',
+      arrange: () => {
+        delete process.env['ANTHROPIC_CONFIG_DIR'];
+        process.env['APPDATA'] = testFolder;
+        process.env['XDG_CONFIG_HOME'] = testFolder;
+        writeTestFile('configs/default.json', JSON.stringify({ authentication: { type: 'user_oauth' } }));
+      },
+    },
+    {
+      name: 'a default profile in ANTHROPIC_CONFIG_DIR',
+      arrange: () =>
+        writeTestFile('configs/default.json', JSON.stringify({ authentication: { type: 'user_oauth' } })),
+    },
+    {
+      name: 'the profile that active_config names',
+      arrange: () => {
+        writeTestFile('active_config', 'leftover');
+        writeTestFile('configs/leftover.json', JSON.stringify({ authentication: { type: 'user_oauth' } }));
+      },
+    },
+    {
+      name: 'a default profile that does not parse',
+      arrange: () => writeTestFile('configs/default.json', '{not json'),
+    },
+  ])('loadConfig prefers the federation variables to $name', async ({ arrange }) => {
+    arrange();
+    setFederationVariables();
+
+    expect(await loadConfig()).toEqual({
+      organization_id: 'org-uuid-123',
+      authentication: {
+        type: 'oidc_federation',
+        federation_rule_id: 'fdrl_01abc',
+        identity_token: { source: 'file', path: '/var/run/secrets/token' },
+      },
+    });
+  });
+
+  test('loadConfig prefers the federation variables with ANTHROPIC_IDENTITY_TOKEN to a default profile', async () => {
+    writeTestFile('configs/default.json', JSON.stringify({ authentication: { type: 'user_oauth' } }));
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid-123';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'jwt';
+
+    expect(await loadConfig()).toEqual({
+      organization_id: 'org-uuid-123',
+      authentication: { type: 'oidc_federation', federation_rule_id: 'fdrl_01abc' },
+    });
+  });
+
+  test('loadConfig prefers a default profile to federation variables with no identity token', async () => {
+    const config: AnthropicConfig = { authentication: { type: 'user_oauth' }, organization_id: 'default' };
+    writeTestFile('configs/default.json', JSON.stringify(config));
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid-123';
+
+    expect(await loadConfig()).toEqual(config);
+  });
+
+  test('loadConfig prefers ANTHROPIC_PROFILE to the federation variables', async () => {
+    const config: AnthropicConfig = { authentication: { type: 'user_oauth' }, organization_id: 'named' };
+    process.env['ANTHROPIC_PROFILE'] = 'named';
+    writeTestFile('configs/named.json', JSON.stringify(config));
+    setFederationVariables();
+
+    expect(await loadConfig()).toEqual(config);
+  });
+
+  test.each([
+    { name: 'nothing else is set', arrange: () => {} },
+    {
+      name: 'the federation variables and a default profile are there',
+      arrange: () => {
+        setFederationVariables();
+        writeTestFile('configs/default.json', JSON.stringify({ authentication: { type: 'user_oauth' } }));
+      },
+    },
+  ])('loadConfig throws when ANTHROPIC_PROFILE names a missing profile and $name', async ({ arrange }) => {
+    process.env['ANTHROPIC_PROFILE'] = 'missing';
+    arrange();
+
+    const configPath = path.join(testFolder, 'configs', 'missing.json');
+    const error = await loadConfig().catch((err) => err);
+    expect(error).toBeInstanceOf(AnthropicError);
+    expect(error.message).toBe(
+      `ANTHROPIC_PROFILE names the profile "missing", but ${configPath} does not exist. ` +
+        'Set ANTHROPIC_PROFILE to a profile that exists, or unset it.',
+    );
+  });
+
+  test('loadConfig with explicit profile arg does not synthesize a config from env vars', async () => {
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid-123';
+
+    expect(await loadConfig('arg_profile')).toBe(null);
+  });
+
   test('loadConfig returns null when no config file and only partial oidc_federation env vars', async () => {
     process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
     // ANTHROPIC_ORGANIZATION_ID intentionally not set
@@ -364,6 +475,27 @@ describe('credentials', () => {
       expires_at: 789,
     };
     writeTestFile('test-credentials.json', JSON.stringify(credentials));
+
+    expect(await loadCredentials()).toEqual(credentials);
+  });
+
+  test('loadCredentials reads the active profile when the federation variables are set', async () => {
+    const credentialsFilePath = path.join(testFolder, 'test-credentials.json');
+    const config: AnthropicConfig = {
+      authentication: { type: 'user_oauth', credentials_path: credentialsFilePath },
+    };
+    writeTestFile('configs/default.json', JSON.stringify(config));
+    const credentials: AnthropicCredentials = { type: 'oauth_token', access_token: 'token-123' };
+    writeTestFile('test-credentials.json', JSON.stringify(credentials));
+    setFederationVariables();
+
+    expect(await loadCredentials()).toEqual(credentials);
+  });
+
+  test('loadCredentials needs no config file for the profile that ANTHROPIC_PROFILE names', async () => {
+    process.env['ANTHROPIC_PROFILE'] = 'credentials_only';
+    const credentials: AnthropicCredentials = { type: 'oauth_token', access_token: 'token-123' };
+    writeTestFile('credentials/credentials_only.json', JSON.stringify(credentials));
 
     expect(await loadCredentials()).toEqual(credentials);
   });

@@ -2,6 +2,21 @@ import { SessionToolRunner } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner
 import type { DispatchedToolCall } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { APIError } from '@anthropic-ai/sdk/core/error';
+import type { BetaManagedAgentsSessionEventType } from '@anthropic-ai/sdk/resources/beta/sessions/events';
+
+// tripwire: a new `session.thread_status_*` event must be handled in SessionToolRunner#notePrimaryThread,
+// then listed here (missing key -> required-property error, extra key -> excess-property error);
+// enforced at compile time by tsc via ./scripts/lint, not by the test runner
+const _threadStatusEventTypes: Record<
+  Extract<BetaManagedAgentsSessionEventType, `session.thread_status_${string}`>,
+  true
+> = {
+  'session.thread_status_running': true,
+  'session.thread_status_idle': true,
+  'session.thread_status_rescheduled': true,
+  'session.thread_status_terminated': true,
+};
+void _threadStatusEventTypes;
 
 // =====
 // Test fakes

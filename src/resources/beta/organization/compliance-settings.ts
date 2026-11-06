@@ -1,6 +1,7 @@
 import { APIResource } from '../../../core/resource';
 import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 
 export class ComplianceSettings extends APIResource {
   /**
@@ -18,15 +19,24 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.get('/v1/organizations/compliance_settings?beta=true', options);
+    return this._client.get('/v1/organizations/compliance_settings', {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.compliance_settings.retrieve', options, {
+        route: '/v1/organizations/compliance_settings',
+      }),
+    });
   }
 
   /**
    * Update your organization's Compliance Settings.
    *
    * Setting `state` to `enabled` turns on the Compliance API and begins capturing
-   * organization activity events. Setting it to `disabled` turns both off. `state`
-   * reflects whether the Compliance API is enabled.
+   * organization activity events. Setting it to `disabled` turns both off. Access
+   * Transparency events are an exception: they are still captured while the
+   * Compliance API is disabled, and the Compliance API activity feed returns them
+   * once it is enabled again. `state` reflects whether the Compliance API is
+   * enabled.
    *
    * A request that sets `state` to its current value succeeds and leaves the
    * resource unchanged. A `disabled` request stays in effect until a later `enabled`
@@ -45,7 +55,14 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   update(body: ComplianceSettingUpdateParams, options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.post('/v1/organizations/compliance_settings?beta=true', { body, ...options });
+    return this._client.post('/v1/organizations/compliance_settings', {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.compliance_settings.update', options, {
+        route: '/v1/organizations/compliance_settings',
+      }),
+    });
   }
 }
 

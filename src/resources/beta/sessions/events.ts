@@ -7,6 +7,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 import {
   SessionToolRunner,
@@ -34,7 +35,7 @@ export class Events extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionEvent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/events?beta=true`,
+      path`/v1/sessions/${sessionID}/events`,
       PageCursor<BetaManagedAgentsSessionEvent>,
       {
         query,
@@ -46,6 +47,21 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.events.list', options, {
+          route: '/v1/sessions/{session_id}/events',
+          queryParams: [
+            'created_at[gt]',
+            'created_at[gte]',
+            'created_at[lt]',
+            'created_at[lte]',
+            'limit',
+            'order',
+            'page',
+            'types',
+          ],
+          attributes: { 'anthropic.session.id': sessionID },
+        }),
       },
     );
   }
@@ -80,7 +96,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSendSessionEvents> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}/events`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -90,6 +106,11 @@ export class Events extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.send', options, {
+        route: '/v1/sessions/{session_id}/events',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -98,10 +119,12 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionEvents =
-   *   await client.beta.sessions.events.stream(
-   *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
-   *   );
+   * const stream = await client.beta.sessions.events.stream(
+   *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+   * );
+   * for await (const betaManagedAgentsStreamSessionEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(
@@ -110,7 +133,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+    return this._client.get(path`/v1/sessions/${sessionID}/events/stream`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -121,6 +144,12 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.stream', options, {
+        route: '/v1/sessions/{session_id}/events/stream',
+        queryParams: ['event_deltas'],
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
   }
 
@@ -198,7 +227,9 @@ export interface BetaManagedAgentsAgentAutoEvaluatedPermissionDeny {
 
 /**
  * Event emitted when the agent calls a custom tool. The session goes idle until
- * the client sends a `user.custom_tool_result` event with the result.
+ * the client sends a `user.custom_tool_result` event with the result. The client
+ * can send it as soon as this event arrives, without waiting for
+ * `session.status_idle`.
  */
 export interface BetaManagedAgentsAgentCustomToolUseEvent {
   /**
@@ -649,6 +680,29 @@ export interface BetaManagedAgentsBillingError {
 }
 
 /**
+ * The turn stopped because the context was compacted the maximum number of times
+ * in a row without the model producing a message or a tool call, not because a
+ * request failed. The thread goes idle with `stop_reason: retries_exhausted` (a
+ * child thread then terminates); the next `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsCompactionLimitReachedError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'compaction_limit_reached_error';
+}
+
+/**
  * An `environment_variable` credential's `auth.networking.allowed_hosts` includes
  * a host the environment's network policy does not permit.
  */
@@ -782,6 +836,20 @@ export interface BetaManagedAgentsImageBlock {
 }
 
 /**
+ * No run was created, because the session was at its limit of open workflow runs,
+ * which are runs that have not ended. Only `workflow_run.error` carries this type.
+ */
+export interface BetaManagedAgentsMaxWorkflowRunsWorkflowRunError {
+  /**
+   * Short explanation written by the server. It never contains content from the run
+   * or its agents.
+   */
+  message: string;
+
+  type: 'max_workflow_runs_error';
+}
+
+/**
  * Authentication to an MCP server failed.
  */
 export interface BetaManagedAgentsMCPAuthenticationFailedError {
@@ -907,6 +975,19 @@ export interface BetaManagedAgentsPlainTextDocumentSource {
   media_type: 'text/plain';
 
   type: 'text';
+}
+
+/**
+ * The plan, a program that the agent wrote, failed, or the server refused it.
+ */
+export interface BetaManagedAgentsProgramWorkflowRunError {
+  /**
+   * Short explanation written by the server. It never contains content from the run
+   * or its agents.
+   */
+  message: string;
+
+  type: 'program_error';
 }
 
 /**
@@ -1197,6 +1278,8 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsMCPAuthenticationFailedError
     | BetaManagedAgentsBillingError
     | BetaManagedAgentsCredentialHostUnreachableError
+    | BetaManagedAgentsToolUseLimitReachedError
+    | BetaManagedAgentsCompactionLimitReachedError
     | BetaManagedAgentsRepositoryAuthenticationError
     | BetaManagedAgentsRepositoryForbiddenError
     | BetaManagedAgentsRepositoryNotFoundError
@@ -1249,7 +1332,14 @@ export type BetaManagedAgentsSessionEvent =
   | BetaManagedAgentsSessionThreadStatusRescheduledEvent
   | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
   | SessionsAPI.BetaManagedAgentsSystemMessageEvent
-  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent
+  | BetaManagedAgentsWorkflowRunCreatedEvent
+  | BetaManagedAgentsWorkflowRunStatusEndedEvent
+  | BetaManagedAgentsWorkflowRunPhaseStartedEvent
+  | BetaManagedAgentsWorkflowRunPhaseEndedEvent
+  | BetaManagedAgentsWorkflowRunStatusRunningEvent
+  | BetaManagedAgentsWorkflowRunStatusIdleEvent
+  | BetaManagedAgentsWorkflowRunErrorEvent;
 
 /**
  * The `type` of a session event.
@@ -1288,7 +1378,14 @@ export type BetaManagedAgentsSessionEventType =
   | 'session.thread_status_rescheduled'
   | 'session.updated'
   | 'system.message'
-  | 'session.usage';
+  | 'session.usage'
+  | 'workflow_run.created'
+  | 'workflow_run.status_running'
+  | 'workflow_run.status_idle'
+  | 'workflow_run.status_ended'
+  | 'workflow_run.error'
+  | 'workflow_run.phase_started'
+  | 'workflow_run.phase_ended';
 
 /**
  * The turn ended because the model's response was refused, for example by a safety
@@ -1423,8 +1520,8 @@ export interface BetaManagedAgentsSessionStatusTerminatedEvent {
 }
 
 /**
- * Emitted when a subagent is spawned as a new thread. Written to the parent
- * thread's output stream so clients observing the session see child creation.
+ * Emitted when a child thread is created. Written to the parent thread's output
+ * stream so clients observing the session see child creation.
  */
 export interface BetaManagedAgentsSessionThreadCreatedEvent {
   /**
@@ -1448,6 +1545,12 @@ export interface BetaManagedAgentsSessionThreadCreatedEvent {
   session_thread_id: string;
 
   type: 'session.thread_created';
+
+  /**
+   * Identifier of the workflow run that created the thread, or `null` for any other
+   * thread.
+   */
+  workflow_run_id: string | null;
 }
 
 /**
@@ -1471,7 +1574,7 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that went idle.
+   * Public sthr_ ID of the thread that went idle.
    */
   session_thread_id: string;
 
@@ -1513,7 +1616,7 @@ export interface BetaManagedAgentsSessionThreadStatusRescheduledEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that is retrying.
+   * Public sthr_ ID of the thread that is retrying.
    */
   session_thread_id: string;
 
@@ -1541,7 +1644,7 @@ export interface BetaManagedAgentsSessionThreadStatusRunningEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that started running.
+   * Public sthr_ ID of the thread that started running.
    */
   session_thread_id: string;
 
@@ -1569,7 +1672,7 @@ export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that terminated.
+   * Public sthr_ ID of the thread that terminated.
    */
   session_thread_id: string;
 
@@ -1857,7 +1960,14 @@ export type BetaManagedAgentsStreamSessionEvents =
   | SessionsAPI.BetaManagedAgentsStartEvent
   | SessionsAPI.BetaManagedAgentsDeltaEvent
   | SessionsAPI.BetaManagedAgentsSystemMessageEvent
-  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent
+  | BetaManagedAgentsWorkflowRunCreatedEvent
+  | BetaManagedAgentsWorkflowRunStatusEndedEvent
+  | BetaManagedAgentsWorkflowRunPhaseStartedEvent
+  | BetaManagedAgentsWorkflowRunPhaseEndedEvent
+  | BetaManagedAgentsWorkflowRunStatusRunningEvent
+  | BetaManagedAgentsWorkflowRunStatusIdleEvent
+  | BetaManagedAgentsWorkflowRunErrorEvent;
 
 /**
  * Privileged context for the accompanying turn and all subsequent turns, appended
@@ -1914,6 +2024,56 @@ export interface BetaManagedAgentsTextRubricParams {
 }
 
 /**
+ * The run exceeded the limit on the number of threads that a run can create.
+ */
+export interface BetaManagedAgentsThreadLimitWorkflowRunError {
+  /**
+   * Short explanation written by the server. It never contains content from the run
+   * or its agents.
+   */
+  message: string;
+
+  type: 'thread_limit_error';
+}
+
+/**
+ * The run reached its time limit.
+ */
+export interface BetaManagedAgentsTimeoutWorkflowRunError {
+  /**
+   * Short explanation written by the server. It never contains content from the run
+   * or its agents.
+   */
+  message: string;
+
+  type: 'timeout_error';
+}
+
+/**
+ * The turn stopped because the agent loop reached its limit on tool-use rounds
+ * (one model response that calls tools, plus running those tools, is one round),
+ * not because a request failed. The thread goes idle with
+ * `stop_reason: retries_exhausted` (a child thread then terminates); the next
+ * `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsToolUseLimitReachedError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'tool_use_limit_reached_error';
+}
+
+/**
  * An unknown or unexpected error occurred during session execution. A fallback
  * variant; clients that don't recognize a new error code can match on
  * `retry_status` and `message` alone.
@@ -1931,6 +2091,19 @@ export interface BetaManagedAgentsUnknownError {
     | BetaManagedAgentsRetryStatusRetrying
     | BetaManagedAgentsRetryStatusExhausted
     | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'unknown_error';
+}
+
+/**
+ * A failure that has no type of its own.
+ */
+export interface BetaManagedAgentsUnknownWorkflowRunError {
+  /**
+   * Short explanation written by the server. It never contains content from the run
+   * or its agents.
+   */
+  message: string;
 
   type: 'unknown_error';
 }
@@ -1969,8 +2142,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   id: string;
 
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */
@@ -2010,8 +2183,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
  */
 export interface BetaManagedAgentsUserCustomToolResultEventParams {
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */
@@ -2280,6 +2453,291 @@ export interface BetaManagedAgentsUserToolResultEventParams {
   is_error?: boolean | null;
 }
 
+/**
+ * A workflow run was created. A workflow run is background work that the session's
+ * agent starts. Emitted once per run, before the run's other `workflow_run.*`
+ * events.
+ */
+export interface BetaManagedAgentsWorkflowRunCreatedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Description that the agent gave the run, passed on as written, or `null` if it
+   * gave none.
+   */
+  description: string | null;
+
+  /**
+   * Name that the agent gave the run, passed on as written, or a name that the
+   * server assigned.
+   */
+  name: string;
+
+  /**
+   * The phases that the run's plan declares, in the plan's order. Can be empty.
+   */
+  phases: Array<BetaManagedAgentsWorkflowRunPhase>;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.created';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+}
+
+/**
+ * Why a workflow run did not finish, or was not created. More types may be added.
+ * On `workflow_run.status_ended`, for a `type` you do not recognize, rely on the
+ * event's `result.type`.
+ */
+export type BetaManagedAgentsWorkflowRunError =
+  | BetaManagedAgentsTimeoutWorkflowRunError
+  | BetaManagedAgentsProgramWorkflowRunError
+  | BetaManagedAgentsUnknownWorkflowRunError
+  | BetaManagedAgentsThreadLimitWorkflowRunError
+  | BetaManagedAgentsMaxWorkflowRunsWorkflowRunError;
+
+/**
+ * A workflow run met an error, or an error kept a run from being created. A run
+ * that ends with a `result.type` of `error` emits this event before its
+ * `workflow_run.status_ended`, with the same `error`.
+ */
+export interface BetaManagedAgentsWorkflowRunErrorEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Why the run did not finish, or was not created.
+   */
+  error: BetaManagedAgentsWorkflowRunError;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.error';
+
+  /**
+   * Identifier of the run that met the error, or `null` when the error kept a run
+   * from being created.
+   */
+  workflow_run_id: string | null;
+}
+
+/**
+ * A phase that a workflow run's plan declares.
+ */
+export interface BetaManagedAgentsWorkflowRunPhase {
+  /**
+   * Unique identifier for the phase.
+   */
+  id: string;
+
+  /**
+   * Description that the agent gave the phase, passed on as written, or `null` if it
+   * gave none.
+   */
+  description: string | null;
+
+  /**
+   * Name that the agent gave the phase, passed on as written.
+   */
+  name: string;
+}
+
+/**
+ * A workflow run's plan left a phase, or the run's end closed it. Emitted once for
+ * every `workflow_run.phase_started` event, before the run's
+ * `workflow_run.status_ended` event. The event does not say whether the plan
+ * finished the phase's work, or why it left.
+ */
+export interface BetaManagedAgentsWorkflowRunPhaseEndedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Identifier of the `workflow_run.phase_started` event that opened the phase.
+   */
+  phase_started_id: string;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.phase_ended';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+
+  /**
+   * Identifier of the phase, as in `phases` on the run's `workflow_run.created`
+   * event.
+   */
+  workflow_run_phase_id: string;
+}
+
+/**
+ * A workflow run's plan entered a phase.
+ */
+export interface BetaManagedAgentsWorkflowRunPhaseStartedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.phase_started';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+
+  /**
+   * Identifier of the phase, as in `phases` on the run's `workflow_run.created`
+   * event.
+   */
+  workflow_run_phase_id: string;
+}
+
+/**
+ * How a workflow run ended.
+ */
+export type BetaManagedAgentsWorkflowRunResult =
+  | BetaManagedAgentsWorkflowRunResultCompleted
+  | BetaManagedAgentsWorkflowRunResultError
+  | BetaManagedAgentsWorkflowRunResultStopped;
+
+/**
+ * The run's plan, a program that the agent wrote, finished. This does not say
+ * whether the work succeeded.
+ */
+export interface BetaManagedAgentsWorkflowRunResultCompleted {
+  type: 'completed';
+}
+
+/**
+ * The run failed or reached its time limit.
+ */
+export interface BetaManagedAgentsWorkflowRunResultError {
+  /**
+   * Why the run did not finish.
+   */
+  error: BetaManagedAgentsWorkflowRunError;
+
+  type: 'error';
+}
+
+/**
+ * The agent stopped the run.
+ */
+export interface BetaManagedAgentsWorkflowRunResultStopped {
+  type: 'stopped';
+}
+
+/**
+ * A workflow run ended. Emitted once per run, as the last of the run's
+ * `workflow_run.*` events.
+ */
+export interface BetaManagedAgentsWorkflowRunStatusEndedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  /**
+   * How the run ended.
+   */
+  result: BetaManagedAgentsWorkflowRunResult;
+
+  type: 'workflow_run.status_ended';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+}
+
+/**
+ * A workflow run is idle. Emitted each time the run goes idle, whatever the cause.
+ * If the run ends while idle, no `workflow_run.status_running` comes between this
+ * event and its `workflow_run.status_ended`.
+ */
+export interface BetaManagedAgentsWorkflowRunStatusIdleEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.status_idle';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+}
+
+/**
+ * A workflow run is running. Emitted when the run starts to execute, and each time
+ * it resumes after being idle. A run that starts idle emits
+ * `workflow_run.status_idle` first.
+ */
+export interface BetaManagedAgentsWorkflowRunStatusRunningEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Timestamp when this event was processed.
+   */
+  processed_at: string;
+
+  type: 'workflow_run.status_running';
+
+  /**
+   * Identifier of the run. The same value is on all of the run's `workflow_run.*`
+   * events.
+   */
+  workflow_run_id: string;
+}
+
 export interface EventListParams extends PageCursorParams {
   /**
    * Query param: Return events created after this time (exclusive). Compared against
@@ -2319,7 +2777,8 @@ export interface EventListParams extends PageCursorParams {
   types?: Array<BetaManagedAgentsSessionEventType>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -2341,7 +2800,8 @@ export interface EventSendParams {
   events: Array<BetaManagedAgentsEventParams>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -2372,7 +2832,8 @@ export interface EventStreamParams {
   event_deltas?: Array<SessionsAPI.BetaManagedAgentsDeltaType>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -2417,6 +2878,7 @@ export declare namespace Events {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCompactionLimitReachedError as BetaManagedAgentsCompactionLimitReachedError,
     type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
@@ -2425,12 +2887,14 @@ export declare namespace Events {
     type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
     type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
     type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
     type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
     type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
     type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
+    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
     type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
     type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
@@ -2475,7 +2939,11 @@ export declare namespace Events {
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
+    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
+    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
+    type BetaManagedAgentsToolUseLimitReachedError as BetaManagedAgentsToolUseLimitReachedError,
     type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
+    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
@@ -2489,6 +2957,19 @@ export declare namespace Events {
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
     type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
+    type BetaManagedAgentsWorkflowRunCreatedEvent as BetaManagedAgentsWorkflowRunCreatedEvent,
+    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
+    type BetaManagedAgentsWorkflowRunErrorEvent as BetaManagedAgentsWorkflowRunErrorEvent,
+    type BetaManagedAgentsWorkflowRunPhase as BetaManagedAgentsWorkflowRunPhase,
+    type BetaManagedAgentsWorkflowRunPhaseEndedEvent as BetaManagedAgentsWorkflowRunPhaseEndedEvent,
+    type BetaManagedAgentsWorkflowRunPhaseStartedEvent as BetaManagedAgentsWorkflowRunPhaseStartedEvent,
+    type BetaManagedAgentsWorkflowRunResult as BetaManagedAgentsWorkflowRunResult,
+    type BetaManagedAgentsWorkflowRunResultCompleted as BetaManagedAgentsWorkflowRunResultCompleted,
+    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunResultStopped as BetaManagedAgentsWorkflowRunResultStopped,
+    type BetaManagedAgentsWorkflowRunStatusEndedEvent as BetaManagedAgentsWorkflowRunStatusEndedEvent,
+    type BetaManagedAgentsWorkflowRunStatusIdleEvent as BetaManagedAgentsWorkflowRunStatusIdleEvent,
+    type BetaManagedAgentsWorkflowRunStatusRunningEvent as BetaManagedAgentsWorkflowRunStatusRunningEvent,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,

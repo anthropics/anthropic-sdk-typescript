@@ -65,74 +65,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
       let done = false;
       try {
         for await (const sse of _iterSSEMessages(response, controller)) {
-          if (sse.event === 'completion') {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
-          if (
-            sse.event === 'message_start' ||
-            sse.event === 'message_delta' ||
-            sse.event === 'message_stop' ||
-            sse.event === 'content_block_start' ||
-            sse.event === 'content_block_delta' ||
-            sse.event === 'content_block_stop' ||
-            sse.event === 'message' ||
-            sse.event === 'user.message' ||
-            sse.event === 'user.interrupt' ||
-            sse.event === 'user.tool_confirmation' ||
-            sse.event === 'user.custom_tool_result' ||
-            sse.event === 'user.tool_result' ||
-            sse.event === 'agent.message' ||
-            sse.event === 'agent.thinking' ||
-            sse.event === 'agent.tool_use' ||
-            sse.event === 'agent.tool_result' ||
-            sse.event === 'agent.mcp_tool_use' ||
-            sse.event === 'agent.mcp_tool_result' ||
-            sse.event === 'agent.custom_tool_use' ||
-            sse.event === 'agent.thread_context_compacted' ||
-            sse.event === 'session.status_running' ||
-            sse.event === 'session.status_idle' ||
-            sse.event === 'session.status_rescheduled' ||
-            sse.event === 'session.status_terminated' ||
-            sse.event === 'session.error' ||
-            sse.event === 'session.deleted' ||
-            sse.event === 'session.updated' ||
-            sse.event === 'span.model_request_start' ||
-            sse.event === 'span.model_request_end' ||
-            sse.event === 'span.outcome_evaluation_start' ||
-            sse.event === 'span.outcome_evaluation_ongoing' ||
-            sse.event === 'span.outcome_evaluation_end' ||
-            sse.event === 'user.define_outcome' ||
-            sse.event === 'agent.thread_message_received' ||
-            sse.event === 'agent.thread_message_sent' ||
-            sse.event === 'agent.session_thread_message_received' ||
-            sse.event === 'agent.session_thread_message_sent' ||
-            sse.event === 'session.thread_created' ||
-            sse.event === 'session.thread_status_created' ||
-            sse.event === 'session.thread_status_running' ||
-            sse.event === 'session.thread_status_idle' ||
-            sse.event === 'session.thread_status_rescheduled' ||
-            sse.event === 'session.thread_status_terminated' ||
-            sse.event === 'event_start' ||
-            sse.event === 'event_delta' ||
-            sse.event === 'system.message'
-          ) {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
           if (sse.event === 'ping') {
+            continue;
+          }
+
+          if (sse.event === null) {
             continue;
           }
 
@@ -140,6 +77,16 @@ export class Stream<Item> implements AsyncIterable<Item> {
             const body = safeJSON(sse.data) ?? sse.data;
             const type = body?.error?.type as ErrorType | undefined;
             throw new APIError(undefined, body, undefined, response.headers, type);
+          } else {
+            if (!sse.data) continue;
+
+            try {
+              yield JSON.parse(sse.data) as Item;
+            } catch (e) {
+              logger.error(`Could not parse message into JSON:`, sse.data);
+              logger.error(`From chunk:`, sse.raw);
+              throw e;
+            }
           }
         }
         done = true;
@@ -220,7 +167,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
   tee(): [Stream<Item>, Stream<Item>] {
     const left: Array<Promise<IteratorResult<Item>>> = [];
     const right: Array<Promise<IteratorResult<Item>>> = [];
-    const iterator = this.iterator();
+    const iterator = this[Symbol.asyncIterator]();
 
     const teeIterator = (queue: Array<Promise<IteratorResult<Item>>>): AsyncIterator<Item> => {
       return {
@@ -290,83 +237,73 @@ export async function* _iterSSEMessages(
     throw new AnthropicError(`Attempted to iterate over a response with no body`);
   }
 
-  const sseDecoder = new SSEDecoder();
-  const lineDecoder = new LineDecoder();
+  const decoder = new TextDecoder('utf-8', { ignoreBOM: true });
+  let text = '';
+  let event: string | null = null;
+  let data: string[] = [];
+  let raw: string[] = [];
 
-  const iter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-  for await (const chunk of iter) {
-    for (const line of lineDecoder.decode(chunk)) {
-      const sse = sseDecoder.decode(line);
-      if (sse) yield sse;
-    }
-  }
-
-  for (const line of lineDecoder.flush()) {
-    const sse = sseDecoder.decode(line);
-    if (sse) yield sse;
-  }
-}
-
-class SSEDecoder {
-  private data: string[];
-  private event: string | null;
-  private chunks: string[];
-
-  constructor() {
-    this.event = null;
-    this.data = [];
-    this.chunks = [];
-  }
-
-  decode(line: string) {
-    if (line.endsWith('\r')) {
-      line = line.substring(0, line.length - 1);
-    }
+  const takeLine = (line: string): ServerSentEvent | null => {
+    if (line.charCodeAt(0) === 0xfeff) line = line.slice(1);
 
     if (!line) {
       // empty line and we didn't previously encounter any messages
-      if (!this.event && !this.data.length) return null;
+      if (!event && !data.length) return null;
 
-      const sse: ServerSentEvent = {
-        event: this.event,
-        data: this.data.join('\n'),
-        raw: this.chunks,
-      };
-
-      this.event = null;
-      this.data = [];
-      this.chunks = [];
-
+      const sse: ServerSentEvent = { event, data: data.join('\n'), raw };
+      event = null;
+      data = [];
+      raw = [];
       return sse;
     }
 
-    this.chunks.push(line);
+    raw.push(line);
 
-    if (line.startsWith(':')) {
-      return null;
-    }
+    const colon = line.indexOf(':');
+    if (colon === 0) return null;
 
-    let [fieldname, _, value] = partition(line, ':');
+    const fieldname = colon === -1 ? line : line.slice(0, colon);
+    if (fieldname !== 'event' && fieldname !== 'data') return null;
 
-    if (value.startsWith(' ')) {
-      value = value.substring(1);
-    }
-
-    if (fieldname === 'event') {
-      this.event = value;
-    } else if (fieldname === 'data') {
-      this.data.push(value);
-    }
-
+    const value = colon === -1 ? '' : line.slice(line.charCodeAt(colon + 1) === 0x20 ? colon + 2 : colon + 1);
+    if (fieldname === 'event') event = value;
+    else data.push(value);
     return null;
-  }
-}
+  };
 
-function partition(str: string, delimiter: string): [string, string, string] {
-  const index = str.indexOf(delimiter);
-  if (index !== -1) {
-    return [str.substring(0, index), delimiter, str.substring(index + delimiter.length)];
+  for await (const chunk of ReadableStreamToAsyncIterable<Bytes>(response.body)) {
+    if (chunk == null) continue;
+
+    text += decoder.decode(typeof chunk === 'string' ? encodeUTF8(chunk) : chunk, { stream: true });
+
+    let start = 0;
+    if (!text.includes('\r')) {
+      let end;
+      while ((end = text.indexOf('\n', start)) !== -1) {
+        const sse = takeLine(text.slice(start, end));
+        start = end + 1;
+        if (sse) yield sse;
+      }
+    } else {
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char !== '\n' && char !== '\r') continue;
+        if (char === '\r' && i + 1 === text.length) break;
+
+        const sse = takeLine(text.slice(start, i));
+        if (char === '\r' && text[i + 1] === '\n') i++;
+        start = i + 1;
+        if (sse) yield sse;
+      }
+    }
+    text = text.slice(start);
   }
 
-  return [str, '', ''];
+  text += decoder.decode();
+  if (text) {
+    for (const line of text.replace(/\r$/, '').split(/\r\n|[\n\r]/)) {
+      const sse = takeLine(line);
+      if (sse) yield sse;
+    }
+  }
 }

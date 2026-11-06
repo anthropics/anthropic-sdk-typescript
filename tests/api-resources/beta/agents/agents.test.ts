@@ -3,11 +3,12 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource agents', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.beta.agents.create({ model: 'claude-opus-5', name: 'My First Agent' });
+    const responsePromise = client.beta.agents.create({ model: 'claude-opus-5-5', name: 'My First Agent' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,9 +20,10 @@ describe('resource agents', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.agents.create({
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       name: 'My First Agent',
       description: 'A general-purpose starter agent.',
+      execution_identity: { role_arn: 'arn:aws:iam::228601553692:role/T', type: 'aws_role' },
       mcp_servers: [
         {
           name: 'example-mcp',
@@ -62,8 +64,7 @@ describe('resource agents', () => {
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('retrieve', async () => {
+  test('retrieve', async () => {
     const responsePromise = client.beta.agents.retrieve('agent_011CZkYpogX7uDKUyvBTophP');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -74,8 +75,7 @@ describe('resource agents', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('retrieve: request options and params are passed correctly', async () => {
+  test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.agents.retrieve(
@@ -101,8 +101,7 @@ describe('resource agents', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.agents.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -113,8 +112,7 @@ describe('resource agents', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.agents.list(

@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsSkillActivitiesPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Skills extends APIResource {
   /**
@@ -27,9 +28,28 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsSkillActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsSkillActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/skills?beta=true',
+      '/v1/organizations/analytics/skills',
       PageCursor<AnalyticsAPI.BetaAnalyticsSkillActivity>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.skills.list', options, {
+          route: '/v1/organizations/analytics/skills',
+          queryParams: [
+            'date',
+            'ending_date',
+            'filter',
+            'group_by',
+            'limit',
+            'order',
+            'order_by',
+            'page',
+            'starting_date',
+          ],
+          contentQueryParams: ['filter'],
+        }),
+      },
     );
   }
 }
@@ -57,14 +77,16 @@ export interface SkillListParams extends PageCursorParams {
    * Filters as `dimension:value`, e.g. `filter[]=rbac_group_id:{id}`. Repeat the
    * param for OR within a dimension and across dimensions for AND. Supported
    * dimensions on this endpoint: `product`, `rbac_group_id`, `share_status`,
-   * `skill_name`, `user_id`. Value forms: `product` is one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent`; `rbac_group_id` takes the tagged id
-   * (`rbac_group_...`, as emitted in responses and by the spend-limits API) or a
-   * bare group UUID, and matches users who held the group at any point during each
-   * covered UTC day (time-of-usage attribution); `share_status` is one of
-   * `organization`, `private`, or `public`; `skill_name` matches case-insensitively;
-   * `user_id` takes a tagged user id (`user_...`), as emitted in responses. An
-   * unsupported dimension returns 400. At most 100 entries.
+   * `skill_name`, `user_id`. Value forms: `product` is one of `chat_cowork_unified`,
+   * `chat`, `claude_code`, `cowork`, or `office_agent`; `rbac_group_id` takes the
+   * tagged id (`rbac_group_...`, as emitted in responses and by the spend-limits
+   * API) or a bare group UUID, and matches users who held the group at any point
+   * during each covered UTC day (time-of-usage attribution); `share_status` is one
+   * of `organization`, `private`, or `public`; `skill_name` matches
+   * case-insensitively; `user_id` takes a tagged user id (`user_...`), as emitted in
+   * responses. An unsupported dimension returns 400. At most 100 entries.
+   * `chat_cowork_unified` is accepted as a `product` value only where Chat and
+   * Cowork unified is available.
    */
   filter?: Array<string> | null;
 
@@ -77,7 +99,7 @@ export interface SkillListParams extends PageCursorParams {
    * day, so grouped rows are not an exclusive partition and can sum above org-level
    * totals. At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsSkillGroupBy> | null;
 
   /**
    * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
@@ -85,7 +107,7 @@ export interface SkillListParams extends PageCursorParams {
    * to `order_by`, or to the endpoint's default sort field when `order_by` is
    * omitted.
    */
-  order?: 'asc' | 'desc' | null;
+  order?: AnalyticsAPI.BetaAnalyticsOrder | null;
 
   /**
    * Sort field. Restricted to the endpoint's sort column plus its rankable metrics

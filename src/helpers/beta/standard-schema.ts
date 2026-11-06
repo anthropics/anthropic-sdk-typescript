@@ -2,7 +2,7 @@ import { transformJSONSchema } from '../../lib/transform-json-schema';
 import { AnthropicError } from '../../core/error';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { BetaRunnableTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
-import { BetaToolResultContentBlockParam } from '../../resources/beta';
+import { BetaTool, BetaToolResultContentBlockParam } from '../../resources/beta';
 import {
   parseWithStandardSchema,
   standardSchemaToJSONSchema,
@@ -58,42 +58,46 @@ export function betaStandardSchemaOutputFormat<Schema extends StandardSchemaV1>(
  * (Zod, Valibot, ArkType, ...) that can be passed into the `.toolRunner()` method.
  * The schema's JSON Schema representation is sent to the API and the provided
  * function's input arguments will be validated against the schema.
+ *
+ * Every other field of the tool definition, such as `strict` or `cache_control`,
+ * can be passed too and is sent to the API as given.
  */
-export function betaStandardSchemaTool<InputSchema extends StandardSchemaV1>(options: {
-  name: string;
-  inputSchema: InputSchema;
-  description: string;
-  run: (
-    args: StandardSchemaV1.InferOutput<InputSchema>,
-    context?: BetaToolRunContext,
-  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-  /**
-   * The JSON schema to send as the tool's `input_schema`. Derived from the schema's
-   * `~standard.jsonSchema` (Standard JSON Schema) interface if not given.
-   */
-  jsonSchema?: Record<string, unknown> | undefined;
-  /**
-   * Optional cleanup hook for tools that hold process-level resources (e.g. a
-   * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
-   * when iteration ends.
-   */
-  close?: () => void | Promise<void>;
-}): BetaRunnableTool<StandardSchemaV1.InferOutput<InputSchema>> {
-  const jsonSchema = standardSchemaToJSONSchema(options.inputSchema, options.jsonSchema);
+export function betaStandardSchemaTool<InputSchema extends StandardSchemaV1>(
+  options: {
+    name: string;
+    inputSchema: InputSchema;
+    description: string;
+    run: (
+      args: StandardSchemaV1.InferOutput<InputSchema>,
+      context?: BetaToolRunContext,
+    ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+    /**
+     * The JSON schema to send as the tool's `input_schema`. Derived from the schema's
+     * `~standard.jsonSchema` (Standard JSON Schema) interface if not given.
+     */
+    jsonSchema?: Record<string, unknown> | undefined;
+    /**
+     * Optional cleanup hook for tools that hold process-level resources (e.g. a
+     * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
+     * when iteration ends.
+     */
+    close?: () => void | Promise<void>;
+  } & Omit<BetaTool, 'type' | 'name' | 'description' | 'input_schema'>,
+): BetaRunnableTool<StandardSchemaV1.InferOutput<InputSchema>> {
+  const { name, inputSchema, description, run, jsonSchema: givenSchema, ...extraProps } = options;
+  const jsonSchema = standardSchemaToJSONSchema(inputSchema, givenSchema);
 
   if (jsonSchema['type'] !== 'object') {
-    throw new Error(
-      `Schema for tool "${options.name}" must be an object, but got ${String(jsonSchema['type'])}`,
-    );
+    throw new Error(`Schema for tool "${name}" must be an object, but got ${String(jsonSchema['type'])}`);
   }
 
   return {
+    ...extraProps,
     type: 'custom',
-    name: options.name,
+    name,
     input_schema: jsonSchema as typeof jsonSchema & { type: 'object' },
-    description: options.description,
-    run: options.run,
-    parse: (args: unknown) => parseWithStandardSchema(options.inputSchema, args),
-    ...(options.close ? { close: options.close } : {}),
+    description,
+    run,
+    parse: (args: unknown) => parseWithStandardSchema(inputSchema, args),
   };
 }

@@ -6,7 +6,7 @@
     "test": "tsc && webpack && node --test tests/browser.test.mjs"
   },
   "devDependencies": {
-    "playwright-core": "1.57.0",
+    "playwright-core": "1.63.0",
     "ts-loader": "9.6.2",
     "typescript": "5.8.3",
     "webpack": "5.107.1",

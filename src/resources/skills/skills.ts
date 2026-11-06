@@ -11,18 +11,38 @@ import {
   Versions,
 } from './versions';
 import { APIPromise } from '../../core/api-promise';
+import { ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
+
+/**
+ * A custom skill the request names is stored under an encryption key state the
+ * workspace cannot currently decrypt.
+ */
+export class SkillReadBlockedUndecryptableError extends ConflictError {
+  declare readonly errorCode: 'skill_read_blocked_undecryptable';
+  declare readonly details: SkillReadBlockedUndecryptableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'SkillReadBlockedUndecryptableError';
+}
 
 export class Skills extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
 
   /**
    * Create Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {CMEKContextUnavailableError}
    *
    * @example
    * ```ts
@@ -43,6 +63,10 @@ export class Skills extends APIResource {
             { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.skills.create', options, {
+            route: '/v1/skills',
+            createdIDAttribute: 'anthropic.skill.id',
+          }),
         },
         this._client,
         false,
@@ -52,6 +76,9 @@ export class Skills extends APIResource {
 
   /**
    * Get Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -70,11 +97,18 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.retrieve', options, {
+        route: '/v1/skills/{skill_id}',
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
     });
   }
 
   /**
    * List Skills
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -96,11 +130,18 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.list', options, {
+        route: '/v1/skills',
+        queryParams: ['limit', 'page', 'source'],
+      }),
     });
   }
 
   /**
    * Delete Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -119,6 +160,10 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.delete', options, {
+        route: '/v1/skills/{skill_id}',
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
     });
   }
 }
@@ -190,6 +235,14 @@ export interface Skill {
    * ISO 8601 timestamp of when the skill was last updated.
    */
   updated_at: string;
+}
+
+/**
+ * A custom skill the request names is stored under an encryption key state the
+ * workspace cannot currently decrypt.
+ */
+export interface SkillReadBlockedUndecryptableErrorDetails {
+  error_code: 'skill_read_blocked_undecryptable';
 }
 
 export interface SkillSource {
@@ -279,12 +332,15 @@ export interface SkillDeleteParams {
   workspace_id?: string;
 }
 
+Skills.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
 Skills.Versions = Versions;
 
 export declare namespace Skills {
   export {
+    SkillReadBlockedUndecryptableError as SkillReadBlockedUndecryptableError,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,

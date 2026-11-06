@@ -1,17 +1,25 @@
 import { APIResource } from '../../../../core/resource';
 import * as AnalyticsAPI from './analytics';
-import { BetaAnalyticsUsageReportTimeBucketsPageCursor } from './analytics';
-import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
+import { BetaAnalyticsUsageReportTimeBucketsReportPageCursor } from './analytics';
+import { PagePromise, ReportPageCursor, type ReportPageCursorParams } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class UsageReport extends APIResource {
   /**
-   * Get token usage over time across a date range.
+   * [Legacy] Get token usage over time across a date range.
    *
    * Returns token usage bucketed by minute, hour, or day, optionally broken down by
-   * product, model, context window, inference region, or speed. Available to
+   * one or more `group_by[]` dimensions, such as product or model. Available to
    * organizations on a Claude Enterprise plan. Requires an API key with the
    * `read:analytics` scope.
+   *
+   * This endpoint is one of the legacy Claude Enterprise usage and cost reports. For
+   * new integrations, use
+   * [`GET /v1/organizations/analytics/usage`](/docs/en/api/beta/organization/analytics/usage/list)
+   * in the Usage and Cost Analytics API instead. To move an existing integration,
+   * see
+   * [Migrate from the Claude Enterprise usage and cost reports](/docs/en/manage-claude/usage-cost-analytics-api#migrate-from-enterprise-analytics-reports).
    *
    * @example
    * ```ts
@@ -27,18 +35,48 @@ export class UsageReport extends APIResource {
     query: UsageReportListParams,
     options?: RequestOptions,
   ): PagePromise<
-    BetaAnalyticsUsageReportTimeBucketsPageCursor,
+    BetaAnalyticsUsageReportTimeBucketsReportPageCursor,
     AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket
   > {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/usage_report?beta=true',
-      PageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
-      { query, ...options },
+      '/v1/organizations/analytics/usage_report',
+      ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.analytics.usage_report.list',
+          options,
+          {
+            route: '/v1/organizations/analytics/usage_report',
+            queryParams: [
+              'bucket_width',
+              'claude_tag_categories',
+              'claude_tag_user_ids',
+              'context_windows',
+              'ending_at',
+              'group_by',
+              'inference_geos',
+              'limit',
+              'models',
+              'page',
+              'products',
+              'rbac_group_ids',
+              'slack_channel_ids',
+              'speeds',
+              'starting_at',
+              'user_ids',
+            ],
+          },
+        ),
+      },
     );
   }
 }
 
-export interface UsageReportListParams extends PageCursorParams {
+export interface UsageReportListParams extends ReportPageCursorParams {
   /**
    * Start of range, inclusive. RFC 3339 tz-aware. Must be within the last 365 days
    * and no earlier than 2026-01-01T00:00:00Z.
@@ -52,10 +90,8 @@ export interface UsageReportListParams extends PageCursorParams {
 
   /**
    * Filter to Claude Tag (Claude in Slack) usage in specific spend categories. Usage
-   * with no category never matches. `dm` usage is reported under the user's product
-   * rather than `claude-tag`, so combining this filter with `products[]=claude-tag`
-   * excludes it. Use `group_by[]=claude_tag_category` to break out per-category
-   * values.
+   * with no category never matches. Use `group_by[]=claude_tag_category` to break
+   * out per-category values.
    */
   claude_tag_categories?: Array<AnalyticsAPI.BetaAnalyticsClaudeTagCategory> | null;
 
@@ -104,6 +140,13 @@ export interface UsageReportListParams extends PageCursorParams {
   inference_geos?: Array<AnalyticsAPI.BetaAnalyticsInferenceGeoFilter> | null;
 
   /**
+   * Maximum number of time buckets per page. Defaults and caps vary by
+   * `bucket_width` (`1d`: default 7, max 31; `1h`: default 24, max 168; `1m`:
+   * default 60, max 256).
+   */
+  limit?: number | null;
+
+  /**
    * Models to include. Defaults to all models. Use `group_by[]=model` to break out
    * per-model values.
    */
@@ -145,4 +188,4 @@ export declare namespace UsageReport {
   export { type UsageReportListParams as UsageReportListParams };
 }
 
-export { type BetaAnalyticsUsageReportTimeBucketsPageCursor };
+export { type BetaAnalyticsUsageReportTimeBucketsReportPageCursor };

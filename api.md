@@ -7,20 +7,36 @@ Types:
 - <code><a href="./src/resources/shared.ts">APIErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
+- <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">ClaudeCodeVersionTooOldErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKContextUnavailableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyDisabledErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyUnreachableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorType</a></code>
 - <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
 - <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
+- <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
 - <code><a href="./src/resources/shared.ts">PermissionError</a></code>
+- <code><a href="./src/resources/shared.ts">RampLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingErrorDetails</a></code>
 
 # Messages
 
 Types:
 
+- <code><a href="./src/resources/messages/messages.ts">AssistantMessageParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">AvailableToolsLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionOutputBlock</a></code>
@@ -32,32 +48,92 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserClickTarget</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserCloseTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserCloseTabInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserCloseTabToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserCoordinateTarget</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserDoubleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserDoubleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserDoubleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserFileUploadConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFileUploadInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFileUploadToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserFindConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFindInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFindToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserFormInputConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFormInputInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFormInputToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFormInputValue</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserGetPageTextConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserGetPageTextInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserGetPageTextToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserHoldKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoldKeyInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoldKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserHoverConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoverInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoverToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserJavascriptExecConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserJavascriptExecInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserJavascriptExecToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserKeyInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickDragInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseDownInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseDownToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseUpInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseUpToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserListTabsConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserListTabsInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserListTabsToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMemberInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMemberName</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserMiddleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMiddleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMiddleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserMouseMoveConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMouseMoveInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMouseMoveToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserNavigateConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNavigateInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNavigateToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserNewTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNewTabInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNewTabToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserReadConsoleConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadConsoleInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadConsoleToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserReadNetworkConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadNetworkInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadNetworkToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserReadPageConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadPageFilter</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadPageInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadPageToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserRefTarget</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserRightClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserRightClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserRightClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserScreenshotConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScreenshotInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScreenshotToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserScrollConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollDirection</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollInput</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserScrollToConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollToInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollToToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserStateBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserStateChange</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeDownloadCompleted</a></code>
@@ -66,12 +142,23 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeTabOpened</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserStateTabEntry</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserSwitchTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserSwitchTabInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserSwitchTabToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserToolset20260801</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserToolsetConfigs</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserTripleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTripleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTripleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserTypeConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTypeInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTypeToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserWaitConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserWaitInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserWaitToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserZoomConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserZoomInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserZoomToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheCreation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheMissMessagesChanged</a></code>
@@ -110,25 +197,72 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionBlockAmbiguousErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionBlockMisplacedErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionContentMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionIncompleteTurnErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionNothingToSummarizeErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionSignatureInvalidErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionTooManyToolReferencesErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionToolChangesMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionUnavailableErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerDoubleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerDoubleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerDoubleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerHoldKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerHoldKeyInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerHoldKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerKeyInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickDragInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseDownInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseDownToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseUpInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMemberInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMemberName</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerMiddleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMiddleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMiddleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerMouseMoveConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMouseMoveInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMouseMoveToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerRightClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerRightClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerRightClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerScreenshotConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScreenshotInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScreenshotToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerScrollConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScrollDirection</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScrollInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerToolset20260801</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerToolsetConfigs</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerTripleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTripleClickInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTripleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerTypeConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTypeInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTypeToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerWaitConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerWaitInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerWaitToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerZoomConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerZoomInput</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerZoomToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Container</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContainerParams</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContainerSkill</a></code>
@@ -155,6 +289,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">JSONOutputFormat</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MemoryTool20250818</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageContentParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCreateParamsContainer</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
@@ -186,6 +321,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SkillParams</a></code>
 - <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SystemMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextCitation</a></code>
@@ -210,6 +346,12 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadAlreadyContinuedErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadContinueInFlightErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadFingerprintMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadUnsupportedFeatureName</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadUnsupportedRequestErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Tool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolBash20250124</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoice</a></code>
@@ -217,8 +359,10 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceAuto</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceNone</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolNameConflictErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolReferenceBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolReferenceBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolReferenceUnresolvedErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolBm25_20251119</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolRegex20251119</a></code>
@@ -235,10 +379,13 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolUseCaller</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolsetToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">URLImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">UserLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">UserMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20250910</a></code>
@@ -268,6 +415,57 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParamContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseToolUseBlockUnion</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserCloseTabToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserDoubleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserFileUploadToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserFindToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserFormInputToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserGetPageTextToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserHoldKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserHoverToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserJavascriptExecToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserLeftClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserLeftMouseDownToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserListTabsToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserMiddleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserMouseMoveToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserNavigateToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserNewTabToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserReadConsoleToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserReadNetworkToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserReadPageToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserRightClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserScreenshotToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserScrollToToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserSwitchTabToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserTripleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserTypeToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserWaitToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseBrowserZoomToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerCursorPositionToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerDoubleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerHoldKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerLeftClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerLeftMouseDownToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerMiddleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerMouseMoveToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerRightClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerScreenshotToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerTripleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerTypeToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerWaitToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ResponseComputerZoomToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
@@ -314,6 +512,8 @@ Types:
 - <code><a href="./src/resources/models.ts">EffortCapability</a></code>
 - <code><a href="./src/resources/models.ts">ModelCapabilities</a></code>
 - <code><a href="./src/resources/models.ts">ModelInfo</a></code>
+- <code><a href="./src/resources/models.ts">ModelLine</a></code>
+- <code><a href="./src/resources/models.ts">ServerToolsCapability</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingCapability</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingTypes</a></code>
 
@@ -327,7 +527,10 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/files.ts">DeletedFile</a></code>
+- <code><a href="./src/resources/files.ts">FileExpiredErrorDetails</a></code>
 - <code><a href="./src/resources/files.ts">FileMetadata</a></code>
+- <code><a href="./src/resources/files.ts">FileNotDownloadableErrorDetails</a></code>
+- <code><a href="./src/resources/files.ts">StorageQuotaExceededErrorDetails</a></code>
 
 Methods:
 
@@ -343,6 +546,7 @@ Types:
 
 - <code><a href="./src/resources/skills/skills.ts">DeletedSkill</a></code>
 - <code><a href="./src/resources/skills/skills.ts">Skill</a></code>
+- <code><a href="./src/resources/skills/skills.ts">SkillReadBlockedUndecryptableErrorDetails</a></code>
 - <code><a href="./src/resources/skills/skills.ts">SkillSource</a></code>
 
 Methods:
@@ -366,10 +570,59 @@ Methods:
 - <code title="get /v1/skills/{skill_id}/versions">client.skills.versions.<a href="./src/resources/skills/versions.ts">list</a>(skillID, { ...params }) -> SkillVersionsPageCursor</code>
 - <code title="delete /v1/skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/resources/skills/versions.ts">delete</a>(version, { ...params }) -> DeletedSkillVersion</code>
 
+# UserProfiles
+
+Types:
+
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">DeletedUserProfile</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfile</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileAccessType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberProgram</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberRequirements</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberTier</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsFeature</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsProgram</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementAction</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionBan</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionNextStep</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionReason</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionRestriction</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementStatus</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserAccountStatus</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetailsParams</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserEntityType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrder</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrderBy</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileProgramStatus</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfilePrograms</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">create</a>({ ...params }) -> UserProfile</code>
+- <code title="get /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> UserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">update</a>(userProfileID, { ...params }) -> UserProfile</code>
+- <code title="get /v1/user_profiles">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">list</a>({ ...params }) -> UserProfilesPageCursor</code>
+- <code title="delete /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">delete</a>(userProfileID, { ...params }) -> DeletedUserProfile</code>
+
+## ActionURLs
+
+Types:
+
+- <code><a href="./src/resources/user-profiles/action-urls.ts">UserProfileActionURL</a></code>
+- <code><a href="./src/resources/user-profiles/action-urls.ts">UserProfileEnrollEndUserAction</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles/{user_profile_id}/action_urls">client.userProfiles.actionURLs.<a href="./src/resources/user-profiles/action-urls.ts">create</a>(userProfileID, { ...params }) -> UserProfileActionURL</code>
+
 # Organization
 
 Types:
 
+- <code><a href="./src/resources/organization/organization.ts">ConcurrentMembershipChangeErrorDetails</a></code>
+- <code><a href="./src/resources/organization/organization.ts">OrgMemberLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationInfo</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationRole</a></code>
 
@@ -387,6 +640,8 @@ Types:
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyServiceAccountActor</a></code>
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyUserActor</a></code>
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyWorkspaceScope</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">OrgAPIKeyLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">WorkspaceAPIKeyLimitExceededErrorDetails</a></code>
 
 Methods:
 
@@ -403,7 +658,11 @@ Types:
 - <code><a href="./src/resources/organization/external-keys.ts">AzureExternalKeyConfigParam</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKey</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyAttachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyChangedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyInWorkspacePolicyErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyUnattachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidationFailedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidationTimedOutErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">GCPExternalKeyConfig</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyDeleteResponse</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidateResponse</a></code>
@@ -470,6 +729,10 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/organization/invites.ts">AlreadyMemberErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">CannotInviteEmailsWithUnverifiedDomainsErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">EmailDomainNotAllowedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">InviteAlreadyExistsErrorDetails</a></code>
 - <code><a href="./src/resources/organization/invites.ts">OrganizationInvite</a></code>
 - <code><a href="./src/resources/organization/invites.ts">InviteDeleteResponse</a></code>
 
@@ -511,6 +774,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/organization/users.ts">CannotRemoveLastMemberErrorDetails</a></code>
 - <code><a href="./src/resources/organization/users.ts">OrganizationUser</a></code>
 - <code><a href="./src/resources/organization/users.ts">UserRemoveResponse</a></code>
 
@@ -529,9 +793,13 @@ Types:
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidency</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyCreateConfig</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyUpdateConfig</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">KeyProfileMismatchErrorDetails</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">NoBillingWorkspaceRole</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">Workspace</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceMember</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceMemberLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspacePolicyField</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspacePolicyViolationErrorDetails</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceRole</a></code>
 
 Methods:
@@ -548,11 +816,14 @@ Types:
 
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimit</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitOrganizationSource</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitType</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitUpdateValue</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitValue</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 
+- <code title="post /v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}">client.organization.workspaces.rateLimits.<a href="./src/resources/organization/workspaces/rate-limits.ts">update</a>(rateLimitID, { ...params }) -> WorkspaceRateLimit</code>
 - <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits">client.organization.workspaces.rateLimits.<a href="./src/resources/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> WorkspaceRateLimitsPageCursor</code>
 
 ### Members
@@ -617,6 +888,201 @@ Methods:
 - <code title="get /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">retrieve</a>() -> OrganizationComplianceSettings</code>
 - <code title="post /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">update</a>({ ...params }) -> OrganizationComplianceSettings</code>
 
+## Analytics
+
+Types:
+
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsArtifactActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsArtifactGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsCoreCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsDesignMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsLinesOfCode</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOrder</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsProjectActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsProjectGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsScienceMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSingleDayActivitySummary</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsToolActionCounts</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsToolActions</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUser</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUserActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUserGroupBy</a></code>
+
+### Summaries
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/summaries">client.organization.analytics.summaries.<a href="./src/resources/organization/analytics/summaries.ts">list</a>({ ...params }) -> AnalyticsSingleDayActivitySummariesPageCursor</code>
+
+### Users
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/users">client.organization.analytics.users.<a href="./src/resources/organization/analytics/users.ts">list</a>({ ...params }) -> AnalyticsUserActivitiesPageCursor</code>
+
+### Apps
+
+#### Chat
+
+##### Projects
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/apps/chat/projects">client.organization.analytics.apps.chat.projects.<a href="./src/resources/organization/analytics/apps/chat/projects.ts">list</a>({ ...params }) -> AnalyticsProjectActivitiesPageCursor</code>
+
+### Connectors
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/connectors">client.organization.analytics.connectors.<a href="./src/resources/organization/analytics/connectors.ts">list</a>({ ...params }) -> AnalyticsConnectorActivitiesPageCursor</code>
+
+### Plugins
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/plugins">client.organization.analytics.plugins.<a href="./src/resources/organization/analytics/plugins.ts">list</a>({ ...params }) -> AnalyticsPluginActivitiesPageCursor</code>
+
+### Skills
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/skills">client.organization.analytics.skills.<a href="./src/resources/organization/analytics/skills.ts">list</a>({ ...params }) -> AnalyticsSkillActivitiesPageCursor</code>
+
+### Artifacts
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/artifacts">client.organization.analytics.artifacts.<a href="./src/resources/organization/analytics/artifacts.ts">list</a>({ ...params }) -> AnalyticsArtifactActivitiesPageCursor</code>
+
+## SpendLimits
+
+Types:
+
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimit</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitOrganizationScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitOrganizationServiceScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitPeriod</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitRBACGroupScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitScopedAPIKeyActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitSeatTierScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUsageTierScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUserActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUserScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitWorkspaceScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendSummary</a></code>
+
+### Effective
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limits/effective">client.organization.spendLimits.effective.<a href="./src/resources/organization/spend-limits/effective.ts">list</a>({ ...params }) -> SpendSummariesPageCursor</code>
+
+### IncreaseRequests
+
+Types:
+
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequest</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestResolvedBy</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestStatus</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">IncreaseRequestApproveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">retrieve</a>(spendLimitIncreaseRequestID) -> SpendLimitIncreaseRequest</code>
+- <code title="get /v1/organizations/spend_limit_increase_requests">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">list</a>({ ...params }) -> SpendLimitIncreaseRequestsPageCursor</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">approve</a>(spendLimitIncreaseRequestID, { ...params }) -> IncreaseRequestApproveResponse</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">deny</a>(spendLimitIncreaseRequestID, { ...params }) -> SpendLimitIncreaseRequest</code>
+
+## RBACGroups
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">DeletedRBACGroup</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">RBACGroup</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">RBACGroupGrantsOwnerAccessErrorDetails</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">RBACGroupOwnerAccessUnconfirmedErrorDetails</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/rbac_groups">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">create</a>({ ...params }) -> RBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">retrieve</a>(rbacGroupID) -> RBACGroup</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">update</a>(rbacGroupID, { ...params }) -> RBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">list</a>({ ...params }) -> RBACGroupsPageCursor</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">delete</a>(rbacGroupID) -> DeletedRBACGroup</code>
+
+### Members
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-groups/members.ts">DeletedRBACGroupMember</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/members.ts">RBACGroupMember</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}/members">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">list</a>(rbacGroupID, { ...params }) -> RBACGroupMembersPageCursor</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}/members">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">add</a>(rbacGroupID, { ...params }) -> RBACGroupMember</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">remove</a>(userID, { ...params }) -> DeletedRBACGroupMember</code>
+
+## RBACRoles
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRole</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}">client.organization.rbacRoles.<a href="./src/resources/organization/rbac-roles/rbac-roles.ts">retrieve</a>(rbacRoleID) -> RBACRole</code>
+- <code title="get /v1/organizations/rbac_roles">client.organization.rbacRoles.<a href="./src/resources/organization/rbac-roles/rbac-roles.ts">list</a>({ ...params }) -> RBACRolesPageCursor</code>
+
+### Permissions
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACAllConnectorsPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorScopePermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorToolPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACOrganizationPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACRolePermission</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}/permissions">client.organization.rbacRoles.permissions.<a href="./src/resources/organization/rbac-roles/permissions.ts">list</a>(rbacRoleID, { ...params }) -> RBACRolePermissionsPageCursor</code>
+
 # Beta
 
 Types:
@@ -632,9 +1098,11 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetErrorDetails</a></code>
 
 ## Models
 
@@ -646,13 +1114,15 @@ Types:
 - <code><a href="./src/resources/beta/models.ts">BetaEffortCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelInfo</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaModelLine</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaServerToolsCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingTypes</a></code>
 
 Methods:
 
-- <code title="get /v1/models/{model_id}?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">retrieve</a>(modelID, { ...params }) -> BetaModelInfo</code>
-- <code title="get /v1/models?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">list</a>({ ...params }) -> BetaModelInfosPage</code>
+- <code title="get /v1/models/{model_id}">client.beta.models.<a href="./src/resources/beta/models.ts">retrieve</a>(modelID, { ...params }) -> BetaModelInfo</code>
+- <code title="get /v1/models">client.beta.models.<a href="./src/resources/beta/models.ts">list</a>({ ...params }) -> BetaModelInfosPage</code>
 
 ## Messages
 
@@ -669,6 +1139,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAllThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAssistantMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionOutputBlock</a></code>
@@ -679,32 +1150,92 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserClickTarget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCoordinateTarget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserDoubleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserDoubleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserDoubleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFileUploadConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFileUploadInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFileUploadToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFindConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFindInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFindToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFormInputConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFormInputInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFormInputToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFormInputValue</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserGetPageTextConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserGetPageTextInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserGetPageTextToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoldKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoldKeyInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoldKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoverConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoverInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoverToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserJavascriptExecConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserJavascriptExecInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserJavascriptExecToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserKeyInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickDragInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseDownInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseDownToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseUpInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseUpToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserListTabsConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserListTabsInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserListTabsToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMemberInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMemberName</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMiddleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMiddleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMiddleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMouseMoveConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMouseMoveInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMouseMoveToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNavigateConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNavigateInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNavigateToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNewTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNewTabInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNewTabToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadConsoleConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadConsoleInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadConsoleToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadNetworkConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadNetworkInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadNetworkToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadPageConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadPageFilter</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadPageInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadPageToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserRefTarget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserRightClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserRightClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserRightClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScreenshotConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScreenshotInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScreenshotToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollDirection</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollInput</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollToConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollToInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollToToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChange</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeDownloadCompleted</a></code>
@@ -713,12 +1244,23 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeTabOpened</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateTabEntry</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserSwitchTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserSwitchTabInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserSwitchTabToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserToolset20260801</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserToolsetConfigs</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTripleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTripleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTripleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTypeConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTypeInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTypeToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserWaitConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserWaitInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserWaitToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserZoomConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserZoomInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserZoomToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissMessagesChanged</a></code>
@@ -768,24 +1310,62 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerDoubleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerDoubleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerDoubleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerHoldKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerHoldKeyInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerHoldKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerKeyInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerKeyToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickDragInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseDownInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseDownToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseUpInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMemberInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMemberName</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMiddleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMiddleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMiddleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMouseMoveConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMouseMoveInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMouseMoveToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerRightClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerRightClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerRightClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScreenshotConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScreenshotInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScreenshotToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScrollConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScrollDirection</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScrollInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerToolset20260801</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerToolsetConfigs</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTripleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTripleClickInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTripleClickToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTypeConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTypeInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTypeToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerWaitConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerWaitInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerWaitToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerZoomConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerZoomInput</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerZoomToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainer</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerSkill</a></code>
@@ -846,9 +1426,11 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818StrReplaceCommand</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818ViewCommand</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageContentParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageThreadParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputConfig</a></code>
@@ -890,6 +1472,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSummarizeCompaction</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
@@ -918,6 +1501,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingMismatchAllowedInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadContinueParams</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadCreateParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
@@ -953,12 +1538,15 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUsesKeep</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUsesTrigger</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolsetToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaURLImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaURLPDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUserLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaUserMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20250910</a></code>
@@ -989,11 +1577,62 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultErrorCode</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolUseBlockUnion</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserCloseTabToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserDoubleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserFileUploadToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserFindToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserFormInputToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserGetPageTextToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserHoldKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserHoverToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserJavascriptExecToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserLeftClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserLeftMouseDownToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserListTabsToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserMiddleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserMouseMoveToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserNavigateToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserNewTabToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserReadConsoleToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserReadNetworkToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserReadPageToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserRightClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserScreenshotToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserScrollToToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserSwitchTabToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserTripleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserTypeToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserWaitToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserZoomToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerCursorPositionToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerDoubleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerHoldKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerKeyToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerLeftClickDragToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerLeftClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerLeftMouseDownToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerLeftMouseUpToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerMiddleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerMouseMoveToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerRightClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerScreenshotToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerScrollToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerTripleClickToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerTypeToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerWaitToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseComputerZoomToolUseBlock</a></code>
 
 Methods:
 
-- <code title="post /v1/messages?beta=true">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">create</a>({ ...params }) -> BetaMessage</code>
-- <code title="post /v1/messages/count_tokens?beta=true">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">countTokens</a>({ ...params }) -> BetaMessageTokensCount</code>
+- <code title="post /v1/messages">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">create</a>({ ...params }) -> BetaMessage</code>
+- <code title="post /v1/messages/count_tokens">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">countTokens</a>({ ...params }) -> BetaMessageTokensCount</code>
 
 ### Batches
 
@@ -1011,12 +1650,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/messages/batches?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">create</a>({ ...params }) -> BetaMessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">retrieve</a>(messageBatchID, { ...params }) -> BetaMessageBatch</code>
-- <code title="get /v1/messages/batches?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">list</a>({ ...params }) -> BetaMessageBatchesPage</code>
-- <code title="delete /v1/messages/batches/{message_batch_id}?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">delete</a>(messageBatchID, { ...params }) -> BetaDeletedMessageBatch</code>
-- <code title="post /v1/messages/batches/{message_batch_id}/cancel?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">cancel</a>(messageBatchID, { ...params }) -> BetaMessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}/results?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">results</a>(messageBatchID, { ...params }) -> BetaMessageBatchIndividualResponse</code>
+- <code title="post /v1/messages/batches">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">create</a>({ ...params }) -> BetaMessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">retrieve</a>(messageBatchID, { ...params }) -> BetaMessageBatch</code>
+- <code title="get /v1/messages/batches">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">list</a>({ ...params }) -> BetaMessageBatchesPage</code>
+- <code title="delete /v1/messages/batches/{message_batch_id}">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">delete</a>(messageBatchID, { ...params }) -> BetaDeletedMessageBatch</code>
+- <code title="post /v1/messages/batches/{message_batch_id}/cancel">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">cancel</a>(messageBatchID, { ...params }) -> BetaMessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}/results">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">results</a>(messageBatchID, { ...params }) -> BetaMessageBatchIndividualResponse</code>
 
 ## Agents
 
@@ -1042,6 +1681,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAutoPolicy</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkill</a></code>
@@ -1056,6 +1697,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMax</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMedium</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortXhigh</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGrepToolConfig</a></code>
@@ -1070,17 +1713,58 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModel</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModelConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModelConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisor</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinator</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinatorParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgents</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentPredefinedAgentParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSelfParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagents</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflows</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001Params</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsURLMCPServerParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsUserLocation</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceShorthand</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolFilter</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolFilterParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceUserInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceUserInputParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSources</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourcesParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWriteToolConfig</a></code>
@@ -1088,17 +1772,17 @@ Types:
 
 Methods:
 
-- <code title="post /v1/agents?beta=true">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">create</a>({ ...params }) -> BetaManagedAgentsAgent</code>
-- <code title="get /v1/agents/{agent_id}?beta=true">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">retrieve</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
-- <code title="post /v1/agents/{agent_id}?beta=true">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">update</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
-- <code title="get /v1/agents?beta=true">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">list</a>({ ...params }) -> BetaManagedAgentsAgentsPageCursor</code>
-- <code title="post /v1/agents/{agent_id}/archive?beta=true">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">archive</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
+- <code title="post /v1/agents">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">create</a>({ ...params }) -> BetaManagedAgentsAgent</code>
+- <code title="get /v1/agents/{agent_id}">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">retrieve</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
+- <code title="post /v1/agents/{agent_id}">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">update</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
+- <code title="get /v1/agents">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">list</a>({ ...params }) -> BetaManagedAgentsAgentsPageCursor</code>
+- <code title="post /v1/agents/{agent_id}/archive">client.beta.agents.<a href="./src/resources/beta/agents/agents.ts">archive</a>(agentID, { ...params }) -> BetaManagedAgentsAgent</code>
 
 ### Versions
 
 Methods:
 
-- <code title="get /v1/agents/{agent_id}/versions?beta=true">client.beta.agents.versions.<a href="./src/resources/beta/agents/versions.ts">list</a>(agentID, { ...params }) -> BetaManagedAgentsAgentsPageCursor</code>
+- <code title="get /v1/agents/{agent_id}/versions">client.beta.agents.versions.<a href="./src/resources/beta/agents/versions.ts">list</a>(agentID, { ...params }) -> BetaManagedAgentsAgentsPageCursor</code>
 
 ## Environments
 
@@ -1107,7 +1791,13 @@ Types:
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfig</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfigParams</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironment</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentArchivedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentCreateDisabledErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentUpdateDisabledErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaInvalidConfigTypeChangeErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaInvalidMetadataErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetwork</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetworkParams</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaPackages</a></code>
@@ -1118,17 +1808,18 @@ Types:
 
 Methods:
 
-- <code title="post /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">create</a>({ ...params }) -> BetaEnvironment</code>
-- <code title="get /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">retrieve</a>(environmentID, { ...params }) -> BetaEnvironment</code>
-- <code title="post /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">update</a>(environmentID, { ...params }) -> BetaEnvironment</code>
-- <code title="get /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">list</a>({ ...params }) -> BetaEnvironmentsPageCursor</code>
-- <code title="delete /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">delete</a>(environmentID, { ...params }) -> BetaEnvironmentDeleteResponse</code>
-- <code title="post /v1/environments/{environment_id}/archive?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">archive</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="post /v1/environments">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">create</a>({ ...params }) -> BetaEnvironment</code>
+- <code title="get /v1/environments/{environment_id}">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">retrieve</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="post /v1/environments/{environment_id}">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">update</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="get /v1/environments">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">list</a>({ ...params }) -> BetaEnvironmentsPageCursor</code>
+- <code title="delete /v1/environments/{environment_id}">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">delete</a>(environmentID, { ...params }) -> BetaEnvironmentDeleteResponse</code>
+- <code title="post /v1/environments/{environment_id}/archive">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">archive</a>(environmentID, { ...params }) -> BetaEnvironment</code>
 
 ### Work
 
 Types:
 
+- <code><a href="./src/resources/beta/environments/work.ts">BetaHeartbeatPreconditionFailedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWork</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkHeartbeatResponse</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkListResponse</a></code>
@@ -1136,17 +1827,18 @@ Types:
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkStopRequest</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkUpdateRequest</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSessionWorkData</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaWorkLeaseState</a></code>
 
 Methods:
 
-- <code title="get /v1/environments/{environment_id}/work/{work_id}?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">retrieve</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
-- <code title="post /v1/environments/{environment_id}/work/{work_id}?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">update</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
-- <code title="get /v1/environments/{environment_id}/work?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">list</a>(environmentID, { ...params }) -> BetaSelfHostedWorksPageCursor</code>
-- <code title="post /v1/environments/{environment_id}/work/{work_id}/ack?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">ack</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
-- <code title="post /v1/environments/{environment_id}/work/{work_id}/heartbeat?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">heartbeat</a>(workID, { ...params }) -> BetaSelfHostedWorkHeartbeatResponse</code>
-- <code title="get /v1/environments/{environment_id}/work/poll?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">poll</a>(environmentID, { ...params }) -> BetaSelfHostedWork | null</code>
-- <code title="get /v1/environments/{environment_id}/work/stats?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stats</a>(environmentID, { ...params }) -> BetaSelfHostedWorkQueueStats</code>
-- <code title="post /v1/environments/{environment_id}/work/{work_id}/stop?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stop</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="get /v1/environments/{environment_id}/work/{work_id}">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">retrieve</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">update</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="get /v1/environments/{environment_id}/work">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">list</a>(environmentID, { ...params }) -> BetaSelfHostedWorksPageCursor</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/ack">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">ack</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/heartbeat">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">heartbeat</a>(workID, { ...params }) -> BetaSelfHostedWorkHeartbeatResponse</code>
+- <code title="get /v1/environments/{environment_id}/work/poll">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">poll</a>(environmentID, { ...params }) -> BetaSelfHostedWork | null</code>
+- <code title="get /v1/environments/{environment_id}/work/stats">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stats</a>(environmentID, { ...params }) -> BetaSelfHostedWorkQueueStats</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/stop">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stop</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
 
 ## Sessions
 
@@ -1176,7 +1868,13 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgentUpdate</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentCoordinator</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentSubagents</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentSubagentsEnabled</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentWorkflows</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentWorkflowsEnabled</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagent20261001</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
@@ -1189,12 +1887,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/sessions?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">create</a>({ ...params }) -> BetaManagedAgentsSession</code>
-- <code title="get /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">retrieve</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
-- <code title="post /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">update</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
-- <code title="get /v1/sessions?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">list</a>({ ...params }) -> BetaManagedAgentsSessionsBidirectionalPageCursor</code>
-- <code title="delete /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">delete</a>(sessionID, { ...params }) -> BetaManagedAgentsDeletedSession</code>
-- <code title="post /v1/sessions/{session_id}/archive?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">archive</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
+- <code title="post /v1/sessions">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">create</a>({ ...params }) -> BetaManagedAgentsSession</code>
+- <code title="get /v1/sessions/{session_id}">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">retrieve</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
+- <code title="post /v1/sessions/{session_id}">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">update</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
+- <code title="get /v1/sessions">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">list</a>({ ...params }) -> BetaManagedAgentsSessionsBidirectionalPageCursor</code>
+- <code title="delete /v1/sessions/{session_id}">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">delete</a>(sessionID, { ...params }) -> BetaManagedAgentsDeletedSession</code>
+- <code title="post /v1/sessions/{session_id}/archive">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">archive</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
 
 ### Events
 
@@ -1222,6 +1920,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64DocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCompactionLimitReachedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsEventParams</a></code>
@@ -1230,12 +1929,14 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubricParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsImageBlock</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMaxWorkflowRunsWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPAuthenticationFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPConnectionFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelOverloadedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsPlainTextDocumentSource</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsProgramWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRedactedBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutError</a></code>
@@ -1280,7 +1981,11 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubricParams</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsToolUseLimitReachedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLDocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserCustomToolResultEvent</a></code>
@@ -1294,12 +1999,25 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolResultEventParams</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunCreatedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunErrorEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhase</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseEndedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseStartedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResult</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultCompleted</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultStopped</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusEndedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusIdleEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusRunningEvent</a></code>
 
 Methods:
 
-- <code title="get /v1/sessions/{session_id}/events?beta=true">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionEventsPageCursor</code>
-- <code title="post /v1/sessions/{session_id}/events?beta=true">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">send</a>(sessionID, { ...params }) -> BetaManagedAgentsSendSessionEvents</code>
-- <code title="get /v1/sessions/{session_id}/events/stream?beta=true">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">stream</a>(sessionID, { ...params }) -> BetaManagedAgentsStreamSessionEvents</code>
+- <code title="get /v1/sessions/{session_id}/events">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionEventsPageCursor</code>
+- <code title="post /v1/sessions/{session_id}/events">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">send</a>(sessionID, { ...params }) -> BetaManagedAgentsSendSessionEvents</code>
+- <code title="get /v1/sessions/{session_id}/events/stream">client.beta.sessions.events.<a href="./src/resources/beta/sessions/events.ts">stream</a>(sessionID, { ...params }) -> BetaManagedAgentsStreamSessionEvents</code>
 
 ### Resources
 
@@ -1315,16 +2033,17 @@ Types:
 
 Methods:
 
-- <code title="get /v1/sessions/{session_id}/resources/{resource_id}?beta=true">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">retrieve</a>(resourceID, { ...params }) -> ResourceRetrieveResponse</code>
-- <code title="post /v1/sessions/{session_id}/resources/{resource_id}?beta=true">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">update</a>(resourceID, { ...params }) -> ResourceUpdateResponse</code>
-- <code title="get /v1/sessions/{session_id}/resources?beta=true">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionResourcesPageCursor</code>
-- <code title="delete /v1/sessions/{session_id}/resources/{resource_id}?beta=true">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">delete</a>(resourceID, { ...params }) -> BetaManagedAgentsDeleteSessionResource</code>
-- <code title="post /v1/sessions/{session_id}/resources?beta=true">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">add</a>(sessionID, { ...params }) -> BetaManagedAgentsFileResource</code>
+- <code title="get /v1/sessions/{session_id}/resources/{resource_id}">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">retrieve</a>(resourceID, { ...params }) -> ResourceRetrieveResponse</code>
+- <code title="post /v1/sessions/{session_id}/resources/{resource_id}">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">update</a>(resourceID, { ...params }) -> ResourceUpdateResponse</code>
+- <code title="get /v1/sessions/{session_id}/resources">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionResourcesPageCursor</code>
+- <code title="delete /v1/sessions/{session_id}/resources/{resource_id}">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">delete</a>(resourceID, { ...params }) -> BetaManagedAgentsDeleteSessionResource</code>
+- <code title="post /v1/sessions/{session_id}/resources">client.beta.sessions.resources.<a href="./src/resources/beta/sessions/resources.ts">add</a>(sessionID, { ...params }) -> BetaManagedAgentsFileResource</code>
 
 ### Threads
 
 Types:
 
+- <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsInlineAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThread</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStats</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStatus</a></code>
@@ -1333,16 +2052,16 @@ Types:
 
 Methods:
 
-- <code title="get /v1/sessions/{session_id}/threads/{thread_id}?beta=true">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">retrieve</a>(threadID, { ...params }) -> BetaManagedAgentsSessionThread</code>
-- <code title="get /v1/sessions/{session_id}/threads?beta=true">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionThreadsPageCursor</code>
-- <code title="post /v1/sessions/{session_id}/threads/{thread_id}/archive?beta=true">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">archive</a>(threadID, { ...params }) -> BetaManagedAgentsSessionThread</code>
+- <code title="get /v1/sessions/{session_id}/threads/{thread_id}">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">retrieve</a>(threadID, { ...params }) -> BetaManagedAgentsSessionThread</code>
+- <code title="get /v1/sessions/{session_id}/threads">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">list</a>(sessionID, { ...params }) -> BetaManagedAgentsSessionThreadsPageCursor</code>
+- <code title="post /v1/sessions/{session_id}/threads/{thread_id}/archive">client.beta.sessions.threads.<a href="./src/resources/beta/sessions/threads/threads.ts">archive</a>(threadID, { ...params }) -> BetaManagedAgentsSessionThread</code>
 
 #### Events
 
 Methods:
 
-- <code title="get /v1/sessions/{session_id}/threads/{thread_id}/events?beta=true">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">list</a>(threadID, { ...params }) -> BetaManagedAgentsSessionEventsPageCursor</code>
-- <code title="get /v1/sessions/{session_id}/threads/{thread_id}/stream?beta=true">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">stream</a>(threadID, { ...params }) -> BetaManagedAgentsStreamSessionThreadEvents</code>
+- <code title="get /v1/sessions/{session_id}/threads/{thread_id}/events">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">list</a>(threadID, { ...params }) -> BetaManagedAgentsSessionEventsPageCursor</code>
+- <code title="get /v1/sessions/{session_id}/threads/{thread_id}/stream">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">stream</a>(threadID, { ...params }) -> BetaManagedAgentsStreamSessionThreadEvents</code>
 
 ## Deployments
 
@@ -1384,14 +2103,14 @@ Types:
 
 Methods:
 
-- <code title="post /v1/deployments?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">create</a>({ ...params }) -> BetaManagedAgentsDeployment</code>
-- <code title="get /v1/deployments/{deployment_id}?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">retrieve</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
-- <code title="post /v1/deployments/{deployment_id}?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">update</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
-- <code title="get /v1/deployments?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentsPageCursor</code>
-- <code title="post /v1/deployments/{deployment_id}/archive?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">archive</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
-- <code title="post /v1/deployments/{deployment_id}/pause?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">pause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
-- <code title="post /v1/deployments/{deployment_id}/run?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">run</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
-- <code title="post /v1/deployments/{deployment_id}/unpause?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">unpause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">create</a>({ ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="get /v1/deployments/{deployment_id}">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">retrieve</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">update</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="get /v1/deployments">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentsPageCursor</code>
+- <code title="post /v1/deployments/{deployment_id}/archive">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">archive</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}/pause">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">pause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}/run">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">run</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
+- <code title="post /v1/deployments/{deployment_id}/unpause">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">unpause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
 
 ## DeploymentRuns
 
@@ -1421,8 +2140,8 @@ Types:
 
 Methods:
 
-- <code title="get /v1/deployment_runs/{deployment_run_id}?beta=true">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">retrieve</a>(deploymentRunID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
-- <code title="get /v1/deployment_runs?beta=true">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentRunsPageCursor</code>
+- <code title="get /v1/deployment_runs/{deployment_run_id}">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">retrieve</a>(deploymentRunID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
+- <code title="get /v1/deployment_runs">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentRunsPageCursor</code>
 
 ## Vaults
 
@@ -1433,12 +2152,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/vaults?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">create</a>({ ...params }) -> BetaManagedAgentsVault</code>
-- <code title="get /v1/vaults/{vault_id}?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">retrieve</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
-- <code title="post /v1/vaults/{vault_id}?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">update</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
-- <code title="get /v1/vaults?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">list</a>({ ...params }) -> BetaManagedAgentsVaultsPageCursor</code>
-- <code title="delete /v1/vaults/{vault_id}?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">delete</a>(vaultID, { ...params }) -> BetaManagedAgentsDeletedVault</code>
-- <code title="post /v1/vaults/{vault_id}/archive?beta=true">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">archive</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
+- <code title="post /v1/vaults">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">create</a>({ ...params }) -> BetaManagedAgentsVault</code>
+- <code title="get /v1/vaults/{vault_id}">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">retrieve</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
+- <code title="post /v1/vaults/{vault_id}">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">update</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
+- <code title="get /v1/vaults">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">list</a>({ ...params }) -> BetaManagedAgentsVaultsPageCursor</code>
+- <code title="delete /v1/vaults/{vault_id}">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">delete</a>(vaultID, { ...params }) -> BetaManagedAgentsDeletedVault</code>
+- <code title="post /v1/vaults/{vault_id}/archive">client.beta.vaults.<a href="./src/resources/beta/vaults/vaults.ts">archive</a>(vaultID, { ...params }) -> BetaManagedAgentsVault</code>
 
 ### Credentials
 
@@ -1482,13 +2201,13 @@ Types:
 
 Methods:
 
-- <code title="post /v1/vaults/{vault_id}/credentials?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">create</a>(vaultID, { ...params }) -> BetaManagedAgentsCredential</code>
-- <code title="get /v1/vaults/{vault_id}/credentials/{credential_id}?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">retrieve</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
-- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">update</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
-- <code title="get /v1/vaults/{vault_id}/credentials?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">list</a>(vaultID, { ...params }) -> BetaManagedAgentsCredentialsPageCursor</code>
-- <code title="delete /v1/vaults/{vault_id}/credentials/{credential_id}?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">delete</a>(credentialID, { ...params }) -> BetaManagedAgentsDeletedCredential</code>
-- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/archive?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">archive</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
-- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/mcp_oauth_validate?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">mcpOAuthValidate</a>(credentialID, { ...params }) -> BetaManagedAgentsCredentialValidation</code>
+- <code title="post /v1/vaults/{vault_id}/credentials">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">create</a>(vaultID, { ...params }) -> BetaManagedAgentsCredential</code>
+- <code title="get /v1/vaults/{vault_id}/credentials/{credential_id}">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">retrieve</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
+- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">update</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
+- <code title="get /v1/vaults/{vault_id}/credentials">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">list</a>(vaultID, { ...params }) -> BetaManagedAgentsCredentialsPageCursor</code>
+- <code title="delete /v1/vaults/{vault_id}/credentials/{credential_id}">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">delete</a>(credentialID, { ...params }) -> BetaManagedAgentsDeletedCredential</code>
+- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/archive">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">archive</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
+- <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/mcp_oauth_validate">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">mcpOAuthValidate</a>(credentialID, { ...params }) -> BetaManagedAgentsCredentialValidation</code>
 
 ## MemoryStores
 
@@ -1499,12 +2218,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/memory_stores?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">create</a>({ ...params }) -> BetaManagedAgentsMemoryStore</code>
-- <code title="get /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">retrieve</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
-- <code title="post /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">update</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
-- <code title="get /v1/memory_stores?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">list</a>({ ...params }) -> BetaManagedAgentsMemoryStoresPageCursor</code>
-- <code title="delete /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">delete</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsDeletedMemoryStore</code>
-- <code title="post /v1/memory_stores/{memory_store_id}/archive?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">archive</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="post /v1/memory_stores">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">create</a>({ ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="get /v1/memory_stores/{memory_store_id}">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">retrieve</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="post /v1/memory_stores/{memory_store_id}">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">update</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="get /v1/memory_stores">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">list</a>({ ...params }) -> BetaManagedAgentsMemoryStoresPageCursor</code>
+- <code title="delete /v1/memory_stores/{memory_store_id}">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">delete</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsDeletedMemoryStore</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/archive">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">archive</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
 
 ### Memories
 
@@ -1524,11 +2243,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">create</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemory</code>
-- <code title="get /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">retrieve</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
-- <code title="post /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">update</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
-- <code title="get /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryListItemsPageCursor</code>
-- <code title="delete /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">delete</a>(memoryID, { ...params }) -> BetaManagedAgentsDeletedMemory</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memories">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">create</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories/{memory_id}">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">retrieve</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memories/{memory_id}">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">update</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryListItemsPageCursor</code>
+- <code title="delete /v1/memory_stores/{memory_store_id}/memories/{memory_id}">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">delete</a>(memoryID, { ...params }) -> BetaManagedAgentsDeletedMemory</code>
 
 ### MemoryVersions
 
@@ -1544,9 +2263,9 @@ Types:
 
 Methods:
 
-- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">retrieve</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
-- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryVersionsPageCursor</code>
-- <code title="post /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">redact</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">retrieve</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryVersionsPageCursor</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">redact</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
 
 ## Files
 
@@ -1558,11 +2277,11 @@ Types:
 
 Methods:
 
-- <code title="get /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> BetaFileMetadataPageCursor</code>
-- <code title="delete /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">delete</a>(fileID, { ...params }) -> BetaDeletedFile</code>
-- <code title="get /v1/files/{file_id}/content?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">download</a>(fileID, { ...params }) -> Response</code>
-- <code title="get /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> BetaFileMetadata</code>
-- <code title="post /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">upload</a>({ ...params }) -> BetaFileMetadata</code>
+- <code title="get /v1/files">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> BetaFileMetadataPageCursor</code>
+- <code title="delete /v1/files/{file_id}">client.beta.files.<a href="./src/resources/beta/files.ts">delete</a>(fileID, { ...params }) -> BetaDeletedFile</code>
+- <code title="get /v1/files/{file_id}/content">client.beta.files.<a href="./src/resources/beta/files.ts">download</a>(fileID, { ...params }) -> Response</code>
+- <code title="get /v1/files/{file_id}">client.beta.files.<a href="./src/resources/beta/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> BetaFileMetadata</code>
+- <code title="post /v1/files">client.beta.files.<a href="./src/resources/beta/files.ts">upload</a>({ ...params }) -> BetaFileMetadata</code>
 
 ## Skills
 
@@ -1574,10 +2293,10 @@ Types:
 
 Methods:
 
-- <code title="post /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">create</a>({ ...params }) -> BetaSkill</code>
-- <code title="get /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">retrieve</a>(skillID, { ...params }) -> BetaSkill</code>
-- <code title="get /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">list</a>({ ...params }) -> BetaSkillsPageCursor</code>
-- <code title="delete /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">delete</a>(skillID, { ...params }) -> BetaDeletedSkill</code>
+- <code title="post /v1/skills">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">create</a>({ ...params }) -> BetaSkill</code>
+- <code title="get /v1/skills/{skill_id}">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">retrieve</a>(skillID, { ...params }) -> BetaSkill</code>
+- <code title="get /v1/skills">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">list</a>({ ...params }) -> BetaSkillsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">delete</a>(skillID, { ...params }) -> BetaDeletedSkill</code>
 
 ### Versions
 
@@ -1588,11 +2307,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">create</a>(skillID, { ...params }) -> BetaSkillVersion</code>
-- <code title="get /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> BetaSkillVersion</code>
-- <code title="get /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> BetaSkillVersionsPageCursor</code>
-- <code title="delete /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> BetaDeletedSkillVersion</code>
-- <code title="get /v1/skills/{skill_id}/versions/{version}/content?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">download</a>(version, { ...params }) -> Response</code>
+- <code title="post /v1/skills/{skill_id}/versions">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">create</a>(skillID, { ...params }) -> BetaSkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions/{version}">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> BetaSkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> BetaSkillVersionsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}/versions/{version}">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> BetaDeletedSkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions/{version}/content">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">download</a>(version, { ...params }) -> Response</code>
 
 ## Webhooks
 
@@ -1637,6 +2356,8 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadIdledEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadTerminatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionUpdatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionOpenedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionResolvedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCredentialArchivedEventData</a></code>
@@ -1655,19 +2376,32 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfile</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaDeletedUserProfile</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfile</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
 
 Methods:
 
-- <code title="post /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">create</a>({ ...params }) -> BetaUserProfile</code>
-- <code title="get /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
-- <code title="post /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
-- <code title="get /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
-- <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
+- <code title="post /v1/user_profiles">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">create</a>({ ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles/{user_profile_id}">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
+- <code title="delete /v1/user_profiles/{user_profile_id}">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">delete</a>(userProfileID, { ...params }) -> BetaDeletedUserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
+
+### ActionURLs
+
+Types:
+
+- <code><a href="./src/resources/beta/user-profiles/action-urls.ts">BetaUserProfileActionURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles/action-urls.ts">BetaUserProfileEnrollEndUserAction</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles/{user_profile_id}/action_urls">client.beta.userProfiles.actionURLs.<a href="./src/resources/beta/user-profiles/action-urls.ts">create</a>(userProfileID, { ...params }) -> BetaUserProfileActionURL</code>
 
 ## Dreams
 
@@ -1692,11 +2426,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/dreams?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">create</a>({ ...params }) -> BetaDream</code>
-- <code title="get /v1/dreams/{dream_id}?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">retrieve</a>(dreamID, { ...params }) -> BetaDream</code>
-- <code title="get /v1/dreams?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">list</a>({ ...params }) -> BetaDreamsPageCursor</code>
-- <code title="post /v1/dreams/{dream_id}/archive?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">archive</a>(dreamID, { ...params }) -> BetaDream</code>
-- <code title="post /v1/dreams/{dream_id}/cancel?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">cancel</a>(dreamID, { ...params }) -> BetaDream</code>
+- <code title="post /v1/dreams">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">create</a>({ ...params }) -> BetaDream</code>
+- <code title="get /v1/dreams/{dream_id}">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">retrieve</a>(dreamID, { ...params }) -> BetaDream</code>
+- <code title="get /v1/dreams">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">list</a>({ ...params }) -> BetaDreamsPageCursor</code>
+- <code title="post /v1/dreams/{dream_id}/archive">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">archive</a>(dreamID, { ...params }) -> BetaDream</code>
+- <code title="post /v1/dreams/{dream_id}/cancel">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">cancel</a>(dreamID, { ...params }) -> BetaDream</code>
 
 ## Tunnels
 
@@ -1707,12 +2441,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/tunnels?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">create</a>({ ...params }) -> BetaTunnel</code>
-- <code title="get /v1/tunnels/{tunnel_id}?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">retrieve</a>(tunnelID, { ...params }) -> BetaTunnel</code>
-- <code title="get /v1/tunnels?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">list</a>({ ...params }) -> BetaTunnelsPageCursor</code>
-- <code title="post /v1/tunnels/{tunnel_id}/archive?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">archive</a>(tunnelID, { ...params }) -> BetaTunnel</code>
-- <code title="post /v1/tunnels/{tunnel_id}/reveal_token?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">revealToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
-- <code title="post /v1/tunnels/{tunnel_id}/rotate_token?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">rotateToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
+- <code title="post /v1/tunnels">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">create</a>({ ...params }) -> BetaTunnel</code>
+- <code title="get /v1/tunnels/{tunnel_id}">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">retrieve</a>(tunnelID, { ...params }) -> BetaTunnel</code>
+- <code title="get /v1/tunnels">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">list</a>({ ...params }) -> BetaTunnelsPageCursor</code>
+- <code title="post /v1/tunnels/{tunnel_id}/archive">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">archive</a>(tunnelID, { ...params }) -> BetaTunnel</code>
+- <code title="post /v1/tunnels/{tunnel_id}/reveal_token">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">revealToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
+- <code title="post /v1/tunnels/{tunnel_id}/rotate_token">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">rotateToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
 
 ### Certificates
 
@@ -1722,21 +2456,22 @@ Types:
 
 Methods:
 
-- <code title="post /v1/tunnels/{tunnel_id}/certificates?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">create</a>(tunnelID, { ...params }) -> BetaTunnelCertificate</code>
-- <code title="get /v1/tunnels/{tunnel_id}/certificates/{certificate_id}?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">retrieve</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
-- <code title="get /v1/tunnels/{tunnel_id}/certificates?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">list</a>(tunnelID, { ...params }) -> BetaTunnelCertificatesPageCursor</code>
-- <code title="post /v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">archive</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
+- <code title="post /v1/tunnels/{tunnel_id}/certificates">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">create</a>(tunnelID, { ...params }) -> BetaTunnelCertificate</code>
+- <code title="get /v1/tunnels/{tunnel_id}/certificates/{certificate_id}">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">retrieve</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
+- <code title="get /v1/tunnels/{tunnel_id}/certificates">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">list</a>(tunnelID, { ...params }) -> BetaTunnelCertificatesPageCursor</code>
+- <code title="post /v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">archive</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
 
 ## Organization
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/organization.ts">BetaBillingFrozenErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganizationRole</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/me?beta=true">client.beta.organization.<a href="./src/resources/beta/organization/organization.ts">retrieve</a>() -> BetaOrganization</code>
+- <code title="get /v1/organizations/me">client.beta.organization.<a href="./src/resources/beta/organization/organization.ts">retrieve</a>() -> BetaOrganization</code>
 
 ### APIKeys
 
@@ -1751,9 +2486,9 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/api_keys/{api_key_id}?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">retrieve</a>(apiKeyID) -> BetaAPIKey</code>
-- <code title="post /v1/organizations/api_keys/{api_key_id}?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">update</a>(apiKeyID, { ...params }) -> BetaAPIKey</code>
-- <code title="get /v1/organizations/api_keys?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">list</a>({ ...params }) -> BetaAPIKeysPage</code>
+- <code title="get /v1/organizations/api_keys/{api_key_id}">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">retrieve</a>(apiKeyID) -> BetaAPIKey</code>
+- <code title="post /v1/organizations/api_keys/{api_key_id}">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">update</a>(apiKeyID, { ...params }) -> BetaAPIKey</code>
+- <code title="get /v1/organizations/api_keys">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">list</a>({ ...params }) -> BetaAPIKeysPage</code>
 
 ### ExternalKeys
 
@@ -1771,12 +2506,12 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/external_keys?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">create</a>({ ...params }) -> BetaExternalKey</code>
-- <code title="get /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">retrieve</a>(externalKeyID) -> BetaExternalKey</code>
-- <code title="post /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">update</a>(externalKeyID, { ...params }) -> BetaExternalKey</code>
-- <code title="get /v1/organizations/external_keys?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">list</a>({ ...params }) -> BetaExternalKeysPageCursor</code>
-- <code title="delete /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">delete</a>(externalKeyID) -> ExternalKeyDeleteResponse</code>
-- <code title="post /v1/organizations/external_keys/{external_key_id}/validate?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">validate</a>(externalKeyID) -> ExternalKeyValidateResponse</code>
+- <code title="post /v1/organizations/external_keys">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">create</a>({ ...params }) -> BetaExternalKey</code>
+- <code title="get /v1/organizations/external_keys/{external_key_id}">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">retrieve</a>(externalKeyID) -> BetaExternalKey</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">update</a>(externalKeyID, { ...params }) -> BetaExternalKey</code>
+- <code title="get /v1/organizations/external_keys">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">list</a>({ ...params }) -> BetaExternalKeysPageCursor</code>
+- <code title="delete /v1/organizations/external_keys/{external_key_id}">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">delete</a>(externalKeyID) -> ExternalKeyDeleteResponse</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}/validate">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">validate</a>(externalKeyID) -> ExternalKeyValidateResponse</code>
 
 ### Federation
 
@@ -1792,11 +2527,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/federation_issuers?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">create</a>({ ...params }) -> BetaFederationIssuer</code>
-- <code title="get /v1/organizations/federation_issuers/{federation_issuer_id}?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">retrieve</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
-- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">update</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
-- <code title="get /v1/organizations/federation_issuers?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">list</a>({ ...params }) -> BetaFederationIssuersPageCursor</code>
-- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}/archive?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">archive</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+- <code title="post /v1/organizations/federation_issuers">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">create</a>({ ...params }) -> BetaFederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers/{federation_issuer_id}">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">retrieve</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">update</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">list</a>({ ...params }) -> BetaFederationIssuersPageCursor</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}/archive">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">archive</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
 
 #### Rules
 
@@ -1809,11 +2544,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/federation_rules?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">create</a>({ ...params }) -> BetaFederationRule</code>
-- <code title="get /v1/organizations/federation_rules/{federation_rule_id}?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">retrieve</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
-- <code title="post /v1/organizations/federation_rules/{federation_rule_id}?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">update</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
-- <code title="get /v1/organizations/federation_rules?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">list</a>({ ...params }) -> BetaFederationRulesPageCursor</code>
-- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/archive?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">archive</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+- <code title="post /v1/organizations/federation_rules">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">create</a>({ ...params }) -> BetaFederationRule</code>
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">retrieve</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">update</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+- <code title="get /v1/organizations/federation_rules">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">list</a>({ ...params }) -> BetaFederationRulesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/archive">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">archive</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
 
 ##### Workspaces
 
@@ -1823,9 +2558,9 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/federation_rules/{federation_rule_id}/workspaces?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">list</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspacesPageCursor</code>
-- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/workspaces?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">add</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspace</code>
-- <code title="delete /v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}/workspaces">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">list</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspacesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/workspaces">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">add</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspace</code>
+- <code title="delete /v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
 
 ### Invites
 
@@ -1836,10 +2571,10 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/invites?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">create</a>({ ...params }) -> BetaOrganizationInvite</code>
-- <code title="get /v1/organizations/invites/{invite_id}?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">retrieve</a>(inviteID) -> BetaOrganizationInvite</code>
-- <code title="get /v1/organizations/invites?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">list</a>({ ...params }) -> BetaOrganizationInvitesPage</code>
-- <code title="delete /v1/organizations/invites/{invite_id}?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">delete</a>(inviteID) -> InviteDeleteResponse</code>
+- <code title="post /v1/organizations/invites">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">create</a>({ ...params }) -> BetaOrganizationInvite</code>
+- <code title="get /v1/organizations/invites/{invite_id}">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">retrieve</a>(inviteID) -> BetaOrganizationInvite</code>
+- <code title="get /v1/organizations/invites">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">list</a>({ ...params }) -> BetaOrganizationInvitesPage</code>
+- <code title="delete /v1/organizations/invites/{invite_id}">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">delete</a>(inviteID) -> InviteDeleteResponse</code>
 
 ### ServiceAccounts
 
@@ -1850,11 +2585,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/service_accounts?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">create</a>({ ...params }) -> BetaServiceAccount</code>
-- <code title="get /v1/organizations/service_accounts/{service_account_id}?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
-- <code title="post /v1/organizations/service_accounts/{service_account_id}?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
-- <code title="get /v1/organizations/service_accounts?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">list</a>({ ...params }) -> BetaServiceAccountsPageCursor</code>
-- <code title="post /v1/organizations/service_accounts/{service_account_id}/archive?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">archive</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+- <code title="post /v1/organizations/service_accounts">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">create</a>({ ...params }) -> BetaServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts/{service_account_id}">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">list</a>({ ...params }) -> BetaServiceAccountsPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/archive">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">archive</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
 
 #### Workspaces
 
@@ -1864,23 +2599,30 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/service_accounts/{service_account_id}/workspaces?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">list</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
-- <code title="post /v1/organizations/service_accounts/{service_account_id}/workspaces?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">add</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
-- <code title="delete /v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+- <code title="get /v1/organizations/service_accounts/{service_account_id}/workspaces">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">list</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/workspaces">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">add</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
 
 ### Users
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutManagedMemberErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutMembershipAdminErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutOwnerErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutPrimaryOwnerErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutPrivilegedMemberErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutSelfErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/users.ts">BetaOrganizationUser</a></code>
 - <code><a href="./src/resources/beta/organization/users.ts">UserRemoveResponse</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">retrieve</a>(userID) -> BetaOrganizationUser</code>
-- <code title="post /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">update</a>(userID, { ...params }) -> BetaOrganizationUser</code>
-- <code title="get /v1/organizations/users?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">list</a>({ ...params }) -> BetaOrganizationUsersPage</code>
-- <code title="delete /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">remove</a>(userID) -> UserRemoveResponse</code>
+- <code title="get /v1/organizations/users/{user_id}">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">retrieve</a>(userID) -> BetaOrganizationUser</code>
+- <code title="post /v1/organizations/users/{user_id}">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">update</a>(userID, { ...params }) -> BetaOrganizationUser</code>
+- <code title="get /v1/organizations/users">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">list</a>({ ...params }) -> BetaOrganizationUsersPage</code>
+- <code title="delete /v1/organizations/users/{user_id}">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">remove</a>(userID) -> UserRemoveResponse</code>
+- <code title="post /v1/organizations/users/{user_id}/sign_out">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">signOut</a>(userID, { ...params }) -> BetaOrganizationUser</code>
 
 ### Workspaces
 
@@ -1897,11 +2639,11 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/workspaces?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">create</a>({ ...params }) -> BetaWorkspace</code>
-- <code title="get /v1/organizations/workspaces/{workspace_id}?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">retrieve</a>(workspaceID) -> BetaWorkspace</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">update</a>(workspaceID, { ...params }) -> BetaWorkspace</code>
-- <code title="get /v1/organizations/workspaces?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">list</a>({ ...params }) -> BetaWorkspacesPage</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}/archive?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">archive</a>(workspaceID) -> BetaWorkspace</code>
+- <code title="post /v1/organizations/workspaces">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">create</a>({ ...params }) -> BetaWorkspace</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">retrieve</a>(workspaceID) -> BetaWorkspace</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">update</a>(workspaceID, { ...params }) -> BetaWorkspace</code>
+- <code title="get /v1/organizations/workspaces">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">list</a>({ ...params }) -> BetaWorkspacesPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/archive">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">archive</a>(workspaceID) -> BetaWorkspace</code>
 
 #### RateLimits
 
@@ -1909,12 +2651,15 @@ Types:
 
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimit</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitOrganizationSource</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitType</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitUpdateValue</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitValue</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits?beta=true">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceRateLimitsPageCursor</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">update</a>(rateLimitID, { ...params }) -> BetaWorkspaceRateLimit</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceRateLimitsPageCursor</code>
 
 #### Members
 
@@ -1924,11 +2669,11 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">retrieve</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">update</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
-- <code title="get /v1/organizations/workspaces/{workspace_id}/members?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceMembersPage</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}/members?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">add</a>(workspaceID, { ...params }) -> BetaWorkspaceMember</code>
-- <code title="delete /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">retrieve</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">update</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceMembersPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">add</a>(workspaceID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
 
 #### ServiceAccounts
 
@@ -1938,11 +2683,11 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
-- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">list</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
-- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">add</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
-- <code title="delete /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">remove</a>(serviceAccountID, { ...params }) -> ServiceAccountRemoveResponse</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">list</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">add</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">remove</a>(serviceAccountID, { ...params }) -> ServiceAccountRemoveResponse</code>
 
 ### RateLimits
 
@@ -1959,7 +2704,7 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/rate_limits?beta=true">client.beta.organization.rateLimits.<a href="./src/resources/beta/organization/rate-limits.ts">list</a>({ ...params }) -> BetaOrganizationRateLimitsPageCursor</code>
+- <code title="get /v1/organizations/rate_limits">client.beta.organization.rateLimits.<a href="./src/resources/beta/organization/rate-limits.ts">list</a>({ ...params }) -> BetaOrganizationRateLimitsPageCursor</code>
 
 ### ComplianceSettings
 
@@ -1975,21 +2720,32 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">retrieve</a>() -> BetaComplianceSettings</code>
-- <code title="post /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">update</a>({ ...params }) -> BetaComplianceSettings</code>
+- <code title="get /v1/organizations/compliance_settings">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">retrieve</a>() -> BetaComplianceSettings</code>
+- <code title="post /v1/organizations/compliance_settings">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">update</a>({ ...params }) -> BetaComplianceSettings</code>
 
 ### Analytics
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsActorType</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsAPIActor</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsArtifactActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsArtifactGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagCategory</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorGroupBy</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorOfficeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorOfficeProductMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsContextWindow</a></code>
@@ -2000,45 +2756,69 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCoworkMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsDesignMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorAWSProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorAzureProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorGCPProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorOIDCProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsGroupedCostType</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsInferenceGeoFilter</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsLinesOfCode</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOrder</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginChatCoworkUnifiedMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginGroupBy</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProductFilter</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProjectActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProjectGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsReportUserActor</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsScienceMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServerToolUse</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServiceAccountActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServiceTier</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSingleDayActivitySummary</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillGroupBy</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSpeed</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsTimeBucketWidth</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsTokenType</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActionCounts</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActions</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageBucketedResult</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostInferenceGeo</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostProductFilter</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostSortOrder</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageReportTimeBucket</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUser</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserGroupBy</a></code>
 
 #### Summaries
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/summaries?beta=true">client.beta.organization.analytics.summaries.<a href="./src/resources/beta/organization/analytics/summaries.ts">list</a>({ ...params }) -> BetaAnalyticsSingleDayActivitySummariesPageCursor</code>
+- <code title="get /v1/organizations/analytics/summaries">client.beta.organization.analytics.summaries.<a href="./src/resources/beta/organization/analytics/summaries.ts">list</a>({ ...params }) -> BetaAnalyticsSingleDayActivitySummariesPageCursor</code>
 
 #### Users
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/users?beta=true">client.beta.organization.analytics.users.<a href="./src/resources/beta/organization/analytics/users.ts">list</a>({ ...params }) -> BetaAnalyticsUserActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/users">client.beta.organization.analytics.users.<a href="./src/resources/beta/organization/analytics/users.ts">list</a>({ ...params }) -> BetaAnalyticsUserActivitiesPageCursor</code>
 
 #### Apps
 
@@ -2048,55 +2828,83 @@ Methods:
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/apps/chat/projects?beta=true">client.beta.organization.analytics.apps.chat.projects.<a href="./src/resources/beta/organization/analytics/apps/chat/projects.ts">list</a>({ ...params }) -> BetaAnalyticsProjectActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/apps/chat/projects">client.beta.organization.analytics.apps.chat.projects.<a href="./src/resources/beta/organization/analytics/apps/chat/projects.ts">list</a>({ ...params }) -> BetaAnalyticsProjectActivitiesPageCursor</code>
 
 #### Connectors
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/connectors?beta=true">client.beta.organization.analytics.connectors.<a href="./src/resources/beta/organization/analytics/connectors.ts">list</a>({ ...params }) -> BetaAnalyticsConnectorActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/connectors">client.beta.organization.analytics.connectors.<a href="./src/resources/beta/organization/analytics/connectors.ts">list</a>({ ...params }) -> BetaAnalyticsConnectorActivitiesPageCursor</code>
 
 #### Plugins
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/plugins?beta=true">client.beta.organization.analytics.plugins.<a href="./src/resources/beta/organization/analytics/plugins.ts">list</a>({ ...params }) -> BetaAnalyticsPluginActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/plugins">client.beta.organization.analytics.plugins.<a href="./src/resources/beta/organization/analytics/plugins.ts">list</a>({ ...params }) -> BetaAnalyticsPluginActivitiesPageCursor</code>
 
 #### Skills
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/skills?beta=true">client.beta.organization.analytics.skills.<a href="./src/resources/beta/organization/analytics/skills.ts">list</a>({ ...params }) -> BetaAnalyticsSkillActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/skills">client.beta.organization.analytics.skills.<a href="./src/resources/beta/organization/analytics/skills.ts">list</a>({ ...params }) -> BetaAnalyticsSkillActivitiesPageCursor</code>
 
 #### Artifacts
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/artifacts?beta=true">client.beta.organization.analytics.artifacts.<a href="./src/resources/beta/organization/analytics/artifacts.ts">list</a>({ ...params }) -> BetaAnalyticsArtifactActivitiesPageCursor</code>
+- <code title="get /v1/organizations/analytics/artifacts">client.beta.organization.analytics.artifacts.<a href="./src/resources/beta/organization/analytics/artifacts.ts">list</a>({ ...params }) -> BetaAnalyticsArtifactActivitiesPageCursor</code>
+
+#### Usage
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageGroup</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageItem</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageOrderBy</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/usage">client.beta.organization.analytics.usage.<a href="./src/resources/beta/organization/analytics/usage.ts">list</a>({ ...params }) -> BetaAnalyticsUsageItemsReportPageCursor</code>
+
+#### Cost
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostGroup</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostItem</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostOrderBy</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/cost">client.beta.organization.analytics.cost.<a href="./src/resources/beta/organization/analytics/cost.ts">list</a>({ ...params }) -> BetaAnalyticsCostItemsReportPageCursor</code>
 
 #### UsageReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/usage_report?beta=true">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsPageCursor</code>
+- <code title="get /v1/organizations/analytics/usage_report">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsReportPageCursor</code>
 
 #### UserUsageReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/user_usage_report?beta=true">client.beta.organization.analytics.userUsageReport.<a href="./src/resources/beta/organization/analytics/user-usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageUsersItemsPageCursor</code>
+- <code title="get /v1/organizations/analytics/user_usage_report">client.beta.organization.analytics.userUsageReport.<a href="./src/resources/beta/organization/analytics/user-usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageUsersItemsReportPageCursor</code>
 
 #### CostReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/cost_report?beta=true">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsPageCursor</code>
+- <code title="get /v1/organizations/analytics/cost_report">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsReportPageCursor</code>
 
 #### UserCostReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/user_cost_report?beta=true">client.beta.organization.analytics.userCostReport.<a href="./src/resources/beta/organization/analytics/user-cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostUsersItemsPageCursor</code>
+- <code title="get /v1/organizations/analytics/user_cost_report">client.beta.organization.analytics.userCostReport.<a href="./src/resources/beta/organization/analytics/user-cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostUsersItemsReportPageCursor</code>
 
 ### SpendLimits
 
@@ -2109,67 +2917,71 @@ Types:
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitRBACGroupScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitScopedAPIKeyActor</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitSeatTierScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUsageTierScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserActor</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitWorkspaceScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendSummary</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">SpendLimitDeleteResponse</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">retrieve</a>(spendLimitID) -> BetaSpendLimit</code>
-- <code title="get /v1/organizations/spend_limits?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">list</a>({ ...params }) -> BetaSpendLimitsPageCursor</code>
-- <code title="delete /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">delete</a>(spendLimitID) -> SpendLimitDeleteResponse</code>
-- <code title="post /v1/organizations/spend_limits?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">set</a>({ ...params }) -> BetaSpendLimit</code>
+- <code title="get /v1/organizations/spend_limits/{spend_limit_id}">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">retrieve</a>(spendLimitID) -> BetaSpendLimit</code>
+- <code title="get /v1/organizations/spend_limits">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">list</a>({ ...params }) -> BetaSpendLimitsPageCursor</code>
+- <code title="delete /v1/organizations/spend_limits/{spend_limit_id}">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">delete</a>(spendLimitID) -> SpendLimitDeleteResponse</code>
+- <code title="post /v1/organizations/spend_limits">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">set</a>({ ...params }) -> BetaSpendLimit</code>
 
 #### Effective
 
 Methods:
 
-- <code title="get /v1/organizations/spend_limits/effective?beta=true">client.beta.organization.spendLimits.effective.<a href="./src/resources/beta/organization/spend-limits/effective.ts">list</a>({ ...params }) -> BetaSpendSummariesPageCursor</code>
+- <code title="get /v1/organizations/spend_limits/effective">client.beta.organization.spendLimits.effective.<a href="./src/resources/beta/organization/spend-limits/effective.ts">list</a>({ ...params }) -> BetaSpendSummariesPageCursor</code>
 
 #### IncreaseRequests
 
 Types:
 
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequest</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestActor</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestResolvedBy</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestStatus</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">IncreaseRequestApproveResponse</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">retrieve</a>(spendLimitIncreaseRequestID) -> BetaSpendLimitIncreaseRequest</code>
-- <code title="get /v1/organizations/spend_limit_increase_requests?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">list</a>({ ...params }) -> BetaSpendLimitIncreaseRequestsPageCursor</code>
-- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">approve</a>(spendLimitIncreaseRequestID, { ...params }) -> IncreaseRequestApproveResponse</code>
-- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">deny</a>(spendLimitIncreaseRequestID, { ...params }) -> BetaSpendLimitIncreaseRequest</code>
+- <code title="get /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">retrieve</a>(spendLimitIncreaseRequestID) -> BetaSpendLimitIncreaseRequest</code>
+- <code title="get /v1/organizations/spend_limit_increase_requests">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">list</a>({ ...params }) -> BetaSpendLimitIncreaseRequestsPageCursor</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">approve</a>(spendLimitIncreaseRequestID, { ...params }) -> IncreaseRequestApproveResponse</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">deny</a>(spendLimitIncreaseRequestID, { ...params }) -> BetaSpendLimitIncreaseRequest</code>
 
 ### RBACGroups
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaDeletedRBACGroup</a></code>
 - <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaRBACGroup</a></code>
-- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">RBACGroupDeleteResponse</a></code>
 
 Methods:
 
-- <code title="post /v1/organizations/rbac_groups?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">create</a>({ ...params }) -> BetaRBACGroup</code>
-- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">retrieve</a>(rbacGroupID) -> BetaRBACGroup</code>
-- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">update</a>(rbacGroupID, { ...params }) -> BetaRBACGroup</code>
-- <code title="get /v1/organizations/rbac_groups?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">list</a>({ ...params }) -> BetaRBACGroupsPageCursor</code>
-- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">delete</a>(rbacGroupID) -> RBACGroupDeleteResponse</code>
+- <code title="post /v1/organizations/rbac_groups">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">create</a>({ ...params }) -> BetaRBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">retrieve</a>(rbacGroupID) -> BetaRBACGroup</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">update</a>(rbacGroupID, { ...params }) -> BetaRBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">list</a>({ ...params }) -> BetaRBACGroupsPageCursor</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">delete</a>(rbacGroupID) -> BetaDeletedRBACGroup</code>
 
 #### Members
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/rbac-groups/members.ts">BetaDeletedRBACGroupMember</a></code>
 - <code><a href="./src/resources/beta/organization/rbac-groups/members.ts">BetaRBACGroupMember</a></code>
-- <code><a href="./src/resources/beta/organization/rbac-groups/members.ts">MemberRemoveResponse</a></code>
 
 Methods:
 
-- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}/members?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">list</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMembersPageCursor</code>
-- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}/members?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">add</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMember</code>
-- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}/members">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">list</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMembersPageCursor</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}/members">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">add</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMember</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">remove</a>(userID, { ...params }) -> BetaDeletedRBACGroupMember</code>
 
 ### RBACRoles
 
@@ -2179,8 +2991,8 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}?beta=true">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">retrieve</a>(rbacRoleID) -> BetaRBACRole</code>
-- <code title="get /v1/organizations/rbac_roles?beta=true">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">list</a>({ ...params }) -> BetaRBACRolesPageCursor</code>
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">retrieve</a>(rbacRoleID) -> BetaRBACRole</code>
+- <code title="get /v1/organizations/rbac_roles">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">list</a>({ ...params }) -> BetaRBACRolesPageCursor</code>
 
 #### Permissions
 
@@ -2195,7 +3007,7 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}/permissions?beta=true">client.beta.organization.rbacRoles.permissions.<a href="./src/resources/beta/organization/rbac-roles/permissions.ts">list</a>(rbacRoleID, { ...params }) -> BetaRBACRolePermissionsPageCursor</code>
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}/permissions">client.beta.organization.rbacRoles.permissions.<a href="./src/resources/beta/organization/rbac-roles/permissions.ts">list</a>(rbacRoleID, { ...params }) -> BetaRBACRolePermissionsPageCursor</code>
 
 ### Plugins
 
@@ -2206,20 +3018,25 @@ Types:
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginAPIActor</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginComponent</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginContentScan</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginNameTakenErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerUser</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganizationMember</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetRBACGroup</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginUserActor</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaRegistrationPendingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaScanFailedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaScanPendingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaSkillNameTakenErrorDetails</a></code>
 
 Methods:
 
-- <code title="post /v1/organizations/plugins?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">create</a>({ ...params }) -> BetaPlugin</code>
-- <code title="get /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">retrieve</a>(pluginID, { ...params }) -> BetaPlugin</code>
-- <code title="post /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">update</a>(pluginID, { ...params }) -> BetaPlugin</code>
-- <code title="get /v1/organizations/plugins?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">list</a>({ ...params }) -> BetaPluginsPageCursor</code>
-- <code title="delete /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">delete</a>(pluginID, { ...params }) -> BetaDeletedPlugin</code>
+- <code title="post /v1/organizations/plugins">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">create</a>({ ...params }) -> BetaPlugin</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">retrieve</a>(pluginID, { ...params }) -> BetaPlugin</code>
+- <code title="post /v1/organizations/plugins/{plugin_id}">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">update</a>(pluginID, { ...params }) -> BetaPlugin</code>
+- <code title="get /v1/organizations/plugins">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">list</a>({ ...params }) -> BetaPluginsPageCursor</code>
+- <code title="delete /v1/organizations/plugins/{plugin_id}">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">delete</a>(pluginID, { ...params }) -> BetaDeletedPlugin</code>
 
 #### Versions
 
@@ -2229,10 +3046,10 @@ Types:
 
 Methods:
 
-- <code title="post /v1/organizations/plugins/{plugin_id}/versions?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">create</a>(pluginID, { ...params }) -> BetaPluginVersion</code>
-- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">retrieve</a>(version, { ...params }) -> BetaPluginVersion</code>
-- <code title="get /v1/organizations/plugins/{plugin_id}/versions?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">list</a>(pluginID, { ...params }) -> BetaPluginVersionsPageCursor</code>
-- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}/content?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">download</a>(version, { ...params }) -> Response</code>
+- <code title="post /v1/organizations/plugins/{plugin_id}/versions">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">create</a>(pluginID, { ...params }) -> BetaPluginVersion</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">retrieve</a>(version, { ...params }) -> BetaPluginVersion</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">list</a>(pluginID, { ...params }) -> BetaPluginVersionsPageCursor</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}/content">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">download</a>(version, { ...params }) -> Response</code>
 
 #### InstallationSettings
 
@@ -2243,9 +3060,9 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/plugins/{plugin_id}/installation_settings?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">list</a>(pluginID, { ...params }) -> BetaPluginInstallationSettingsPageCursor</code>
-- <code title="delete /v1/organizations/plugins/{plugin_id}/installation_settings/{target}?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">remove</a>(target, { ...params }) -> BetaDeletedPluginInstallationSetting</code>
-- <code title="post /v1/organizations/plugins/{plugin_id}/installation_settings/{target}?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">set</a>(target, { ...params }) -> BetaPluginInstallationSetting</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/installation_settings">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">list</a>(pluginID, { ...params }) -> BetaPluginInstallationSettingsPageCursor</code>
+- <code title="delete /v1/organizations/plugins/{plugin_id}/installation_settings/{target}">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">remove</a>(target, { ...params }) -> BetaDeletedPluginInstallationSetting</code>
+- <code title="post /v1/organizations/plugins/{plugin_id}/installation_settings/{target}">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">set</a>(target, { ...params }) -> BetaPluginInstallationSetting</code>
 
 #### Shares
 
@@ -2255,7 +3072,7 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/plugins/{plugin_id}/shares?beta=true">client.beta.organization.plugins.shares.<a href="./src/resources/beta/organization/plugins/shares.ts">list</a>(pluginID, { ...params }) -> BetaPluginSharesPageCursor</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/shares">client.beta.organization.plugins.shares.<a href="./src/resources/beta/organization/plugins/shares.ts">list</a>(pluginID, { ...params }) -> BetaPluginSharesPageCursor</code>
 
 ### PluginMarketplaces
 
@@ -2269,8 +3086,169 @@ Types:
 
 Methods:
 
-- <code title="get /v1/organizations/plugin_marketplaces/{marketplace_id}?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">retrieve</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
-- <code title="post /v1/organizations/plugin_marketplaces/{marketplace_id}?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">update</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
-- <code title="get /v1/organizations/plugin_marketplaces?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">list</a>({ ...params }) -> BetaPluginMarketplacesPageCursor</code>
-- <code title="post /v1/organizations/plugin_marketplaces/validate_archive?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateArchive</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
-- <code title="post /v1/organizations/plugin_marketplaces/validate_repository?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateRepository</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
+- <code title="get /v1/organizations/plugin_marketplaces/{marketplace_id}">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">retrieve</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
+- <code title="post /v1/organizations/plugin_marketplaces/{marketplace_id}">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">update</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
+- <code title="get /v1/organizations/plugin_marketplaces">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">list</a>({ ...params }) -> BetaPluginMarketplacesPageCursor</code>
+- <code title="post /v1/organizations/plugin_marketplaces/validate_archive">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateArchive</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
+- <code title="post /v1/organizations/plugin_marketplaces/validate_repository">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateRepository</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
+
+### TelemetryDestinations
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaDeletedTelemetryDestination</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestination</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationContentMode</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDeliveryHealth</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReason</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonCaller</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonInvalidAddress</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonRedirect</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonSustainedFailure</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationState</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateDisabled</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateDisabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabled</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestFailure</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResponse</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResult</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestSuccess</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTraces</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTracesParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspaces</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesAll</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesAllParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesExclude</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesExcludeParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesInclude</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesIncludeParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesParams</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/telemetry_destinations">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">create</a>({ ...params }) -> BetaTelemetryDestination</code>
+- <code title="get /v1/organizations/telemetry_destinations/{destination_id}">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">retrieve</a>(destinationID, { ...params }) -> BetaTelemetryDestination</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">update</a>(destinationID, { ...params }) -> BetaTelemetryDestination</code>
+- <code title="get /v1/organizations/telemetry_destinations">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">list</a>({ ...params }) -> BetaTelemetryDestinationsPageCursor</code>
+- <code title="delete /v1/organizations/telemetry_destinations/{destination_id}">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">delete</a>(destinationID, { ...params }) -> BetaDeletedTelemetryDestination</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/test">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">test</a>(destinationID, { ...params }) -> BetaTelemetryDestinationTestResponse</code>
+
+#### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">BetaDeletedTelemetryDestinationWorkspace</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">BetaTelemetryDestinationWorkspace</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/telemetry_destinations/{destination_id}/workspaces">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">list</a>(destinationID, { ...params }) -> BetaTelemetryDestinationWorkspacesPageCursor</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">add</a>(workspaceID, { ...params }) -> BetaTelemetryDestinationWorkspace</code>
+- <code title="delete /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">remove</a>(workspaceID, { ...params }) -> BetaDeletedTelemetryDestinationWorkspace</code>
+
+### Webhooks
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaDeletedOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaNewOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpointSigningSecret</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpointState</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/webhooks">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">create</a>({ ...params }) -> BetaNewOrganizationWebhookEndpoint</code>
+- <code title="get /v1/organizations/webhooks/{webhook_endpoint_id}">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">retrieve</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpoint</code>
+- <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">update</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpoint</code>
+- <code title="get /v1/organizations/webhooks">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">list</a>({ ...params }) -> BetaOrganizationWebhookEndpointsPage</code>
+- <code title="delete /v1/organizations/webhooks/{webhook_endpoint_id}">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">delete</a>(webhookEndpointID, { ...params }) -> BetaDeletedOrganizationWebhookEndpoint</code>
+- <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}/regenerate_signing_secret">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">regenerateSigningSecret</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpointSigningSecret</code>
+
+### ClaudeTag
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagDefaultSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicy</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyChannelOnly</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyRestrict</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSources</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettings</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingsCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingsUpdate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackChannelIdentifiers</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackDefaultSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackGridChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackParentChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceIdentifiers</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagWritesNotEnabledErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaComplianceConfigurationRestrictedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsConflictErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedErrorDetails</a></code>
+
+#### SlackChannels
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">BetaClaudeTagDeletedSlackChannel</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">BetaClaudeTagSlackChannel</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/claude_tag/slack_channels">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">create</a>({ ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="get /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">retrieve</a>(id, { ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="post /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">update</a>(id, { ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="get /v1/organizations/claude_tag/slack_channels">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">list</a>({ ...params }) -> BetaClaudeTagSlackChannelsPageCursor</code>
+- <code title="delete /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">delete</a>(id, { ...params }) -> BetaClaudeTagDeletedSlackChannel</code>
+
+#### SlackWorkspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">BetaClaudeTagSlackWorkspace</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_tag/slack_workspaces/{id}">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">retrieve</a>(id, { ...params }) -> BetaClaudeTagSlackWorkspace</code>
+- <code title="post /v1/organizations/claude_tag/slack_workspaces/{id}">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">update</a>(id, { ...params }) -> BetaClaudeTagSlackWorkspace</code>
+- <code title="get /v1/organizations/claude_tag/slack_workspaces">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">list</a>({ ...params }) -> BetaClaudeTagSlackWorkspacesPageCursor</code>
+
+#### Bundles
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">BetaClaudeTagBundle</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">retrieve</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
+- <code title="get /v1/organizations/claude_tag/bundles">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">list</a>({ ...params }) -> BetaClaudeTagBundlesPageCursor</code>
+
+##### Targets
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagBundleTargetCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagDeletedBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackChannelBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackChannelBundleTargetCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackWorkspaceBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackWorkspaceBundleTargetCreate</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/claude_tag/bundles/{bundle_id}/targets">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">create</a>(bundleID, { ...params }) -> BetaClaudeTagBundleTarget</code>
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}/targets/{target_id}">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">retrieve</a>(targetID, { ...params }) -> BetaClaudeTagBundleTarget</code>
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}/targets">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">list</a>(bundleID, { ...params }) -> BetaClaudeTagBundleTargetsPageCursor</code>
+- <code title="delete /v1/organizations/claude_tag/bundles/{bundle_id}/targets/{target_id}">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">delete</a>(targetID, { ...params }) -> BetaClaudeTagDeletedBundleTarget</code>

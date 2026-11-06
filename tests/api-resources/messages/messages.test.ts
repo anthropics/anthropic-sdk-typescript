@@ -10,7 +10,7 @@ describe('resource messages', () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -25,7 +25,7 @@ describe('resource messages', () => {
     const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
         id: 'id',
@@ -48,6 +48,7 @@ describe('resource messages', () => {
         },
       },
       service_tier: 'auto',
+      speed: 'standard',
       stop_sequences: ['string'],
       stream: false,
       system: [
@@ -67,7 +68,6 @@ describe('resource messages', () => {
           ],
         },
       ],
-      temperature: 1,
       thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
@@ -88,8 +88,6 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      top_k: 5,
-      top_p: 0.7,
       user_profile_id: 'anthropic-user-profile-id',
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
@@ -98,7 +96,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -112,7 +110,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       output_config: {
         effort: 'low',
@@ -121,6 +119,7 @@ describe('resource messages', () => {
           type: 'json_schema',
         },
       },
+      speed: 'standard',
       system: [
         {
           text: "Today's date is 2024-06-01.",

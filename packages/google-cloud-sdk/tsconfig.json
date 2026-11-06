@@ -9,18 +9,24 @@
     "esModuleInterop": true,
     "types": ["node"],
     "paths": {
+      "@anthropic-ai/sdk/*": ["../../dist-internal/*"],
+      "@anthropic-ai/sdk": ["../../dist-internal/index.d.ts"],
       "@anthropic-ai/google-cloud-sdk/*": ["./src/*"],
       "@anthropic-ai/google-cloud-sdk": ["./src/index.ts"]
     },
     "noEmit": true,
+
     "resolveJsonModule": true,
+
     "forceConsistentCasingInFileNames": true,
+
     "strict": true,
     "noImplicitReturns": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
+
     "skipLibCheck": true
   }
 }

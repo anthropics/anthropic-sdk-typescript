@@ -5,12 +5,19 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { type Uploadable } from '../../../core/uploads';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../internal/uploads';
 import { path } from '../../../internal/utils/path';
 
 export class Versions extends APIResource {
   /**
    * Create Skill Version
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {CMEKContextUnavailableError}
    *
    * @example
    * ```ts
@@ -27,7 +34,7 @@ export class Versions extends APIResource {
   ): APIPromise<BetaSkillVersion> {
     const { betas, workspace_id, ...body } = params;
     return this._client.post(
-      path`/v1/skills/${skillID}/versions?beta=true`,
+      path`/v1/skills/${skillID}/versions`,
       multipartFormRequestOptions(
         {
           body,
@@ -39,6 +46,12 @@ export class Versions extends APIResource {
             },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
+          __span: startApiCallSpan(this._client, 'anthropic.skills.versions.create', options, {
+            route: '/v1/skills/{skill_id}/versions',
+            attributes: { 'anthropic.skill.id': skillID },
+            createdIDAttribute: 'anthropic.skill.version.id',
+          }),
         },
         this._client,
         false,
@@ -48,6 +61,9 @@ export class Versions extends APIResource {
 
   /**
    * Get Skill Version
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -63,7 +79,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSkillVersion> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -72,11 +88,19 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.retrieve', options, {
+        route: '/v1/skills/{skill_id}/versions/{version}',
+        attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
+      }),
     });
   }
 
   /**
    * List Skill Versions
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -94,25 +118,30 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSkillVersionsPageCursor, BetaSkillVersion> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/skills/${skillID}/versions?beta=true`,
-      PageCursor<BetaSkillVersion>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-      },
-    );
+    return this._client.getAPIList(path`/v1/skills/${skillID}/versions`, PageCursor<BetaSkillVersion>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.list', options, {
+        route: '/v1/skills/{skill_id}/versions',
+        queryParams: ['limit', 'page'],
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
+    });
   }
 
   /**
    * Delete Skill Version
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -128,7 +157,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedSkillVersion> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -137,6 +166,11 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.delete', options, {
+        route: '/v1/skills/{skill_id}/versions/{version}',
+        attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
+      }),
     });
   }
 
@@ -156,7 +190,7 @@ export class Versions extends APIResource {
    */
   download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content`, {
       ...options,
       headers: buildHeaders([
         {
@@ -166,7 +200,12 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __binaryResponse: true,
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.download', options, {
+        route: '/v1/skills/{skill_id}/versions/{version}/content',
+        attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
+      }),
     });
   }
 }

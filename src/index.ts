@@ -3,6 +3,12 @@ export { Anthropic as default } from './client';
 export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
 export { BaseAnthropic, Anthropic, type ClientOptions } from './client';
+export {
+  type OpenTelemetryOptions,
+  type OpenTelemetryRequestOptions,
+  type OpenTelemetryTracesOptions,
+  type ResolvedOpenTelemetryOptions,
+} from './client';
 export { PagePromise } from './core/pagination';
 export {
   AnthropicError,
@@ -15,13 +21,22 @@ export {
   ConflictError,
   RateLimitError,
   BadRequestError,
+  OverloadedError,
   AuthenticationError,
+  RequestTimeoutError,
   InternalServerError,
+  NotImplementedError,
+  GatewayTimeoutError,
+  ContentTooLargeError,
   PermissionDeniedError,
+  PreconditionFailedError,
+  ServiceUnavailableError,
   UnprocessableEntityError,
+  ClientClosedRequestError,
+  RequestHeaderFieldsTooLargeError,
 } from './core/error';
 
-export { type APIRequest, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { type APIRequest } from './client';
 export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
 export {
   betaRefusalFallbackMiddleware,

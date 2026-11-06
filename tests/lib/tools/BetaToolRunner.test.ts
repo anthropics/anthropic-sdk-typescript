@@ -13,6 +13,7 @@ import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tool
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
 import { SDK_HELPER_SYMBOL } from '../../../src/internal/stainless-helper-header';
+import { FakeBrowser } from './toolsets/fakes';
 
 const weatherTool: BetaRunnableTool<{ location: string }> = {
   type: 'custom',
@@ -292,6 +293,7 @@ interface SetupTestResult<Stream extends boolean> {
 
 type ToolRunnerParams = Parameters<typeof Anthropic.Beta.Messages.prototype.toolRunner>[0];
 
+// With `thread: false` each request carries the full history rather than a thread delta, for a test that reads it.
 function setupTest(
   params?: Partial<ToolRunnerParams> & { stream?: false },
   clientOptions?: ClientOptions,
@@ -1007,11 +1009,25 @@ describe('ToolRunner', () => {
         expect(message.stop_reason).toBe('refusal');
       });
 
-      // The refusal turn is final: no tool execution, no follow-up request.
+      // The refusal turn is final: no tool execution, no follow-up request, and the thread records nothing of it.
       await expectDone(iterator);
       expect(runSpy).not.toHaveBeenCalled();
-      expect(runner.params.messages).toHaveLength(2);
+      expect(runner.params.messages).toHaveLength(1);
       await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'refusal' });
+    });
+
+    it('runs tools when the history has a system message without content', async () => {
+      const directive: BetaMessageParam = { role: 'system', output_config: { effort: 'low' } };
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }, directive],
+      });
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      handleAssistantMessage(getTextContent());
+      await runner.runUntilDone();
+
+      expect(runner.params.messages[1]).toEqual(directive);
+      expect(runner.params.messages[3]).toEqual({ role: 'user', content: [getWeatherToolResult('SF')] });
     });
   });
 
@@ -1042,8 +1058,8 @@ describe('ToolRunner', () => {
 
       const iterator = runner[Symbol.asyncIterator]();
 
-      // Turn 1 is text-only. Mutating while suspended at the yield keeps the loop going and
-      // hands the history to the caller (the assistant turn is not auto-pushed).
+      // Turn 1 is text-only. Mutating while suspended at the yield keeps the loop going; the
+      // assistant turn is recorded as soon as it arrives, and pushing it again is a no-op.
       const firstTurn = handleAssistantMessage(getTextContent('Which tool should I use?'));
       await expectEvent(iterator);
       runner.pushMessages(assistantTurn(firstTurn.content), removeWeatherTool, {
@@ -1198,7 +1214,8 @@ describe('ToolRunner', () => {
     it.each([false, true])(
       'sends an added tool after the tool results of the turn and runs it from then on (stream=%s)',
       async (stream) => {
-        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
         const bodies: Array<Record<string, unknown>> = [];
         const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
         const lookupTurn = assistantMessage('tool_use', lookupToolUse('tool_2'));
@@ -1233,7 +1250,7 @@ describe('ToolRunner', () => {
       ['its name', 'getWeather'],
     ])('refuses a call already in the turn being handled to a tool removed by %s', async (_, tool) => {
       const run = vi.fn(weatherTool.run);
-      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }], thread: false });
       const bodies: Array<Record<string, unknown>> = [];
       const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
 
@@ -1254,7 +1271,7 @@ describe('ToolRunner', () => {
     });
 
     it('runs a removed tool that is added back while the turn that calls it is being handled', async () => {
-      const { runner, handleRequest } = setupTest();
+      const { runner, handleRequest } = setupTest({ thread: false });
       const bodies: Array<Record<string, unknown>> = [];
       const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
 
@@ -1334,7 +1351,7 @@ describe('ToolRunner', () => {
 
     it('answers a call already in the turn being handled with the input error of the tool added under its name', async () => {
       const run = vi.fn(weatherTool.run);
-      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }], thread: false });
       const bodies: Array<Record<string, unknown>> = [];
       const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
       const cityDefinition = {
@@ -1448,7 +1465,8 @@ describe('ToolRunner', () => {
     it.each([false, true])(
       'holds changes made during a paused turn until it has been resumed (stream=%s)',
       async (stream) => {
-        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
         const bodies: Array<Record<string, unknown>> = [];
         const pausedTurn = assistantMessage('pause_turn', getTextContent('Let me look that up.'));
         const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
@@ -1471,8 +1489,32 @@ describe('ToolRunner', () => {
       },
     );
 
+    it.each([false, true])(
+      'sends them with the turn that goes out again when a param was changed during the paused turn (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
+        const bodies: Array<Record<string, unknown>> = [];
+        const pausedTurn = assistantMessage('pause_turn', getTextContent('Let me look that up.'));
+
+        reply(handleRequest, bodies, pausedTurn, stream);
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        let turn = 0;
+        for await (const item of runner) {
+          if ('finalMessage' in item) await item.finalMessage();
+          if (turn++ === 0) {
+            runner.addTools(lookupTool);
+            runner.setMessagesParams((params) => ({ ...params, max_tokens: 200 }));
+          }
+        }
+
+        expect(bodies[1]!['max_tokens']).toBe(200);
+        expect(sent(bodies[1])).toEqual([firstMessage, toolChanges(addition(lookupDefinition))]);
+      },
+    );
+
     it('does not hold changes after a turn that stopped on compaction', async () => {
-      const { runner, handleRequest } = setupTest();
+      const { runner, handleRequest } = setupTest({ thread: false });
       const bodies: Array<Record<string, unknown>> = [];
       const compactedTurn = assistantMessage('compaction', {
         type: 'compaction',
@@ -1585,7 +1627,8 @@ describe('ToolRunner', () => {
     });
 
     it('does not add a beta header', async () => {
-      const { runner, handleRequest } = setupTest();
+      // `thread: false` so the only beta header would be one the runner added for the tool changes
+      const { runner, handleRequest } = setupTest({ thread: false });
       let betaHeader: string | null | undefined;
 
       runner.addTools(lookupTool);
@@ -1780,6 +1823,33 @@ describe('ToolRunner', () => {
       },
     );
 
+    it.each([
+      { stream: false, runToolsEagerly: false },
+      { stream: true, runToolsEagerly: false },
+      { stream: true, runToolsEagerly: true },
+    ])(
+      'sends what `toJSON()` returns for a toolset (stream=$stream, runToolsEagerly=$runToolsEagerly)',
+      async ({ stream, runToolsEagerly }) => {
+        const browser = new FakeBrowser({ toolConfigs: { cache_control: { type: 'ephemeral' } } });
+        const tools = [browser];
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, runToolsEagerly, tools }) : setupTest({ tools });
+        const bodies: Array<Record<string, unknown>> = [];
+
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        await runner.runUntilDone();
+
+        expect(browser.configs).not.toBeNull();
+        expect(bodies[0]!['tools']).toEqual([
+          {
+            type: 'browser_toolset_20260801',
+            cache_control: { type: 'ephemeral' },
+            configs: browser.configs,
+          },
+        ]);
+      },
+    );
+
     it.each(['addTools()', 'pushMessages()', 'messages'])(
       'sends only API fields for a tool added through %s',
       async (via) => {
@@ -1909,7 +1979,8 @@ describe('ToolRunner', () => {
     it.each([false, true])(
       'sends the paused turn back so the server resumes it (stream=%s)',
       async (stream) => {
-        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
         const bodies: Array<Record<string, unknown>> = [];
         const paused = pausedTurn();
 
@@ -1959,7 +2030,8 @@ describe('ToolRunner', () => {
     it.each([false, true])(
       'sends the compaction turn back so the server continues it (stream=%s)',
       async (stream) => {
-        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
         const bodies: Array<Record<string, unknown>> = [];
         const compacted = compactedTurn();
 
@@ -2148,7 +2220,10 @@ describe('ToolRunner', () => {
           system: 'Be brief.',
           tools: first!['tools'],
         });
-        expect(requests.map((request) => request.betas)).toEqual(Array(3).fill('compact-2026-09-04'));
+        // The runner uses a message thread by default, so each request also sends the threads beta.
+        expect(requests.map((request) => request.betas)).toEqual(
+          Array(3).fill('compact-2026-09-04,message-threads-2026-08-12'),
+        );
       },
     );
 
@@ -2161,7 +2236,7 @@ describe('ToolRunner', () => {
         });
 
       for (const betas of [undefined, ['compact-2026-09-04']]) {
-        const { runner, handleRequest } = setupTest(betas ? { betas } : {});
+        const { runner, handleRequest } = setupTest(betas ? { betas, thread: false } : { thread: false });
         answer(handleRequest, compacted());
         answer(handleRequest, finalTurn());
         runner.compactBeforeNextTurn();
@@ -2229,7 +2304,7 @@ describe('ToolRunner', () => {
     it.each(['pause_turn', 'compaction'] as const)(
       'waits for a paused turn (%s) to finish',
       async (stop_reason) => {
-        const { runner, handleRequest } = setupTest();
+        const { runner, handleRequest } = setupTest({ thread: false });
         const bodies: Array<Record<string, unknown>> = [];
         const paused = stop_reason === 'pause_turn' ? pausedTurn() : compacted('Earlier summary.', 'sig_00');
 
@@ -2343,7 +2418,7 @@ describe('ToolRunner', () => {
       ['no content', assistantMessage('max_tokens')],
     ])('keeps the history and warns when the response has %s', async (_, response) => {
       const logger = testLogger();
-      const { runner, handleRequest } = setupTest({}, { logger });
+      const { runner, handleRequest } = setupTest({ thread: false }, { logger });
       const bodies: Array<Record<string, unknown>> = [];
 
       reply(handleRequest, bodies, toolTurn(), false);
@@ -2433,6 +2508,28 @@ describe('ToolRunner', () => {
       expect(bodies[2]!['max_tokens']).toBe(2048);
     });
 
+    it('takes the same messages in another key order while the conversation is being compacted', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      reply(handleRequest, bodies, compacted(), false);
+      reply(handleRequest, bodies, finalTurn(), false);
+
+      await run(runner, (message) => {
+        if (message.stop_reason === 'tool_use') {
+          runner.compactBeforeNextTurn();
+        } else if (message.stop_reason === 'compaction') {
+          runner.setMessagesParams((params) => ({
+            ...params,
+            messages: params.messages.map((param) => Object.assign({ content: param.content }, param)),
+          }));
+        }
+      });
+
+      expect(bodies[2]!['messages']).toEqual(compactionBlockAlone());
+    });
+
     it('has no tool results to give for the compaction response', async () => {
       const { runner, handleRequest } = setupTest();
 
@@ -2499,13 +2596,6 @@ describe('ToolRunner', () => {
       expect(runner.params).not.toHaveProperty('compaction');
     });
 
-    it('refuses the removed `compactionControl` option', () => {
-      // @ts-expect-error `compactionControl` is no longer in the runner's params type
-      expect(() => setupTest({ compactionControl: { enabled: true } })).toThrow(
-        '`compactionControl` has been removed from the tool runner',
-      );
-    });
-
     it('is refused while context_management has a compaction edit', async () => {
       const compactionEdit = { type: 'compact_20260112' as const };
       const context_management = { edits: [compactionEdit] };
@@ -2549,7 +2639,10 @@ describe('ToolRunner', () => {
     // Every first turn carries a client tool_use block; only `run_tools` may execute it.
     it.each(cases)('%s → %s', async (stop_reason, nextStep) => {
       const runSpy = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
-      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run: runSpy }] });
+      const { runner, handleRequest } = setupTest({
+        tools: [{ ...weatherTool, run: runSpy }],
+        thread: false,
+      });
       const bodies: Array<Record<string, unknown>> = [];
       const first = assistantMessage(stop_reason, getWeatherToolUse('SF'));
 
@@ -2764,7 +2857,7 @@ describe('ToolRunner', () => {
 
       await runner.runUntilDone();
 
-      expect(capturedHelperHeader).toBe('BetaToolRunner');
+      expect(capturedHelperHeader).toBe('BetaToolRunner, message-thread');
     });
 
     it('includes BetaToolRunner,mcpTool for MCP tools', async () => {
@@ -2814,7 +2907,56 @@ describe('ToolRunner', () => {
 
       await runner.runUntilDone();
 
-      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner, message-thread');
+    });
+
+    it('reads the helpers from the live tools at each request', async () => {
+      // A marked tool added by setMessagesParams after the first turn is sent with the second request, whose header
+      // names it.
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const seen: Array<string | null> = [];
+      const reply = (content: BetaContentBlock[], stop_reason: string) =>
+        handleRequest(async (_req, init) => {
+          seen.push(init?.headers instanceof Headers ? init.headers.get('x-stainless-helper') : null);
+          return new Response(
+            JSON.stringify({
+              id: `msg_${seen.length}`,
+              type: 'message',
+              role: 'assistant',
+              content,
+              model: 'claude-3-5-sonnet-latest',
+              stop_reason,
+              stop_sequence: null,
+              container: null,
+              context_management: null,
+              usage: { input_tokens: 10, output_tokens: 5 },
+            }),
+            { headers: { 'content-type': 'application/json' } },
+          );
+        });
+      reply([getWeatherToolUse('SF')], 'tool_use');
+      reply([{ type: 'text', text: 'Done', citations: null }], 'end_turn');
+      const mcpMarkedTool = {
+        type: 'custom' as const,
+        name: 'getMCPWeather',
+        input_schema: { type: 'object' as const },
+        run: async () => 'sunny',
+        parse: (input: unknown) => input,
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [weatherTool],
+        thread: false,
+      });
+      const turns = runner[Symbol.asyncIterator]();
+      await turns.next();
+      runner.setMessagesParams((prev) => ({ ...prev, tools: [...prev.tools, mcpMarkedTool] }));
+      await turns.next();
+      expect(seen).toEqual(['BetaToolRunner', 'mcpTool, BetaToolRunner']);
     });
 
     it('includes only BetaToolRunner,mcpTool once for multiple MCP tools', async () => {
@@ -2871,7 +3013,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // mcpTool should appear only once even with multiple MCP tools
-      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner, message-thread');
     });
 
     it('includes BetaToolRunner,mcpTool for mixed tools (MCP and regular)', async () => {
@@ -2919,7 +3061,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // Should include both BetaToolRunner and mcpTool
-      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner, message-thread');
     });
 
     it('preserves x-stainless-helper header when signal is passed via constructor options', async () => {
@@ -2961,7 +3103,7 @@ describe('ToolRunner', () => {
       );
 
       await runner.runUntilDone();
-      expect(capturedHelperHeader).toBe('BetaToolRunner');
+      expect(capturedHelperHeader).toBe('BetaToolRunner, message-thread');
     });
 
     it('includes message helpers when using marked messages', async () => {
@@ -3363,6 +3505,166 @@ describe('ToolRunner', () => {
       expect(seenStates[1]).toBe(fallbackState);
     });
   });
+
+  it('serializes a toolset for each request, like any other entry in tools', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: { navigate: { enabled: true } },
+      run: async () => [{ type: 'text', text: 'ok' }],
+      close: async () => {},
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const mutatingTool: any = {
+      name: 'mutate',
+      description: 'flips a toolset config while the loop is running',
+      input_schema: { type: 'object', properties: {} },
+      run: async () => {
+        toolset.configs = { navigate: { enabled: false } };
+        return 'done';
+      },
+      parse: (i: unknown) => i,
+    };
+    const { runner, handleRequest } = setupTest({ tools: [mutatingTool, toolset] as any, thread: false });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(
+      handleRequest,
+      bodies,
+      assistantMessage('tool_use', { type: 'tool_use', id: 't1', name: 'mutate', input: {} }),
+      false,
+    );
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+
+    const toolsetOf = (b: any) => (b.tools as any[]).find((t) => t.type === 'browser_toolset_20260801');
+    // The runner keeps no copy of the entry: turn 2 is built after the tool changed `configs`, and sends the change.
+    expect(toolsetOf(bodies[0]).configs).toEqual({ navigate: { enabled: true } });
+    expect(toolsetOf(bodies[1]).configs).toEqual({ navigate: { enabled: false } });
+  });
+
+  it('setMessagesParams can change the toolsets in tools', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: { navigate: { enabled: true } },
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const { runner, handleRequest } = setupTest({ tools: [weatherTool, toolset] as any, thread: false });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    // a different toolset takes the first one's place, as any other change to `tools` would
+    const another = { ...toolset, configs: { navigate: { enabled: false } } };
+    runner.setMessagesParams((p) => ({ ...p, tools: [weatherTool, another] as any }));
+    await runner.runUntilDone();
+    const toolsetOf = (b: any) => (b.tools as any[]).find((t) => t.type === 'browser_toolset_20260801');
+    expect(bodies.map((b) => toolsetOf(b).configs)).toEqual([
+      { navigate: { enabled: false } },
+      { navigate: { enabled: false } },
+    ]);
+    // and a runner created with no toolset can be given one
+    const { runner: plain } = setupTest({ tools: [weatherTool] });
+    expect(() =>
+      plain.setMessagesParams((p) => ({ ...p, tools: [weatherTool, toolset] as any })),
+    ).not.toThrow();
+  });
+
+  it.each([
+    [
+      'in place',
+      (p: any) => {
+        (p.tools as any[]).push(calculatorTool); // same array reference
+        return p;
+      },
+    ],
+    ['in a new array', (p: any) => ({ ...p, tools: [...p.tools, calculatorTool] })],
+  ])('a tool added to the tool set via setMessagesParams reaches the model (%s)', async (_label, mutate) => {
+    // Function tools pass through as given, so one added later — in place or in a new array — reaches the model.
+    const { runner, handleRequest } = setupTest({ tools: [weatherTool] });
+    const bodies: Array<Record<string, unknown>> = [];
+    runner.setMessagesParams(mutate);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    const names = ((bodies[0] as any).tools as any[]).map((t) => t.name);
+    expect(names).toContain('calculate');
+  });
+
+  it("a tool pushed onto the caller's tools list during the run reaches the next request", async () => {
+    const tools: BetaRunnableTool<any>[] = [];
+    tools.push({
+      ...weatherTool,
+      run: async (input) => {
+        tools.push(calculatorTool);
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools, thread: false });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(bodies.map((b) => (b['tools'] as Array<{ name: string }>).map((t) => t.name))).toEqual([
+      ['getWeather'],
+      ['getWeather', 'calculate'],
+    ]);
+  });
+
+  it('a toolset removed from the tools list during the run is not sent with the next request', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: {},
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const tools: any[] = [toolset];
+    tools.push({
+      ...weatherTool,
+      run: async (input: { location: string }) => {
+        tools.splice(tools.indexOf(toolset), 1);
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools, thread: false });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(
+      bodies.map((b) => (b['tools'] as Array<{ type?: string }>).map((t) => t.type ?? 'custom')),
+    ).toEqual([['browser_toolset_20260801', 'custom'], ['custom']]);
+  });
+
+  it('a toolset pushed onto the tools list during the run is sent with the next request', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: {},
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const tools: any[] = [];
+    tools.push({
+      ...weatherTool,
+      run: async (input: { location: string }) => {
+        tools.push({ ...toolset });
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools, thread: false });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(
+      bodies.map((b) => (b['tools'] as Array<{ type?: string }>).map((t) => t.type ?? 'custom')),
+    ).toEqual([['custom'], ['custom', 'browser_toolset_20260801']]);
+  });
 });
 
 describe('replacement message ownership', () => {
@@ -3412,14 +3714,15 @@ describe('replacement message ownership', () => {
     expect(runner.params.messages).toHaveLength(2);
   });
 
-  test('same-history parameter updates preserve the owned history reference', async () => {
+  test('parameter-only updates keep message history intact', async () => {
     const { runner, handleAssistantMessage } = setupTest({ tools: [] });
-    const owned = runner.params.messages;
+    const initial = runner.params.messages;
     runner.setMessagesParams((params) => ({ ...params, max_tokens: 1500 }));
-    expect(runner.params.messages).toBe(owned);
+    expect(runner.params.messages).toEqual(initial);
     handleAssistantMessage(getTextContent('Done.'));
     await runner.runUntilDone();
     expect(runner.params.max_tokens).toBe(1500);
-    expect(owned).toHaveLength(2);
+    expect(initial).toHaveLength(1);
+    expect(runner.params.messages).toHaveLength(2);
   });
 });

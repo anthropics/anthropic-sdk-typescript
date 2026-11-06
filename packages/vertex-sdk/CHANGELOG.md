@@ -1,5 +1,64 @@
 # Changelog
 
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.1...vertex-sdk-v1.1.2) (2026-11-02)
+
+### Bug Fixes
+
+* **vertex:** percent-encode the project ID, region and model in the request path, so a `/` in the model can't move the request outside `/publishers/anthropic/models/`, and throw an `AnthropicError` for an empty `model` or a project ID or region of `.` or `..`
+
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.0...vertex-sdk-v1.1.1) (2026-10-26)
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.0.0...vertex-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.22.0...vertex-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
+## [0.22.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.21.0...vertex-sdk-v0.22.0) (2026-10-20)
+
+### Features
+
+* **vertex:** throw an `AnthropicError` when `userProfiles` or `beta.userProfiles` is read on `AnthropicVertex`, which doesn't serve the user profile endpoints
+
+## [0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.21.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.20.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.3...vertex-sdk-v0.20.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.20.3 (2026-10-07)
+
+Full Changelog: [vertex-sdk-v0.20.2...vertex-sdk-v0.20.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.2...vertex-sdk-v0.20.3)
+
 ## 0.20.2 (2026-09-30)
 
 Full Changelog: [vertex-sdk-v0.20.1...vertex-sdk-v0.20.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.1...vertex-sdk-v0.20.2)

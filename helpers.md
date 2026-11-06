@@ -31,6 +31,10 @@ The first event that is fired when the connection with the Anthropic API is esta
 The event fired when a stream event is received from the API. Not fired when it is not streaming. The snapshot
 returns an accumulated `Message` which is progressively built-up over events.
 
+An event of a type this SDK version doesn't know is passed through as received, with the snapshot unchanged.
+It isn't fired for anything that arrives before `message_start`, because there is no snapshot yet. `for await` and
+`.toReadableStream()` do yield those events.
+
 #### `.on('text', (textDelta: string, textSnapshot: string) => …)`
 
 The event fired when a text delta is sent by the API. The second parameter returns a `textSnapshot`.
@@ -214,6 +218,25 @@ See the following example files:
 - [`examples/structured-outputs-streaming.ts`](examples/structured-outputs-streaming.ts)
 - [`examples/structured-outputs-raw.ts`](examples/structured-outputs-raw.ts)
 
+## Message Threads
+
+A message thread (beta) keeps the conversation on the server, so each request sends only the new messages instead of the whole history. `client.beta.messages.thread(...)` takes what `create()` takes and sends nothing until the first turn.
+
+```ts
+const thread = client.beta.messages.thread({
+  model: 'claude-sonnet-5-5',
+  max_tokens: 1024,
+  system: 'You are a support agent for Acme.',
+});
+
+const first = await thread.send({ role: 'user', content: "My order #4821 hasn't arrived." });
+const second = await thread.send({ role: 'user', content: "It's been two weeks." });
+```
+
+`thread.toolRunner()` runs the [tool loop](#tool-helpers) over this thread.
+
+See [`examples/message-threads.ts`](examples/message-threads.ts).
+
 ## Tool Helpers
 
 The SDK provides helper functions to create runnable tools that can be automatically invoked by the `.toolRunner()` method. These helpers simplify tool creation with JSON Schema, Zod, or [Standard Schema](https://standardschema.dev) validation.
@@ -297,11 +320,11 @@ in-depth example.
 
 ##### Running tools while the reply streams
 
-By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
+By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. A toolset's call starts early too when the toolset's earlier calls have ended, and otherwise waits for the reply. Its `confirm` is still asked before each call runs. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'Clean up the log files in /tmp/demo.' }],
   tools: [listFiles, deleteFile],
@@ -466,7 +489,7 @@ import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 
 const calculatorTool = betaTool({
   name: 'calculator',
-  input_schema: {
+  inputSchema: {
     type: 'object',
     properties: {
       operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
@@ -494,12 +517,30 @@ const calculatorTool = betaTool({
 });
 ```
 
+### Other tool definition fields
+
+`betaZodTool`, `betaStandardSchemaTool` and `betaTool` also accept every other field of the tool definition, named as in the API, and send it as given:
+
+```ts
+const weatherTool = betaZodTool({
+  name: 'get_weather',
+  inputSchema: z.object({ location: z.string() }),
+  description: 'Get the current weather in a given location',
+  strict: true,
+  cache_control: { type: 'ephemeral' },
+  run: async (input) => `The weather in ${input.location} is 72°F`,
+});
+```
+
+`mcpTool`, `mcpTools` and `betaMemoryTool` take the other fields of their tool definition as their last argument.
+
 ### `client.messages.toolRunner(params): BetaToolRunner`
 
 **Parameters:** All standard message parameters except `compaction` (see [Compaction](#compaction)), plus:
 
 - `tools: Array<BetaToolUnion | BetaRunnableTool>` - Array of tools
 - `max_iterations?: number` - Maximum number of tool execution iterations (default: no limit)
+- `thread?: false` - The tool runner keeps its conversation in a [message thread](#message-threads) by default; `false` sends the whole history with every request
 
 **Returns:**: `BetaToolRunner`
 
@@ -537,13 +578,13 @@ const finalMessage = await runner;
 
 #### `BetaToolRunner.setMessagesParams()`
 
-Updates the conversation parameters. Can accept new parameters or a mutator function.
+Updates the conversation parameters. Can accept new parameters or a mutator function. `system` and `tools` cannot change during a run unless the runner was created with `thread: false`.
 
 ```ts
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
-  model: 'claude-haiku-4-5',
+  model: 'claude-haiku-5-5',
   max_tokens: 500,
 });
 
@@ -597,7 +638,7 @@ for await (const message of runner) {
 }
 ```
 
-`addTools()` takes what `tools` takes: runnable tools and raw tool definitions. The whole definition is sent to the model either way.
+`addTools()` takes runnable tools and raw tool definitions, as `tools` does, but not a runnable toolset or a raw definition of a toolset the runner has. The whole definition is sent to the model either way.
 
 - A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it straight away: a call the model has already made in the message you're handling runs the new one.
 - A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
@@ -616,8 +657,9 @@ A few things to know:
 - Changes still waiting when the run ends are never sent.
 - In the rare case where a compaction response comes back without `tool_changes` even though the messages it summarized added or removed tools, the model goes back to the tools in `tools`, and the runner doesn't detect it. Call `addTools()` / `removeTools()` again after that compaction if you need the change restored.
 - The runner doesn't add the beta for you, so pass `betas: ['inline-tools-2026-09-15']`.
-- Changing `tools` with `setMessagesParams()` still works, but misses the prompt cache and does not undo what these methods did.
+- Changing `tools` with `setMessagesParams()` misses the prompt cache, does not undo what these methods did, and works only with `thread: false`.
 - Use either these methods or `tool_addition` / `tool_removal` blocks you append yourself for a given tool, not both.
+- Runnable toolsets, such as a browser or computer toolset, can't be added or removed this way: build a new runner, or change them with `setMessagesParams()` on a run with `thread: false`.
 
 #### `BetaToolRunner.setRequestOptions()`
 
@@ -659,7 +701,7 @@ console.log('Message count:', runner.params.messages.length);
 
 ### `ToolError`
 
-When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`.
+When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`. From a browser or computer toolset, only a `ToolError`'s text blocks are sent.
 
 ```ts
 import { ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
@@ -698,12 +740,20 @@ See the following example files for more usage patterns:
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
 
+## Browser toolset
+
+The browser toolset has its own guide, [browser-toolset.md](browser-toolset.md): subclassing `BetaAbstractBrowserToolset20260801` to drive a real browser, its options, policies and result types, and how to run one safely.
+
+## Computer toolset
+
+The computer toolset has its own guide, [computer-toolset.md](computer-toolset.md): subclassing `BetaAbstractComputerToolset20260801` to drive a desktop, its options and result types, the coordinate and image rules, and how to run one safely.
+
 # Self-Hosted Environment Runner
 
 The SDK exposes a few building blocks for serving managed-agents sessions from a self-hosted environment:
 
 - `client.beta.environments.work.worker({ ... })` (returns an `EnvironmentWorker`, also exported from `@anthropic-ai/sdk/helpers/beta/environments`) — the full worker: polls for work, and for each claimed session sets up the workdir + downloads the agent's skills, runs the local tools against the session's `agent.tool_use` events while heartbeating the work-item lease, force-stops the work on exit, cleans up the downloaded skills, and loops. `worker.handleItem(...)` runs that same per-item flow for a single work item you've already claimed; with no arguments it reads the work id / environment id / session id from `ANTHROPIC_WORK_ID` / `ANTHROPIC_ENVIRONMENT_ID` / `ANTHROPIC_SESSION_ID` (the env vars `ant worker poll --on-work` sets) and the environment key from `ANTHROPIC_ENVIRONMENT_KEY`. `environmentId` / `environmentKey` are only needed by `run()`'s poll loop — `handleItem()` works without them. Composed from the two pieces below.
-- `client.beta.environments.work.poller(...)` — control-plane only (a `WorkPoller`): claims work items from an environment, ack's each one before yielding it, and posts `stop` automatically when the consumer's loop body returns or the iteration ends.
+- `client.beta.environments.work.poller(...)` — polling only (a `WorkPoller`): claims work items from an environment, ack's each one before yielding it, and posts `stop` automatically when the consumer's loop body returns or the iteration ends.
 - `client.beta.sessions.events.toolRunner(...)` — the sessions-side counterpart to `client.beta.messages.toolRunner` (a `SessionToolRunner`): for each `agent.tool_use` event the agent emits during a session, runs the matching tool from your registry, posts the result back, and yields a `DispatchedToolCall` so you can observe what happened. Internally drives event-stream reconnect and result posting; it does not touch the work-item lease.
 
 The tool implementations themselves live in a separate Node-only module — `@anthropic-ai/sdk/tools/agent-toolset/node` — alongside `@anthropic-ai/sdk/tools/memory/node`. `betaAgentToolset20260401(ctx)` returns the standard `agent_toolset_20260401` set (`bash`, `read`, `write`, `edit`, `glob`, `grep`) as `BetaRunnableTool` objects, the same shape `client.beta.messages.toolRunner` accepts. The individual factories — `betaBashTool`, `betaReadTool`, `betaWriteTool`, `betaEditTool`, `betaGlobTool`, `betaGrepTool` — are exported too.
@@ -767,6 +817,7 @@ import {
 
 const environmentKey = process.env.ANTHROPIC_ENVIRONMENT_KEY!;
 // The environment key authenticates the per-session calls too — scope a client to it.
+// It replaces the client's own credential on the copy.
 const sessionClient = client.withOptions({ authToken: environmentKey });
 
 for await (const work of client.beta.environments.work.poller({

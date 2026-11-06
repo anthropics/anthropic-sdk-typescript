@@ -12,6 +12,7 @@ import { APIPromise } from '../../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../../core/pagination';
 import { buildHeaders } from '../../../../../internal/headers';
 import { RequestOptions } from '../../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../../internal/tracing';
 import { path } from '../../../../../internal/utils/path';
 
 export class Rules extends APIResource {
@@ -55,13 +56,18 @@ export class Rules extends APIResource {
    */
   create(params: RuleCreateParams, options?: RequestOptions): APIPromise<BetaFederationRule> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/federation_rules?beta=true', {
+    return this._client.post('/v1/organizations/federation_rules', {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.create', options, {
+        route: '/v1/organizations/federation_rules',
+        createdIDAttribute: 'anthropic.organization.federation_rule.id',
+      }),
     });
   }
 
@@ -87,12 +93,17 @@ export class Rules extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationRule> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/organizations/federation_rules/${federationRuleID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/federation_rules/${federationRuleID}`, {
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.retrieve', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 
@@ -124,6 +135,7 @@ export class Rules extends APIResource {
    * const betaFederationRule =
    *   await client.beta.organization.federation.rules.update(
    *     'federation_rule_id',
+   *     {},
    *   );
    * ```
    */
@@ -133,13 +145,18 @@ export class Rules extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationRule> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.update', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 
@@ -167,18 +184,19 @@ export class Rules extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaFederationRulesPageCursor, BetaFederationRule> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/organizations/federation_rules?beta=true',
-      PageCursor<BetaFederationRule>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/federation_rules', PageCursor<BetaFederationRule>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.list', options, {
+        route: '/v1/organizations/federation_rules',
+        queryParams: ['include_archived', 'issuer_id', 'limit', 'page'],
+      }),
+    });
   }
 
   /**
@@ -210,12 +228,17 @@ export class Rules extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationRule> {
     const { betas } = params ?? {};
-    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/archive?beta=true`, {
+    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/archive`, {
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.archive', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}/archive',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 }
@@ -305,8 +328,9 @@ export interface BetaFederationRule {
   oauth_scope: string;
 
   /**
-   * Identity that tokens minted via this rule act as. Currently always a
-   * `service_account` target.
+   * What this rule targets. Check `type` before reading the other fields. Tokens
+   * minted via a rule whose target `type` is `service_account` act as that service
+   * account.
    */
   target: BetaServiceAccountTarget;
 

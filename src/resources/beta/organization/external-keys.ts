@@ -2,11 +2,14 @@ import { APIResource } from '../../../core/resource';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
+   *
+   * @throws {UserProfileNotFoundError}
    *
    * @example
    * ```ts
@@ -21,7 +24,15 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   create(body: ExternalKeyCreateParams, options?: RequestOptions): APIPromise<BetaExternalKey> {
-    return this._client.post('/v1/organizations/external_keys?beta=true', { body, ...options });
+    return this._client.post('/v1/organizations/external_keys', {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.create', options, {
+        route: '/v1/organizations/external_keys',
+        createdIDAttribute: 'anthropic.organization.external_key.id',
+      }),
+    });
   }
 
   /**
@@ -36,7 +47,14 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   retrieve(externalKeyID: string, options?: RequestOptions): APIPromise<BetaExternalKey> {
-    return this._client.get(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/external_keys/${externalKeyID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.retrieve', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 
   /**
@@ -46,11 +64,14 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   *
    * @example
    * ```ts
    * const betaExternalKey =
    *   await client.beta.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */
@@ -59,9 +80,14 @@ export class ExternalKeys extends APIResource {
     body: ExternalKeyUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaExternalKey> {
-    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.update', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
     });
   }
 
@@ -83,9 +109,14 @@ export class ExternalKeys extends APIResource {
     query: ExternalKeyListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaExternalKeysPageCursor, BetaExternalKey> {
-    return this._client.getAPIList('/v1/organizations/external_keys?beta=true', PageCursor<BetaExternalKey>, {
+    return this._client.getAPIList('/v1/organizations/external_keys', PageCursor<BetaExternalKey>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.list', options, {
+        route: '/v1/organizations/external_keys',
+        queryParams: ['limit', 'page'],
+      }),
     });
   }
 
@@ -93,6 +124,8 @@ export class ExternalKeys extends APIResource {
    * Delete an external key config.
    *
    * The request is rejected if any workspace still references this config.
+   *
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts
@@ -103,7 +136,14 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   delete(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, options);
+    return this._client.delete(path`/v1/organizations/external_keys/${externalKeyID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.delete', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 
   /**
@@ -123,10 +163,14 @@ export class ExternalKeys extends APIResource {
    * ```
    */
   validate(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyValidateResponse> {
-    return this._client.post(
-      path`/v1/organizations/external_keys/${externalKeyID}/validate?beta=true`,
-      options,
-    );
+    return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}/validate`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.validate', options, {
+        route: '/v1/organizations/external_keys/{external_key_id}/validate',
+        attributes: { 'anthropic.organization.external_key.id': externalKeyID },
+      }),
+    });
   }
 }
 
@@ -134,9 +178,9 @@ export type BetaExternalKeysPageCursor = PageCursor<BetaExternalKey>;
 
 export interface BetaAWSExternalKeyConfig {
   /**
-   * Full ARN of the AWS KMS key. On Claude Platform on AWS the key must be a
-   * single-Region key in your organization's own AWS account; cross-account keys,
-   * multi-Region keys, and alias ARNs are rejected.
+   * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
+   * and your organization's own key must be a single-Region key in your
+   * organization's AWS account.
    */
   kms_arn: string;
 
@@ -148,9 +192,7 @@ export interface BetaAWSExternalKeyConfig {
   region?: string | null;
 
   /**
-   * @deprecated IAM role ARN. Deprecated — Anthropic reaches the KMS key through its
-   * own intermediate role (or, on Claude Platform on AWS, with credentials AWS
-   * issues for the Workspace); this field is ignored.
+   * @deprecated IAM role ARN. Deprecated; this field is ignored.
    */
   role_arn?: string | null;
 }
@@ -221,8 +263,8 @@ export interface BetaAzureExternalKeyConfigParam {
  */
 export interface BetaExternalKey {
   /**
-   * Identifier of the external key config. A tagged ID prefixed `ekey_`, or — for
-   * organizations on the Claude Platform on AWS — the AWS KMS key ARN.
+   * Identifier of the external key config: a tagged ID prefixed `ekey_`, or, on
+   * Claude Platform on AWS, an AWS KMS key's ARN.
    */
   id: string;
 
@@ -242,8 +284,7 @@ export interface BetaExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects which regional validator handles this key's
-   * encrypt/decrypt roundtrips.
+   * Data residency geo. Selects the region this key is used in.
    */
   geo: string;
 
@@ -255,6 +296,14 @@ export interface BetaExternalKey {
   type: 'external_key';
 
   updated_at: string;
+
+  /**
+   * ID of the user profile the key is bound to, or null if the key is not bound to
+   * one. A key bound to a user profile can only be attached to a Workspace that has
+   * the same user profile. A key that isn't bound can be attached to a Workspace
+   * whatever its user profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface BetaExternalKeyAttachedAttachment {
@@ -319,6 +368,14 @@ export interface ExternalKeyCreateParams {
    * Data residency geo. Only `us` is supported.
    */
   geo?: 'us';
+
+  /**
+   * ID of a user profile to bind the key to. Omit this field for a key that isn't
+   * bound to a user profile. Such a key can be attached to a Workspace whatever its
+   * user profile. The binding cannot be changed later. A key bound to a user profile
+   * can only be attached to a Workspace that has the same user profile.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface ExternalKeyUpdateParams {

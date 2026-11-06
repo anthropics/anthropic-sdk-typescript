@@ -13,12 +13,32 @@ import {
 } from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
+import {
+  endApiCallSpan,
+  getTracer,
+  guardTracing,
+  injectTraceHeaders,
+  recordAttempt,
+  resolveOpenTelemetryOptions,
+  type ApiCallResult,
+  type OpenTelemetryOptions,
+  type ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
+export type {
+  OpenTelemetryOptions,
+  OpenTelemetryRequestOptions,
+  OpenTelemetryTracesOptions,
+  ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
 import { stringifyQuery } from './internal/utils/query';
+import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
+import { ERROR_CODE_CLASSES } from './core/error-classes';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
+import { takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -40,6 +60,9 @@ import {
   PageCursorResponse,
   type PageParams,
   PageResponse,
+  type ReportPageCursor,
+  type ReportPageCursorParams,
+  ReportPageCursorResponse,
   type TokenPage,
   type TokenPageParams,
   TokenPageResponse,
@@ -48,22 +71,21 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
-  Completion,
-  CompletionCreateParams,
-  CompletionCreateParamsNonStreaming,
-  CompletionCreateParamsStreaming,
-  Completions,
-} from './resources/completions';
-import {
   DeletedFile,
   FileDeleteParams,
   FileDownloadParams,
+  FileExpiredError,
+  FileExpiredErrorDetails,
   FileListParams,
   FileMetadata,
   FileMetadataPageCursor,
+  FileNotDownloadableError,
+  FileNotDownloadableErrorDetails,
   FileRetrieveMetadataParams,
   FileUploadParams,
   Files,
+  StorageQuotaExceededError,
+  StorageQuotaExceededErrorDetails,
 } from './resources/files';
 import {
   CapabilitySupport,
@@ -72,12 +94,29 @@ import {
   ModelCapabilities,
   ModelInfo,
   ModelInfosPage,
+  ModelLine,
   ModelListParams,
   ModelRetrieveParams,
   Models,
+  ServerToolsCapability,
   ThinkingCapability,
   ThinkingTypes,
 } from './resources/models';
+import {
+  CMEKContextUnavailableError,
+  CMEKKeyDisabledError,
+  CMEKKeyNetworkBlockedError,
+  CMEKKeyUnreachableError,
+  ClaudeCodeKeyCreatorNotMemberError,
+  ClaudeCodeVersionTooOldError,
+  EnforcedSpendLimitReachedError,
+  OrganizationOnHoldError,
+  OrganizationTypeNotSupportedError,
+  RampLimitExceededError,
+  RequestBodyEncodingInvalidError,
+  RequestBodyEncodingUnsupportedError,
+  RequestBodyTooLargeAfterDecodingError,
+} from './resources/shared';
 import {
   AnthropicBeta,
   Beta,
@@ -91,11 +130,18 @@ import {
   BetaInvalidRequestError,
   BetaMonetaryAmount,
   BetaNotFoundError,
+  BetaOrganizationNotEnrolledInBetaError,
+  BetaOrganizationNotEnrolledInBetaErrorDetails,
   BetaOverloadedError,
   BetaPermissionError,
   BetaRateLimitError,
+  BetaUnsupportedCharsetError,
+  BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
 import {
+  AssistantMessageParam,
+  AvailableToolsLimitExceededError,
+  AvailableToolsLimitExceededErrorDetails,
   Base64ImageSource,
   Base64PDFSource,
   BashCodeExecutionOutputBlock,
@@ -107,32 +153,92 @@ import {
   BashCodeExecutionToolResultError,
   BashCodeExecutionToolResultErrorCode,
   BashCodeExecutionToolResultErrorParam,
+  BrowserClickTarget,
   BrowserCloseTabConfig,
+  BrowserCloseTabInput,
+  BrowserCloseTabToolUseBlock,
+  BrowserCoordinateTarget,
   BrowserDoubleClickConfig,
+  BrowserDoubleClickInput,
+  BrowserDoubleClickToolUseBlock,
   BrowserFileUploadConfig,
+  BrowserFileUploadInput,
+  BrowserFileUploadToolUseBlock,
   BrowserFindConfig,
+  BrowserFindInput,
+  BrowserFindToolUseBlock,
   BrowserFormInputConfig,
+  BrowserFormInputInput,
+  BrowserFormInputToolUseBlock,
+  BrowserFormInputValue,
   BrowserGetPageTextConfig,
+  BrowserGetPageTextInput,
+  BrowserGetPageTextToolUseBlock,
   BrowserHoldKeyConfig,
+  BrowserHoldKeyInput,
+  BrowserHoldKeyToolUseBlock,
   BrowserHoverConfig,
+  BrowserHoverInput,
+  BrowserHoverToolUseBlock,
   BrowserJavascriptExecConfig,
+  BrowserJavascriptExecInput,
+  BrowserJavascriptExecToolUseBlock,
   BrowserKeyConfig,
+  BrowserKeyInput,
+  BrowserKeyToolUseBlock,
   BrowserLeftClickConfig,
   BrowserLeftClickDragConfig,
+  BrowserLeftClickDragInput,
+  BrowserLeftClickDragToolUseBlock,
+  BrowserLeftClickInput,
+  BrowserLeftClickToolUseBlock,
   BrowserLeftMouseDownConfig,
+  BrowserLeftMouseDownInput,
+  BrowserLeftMouseDownToolUseBlock,
   BrowserLeftMouseUpConfig,
+  BrowserLeftMouseUpInput,
+  BrowserLeftMouseUpToolUseBlock,
   BrowserListTabsConfig,
+  BrowserListTabsInput,
+  BrowserListTabsToolUseBlock,
+  BrowserMemberInput,
+  BrowserMemberName,
   BrowserMiddleClickConfig,
+  BrowserMiddleClickInput,
+  BrowserMiddleClickToolUseBlock,
   BrowserMouseMoveConfig,
+  BrowserMouseMoveInput,
+  BrowserMouseMoveToolUseBlock,
   BrowserNavigateConfig,
+  BrowserNavigateInput,
+  BrowserNavigateToolUseBlock,
   BrowserNewTabConfig,
+  BrowserNewTabInput,
+  BrowserNewTabToolUseBlock,
   BrowserReadConsoleConfig,
+  BrowserReadConsoleInput,
+  BrowserReadConsoleToolUseBlock,
   BrowserReadNetworkConfig,
+  BrowserReadNetworkInput,
+  BrowserReadNetworkToolUseBlock,
   BrowserReadPageConfig,
+  BrowserReadPageFilter,
+  BrowserReadPageInput,
+  BrowserReadPageToolUseBlock,
+  BrowserRefTarget,
   BrowserRightClickConfig,
+  BrowserRightClickInput,
+  BrowserRightClickToolUseBlock,
   BrowserScreenshotConfig,
+  BrowserScreenshotInput,
+  BrowserScreenshotToolUseBlock,
   BrowserScrollConfig,
+  BrowserScrollDirection,
+  BrowserScrollInput,
   BrowserScrollToConfig,
+  BrowserScrollToInput,
+  BrowserScrollToToolUseBlock,
+  BrowserScrollToolUseBlock,
   BrowserStateBlockParam,
   BrowserStateChange,
   BrowserStateChangeDownloadCompleted,
@@ -141,12 +247,23 @@ import {
   BrowserStateChangeTabOpened,
   BrowserStateTabEntry,
   BrowserSwitchTabConfig,
+  BrowserSwitchTabInput,
+  BrowserSwitchTabToolUseBlock,
+  BrowserToolUseBlock,
   BrowserToolset20260801,
   BrowserToolsetConfigs,
   BrowserTripleClickConfig,
+  BrowserTripleClickInput,
+  BrowserTripleClickToolUseBlock,
   BrowserTypeConfig,
+  BrowserTypeInput,
+  BrowserTypeToolUseBlock,
   BrowserWaitConfig,
+  BrowserWaitInput,
+  BrowserWaitToolUseBlock,
   BrowserZoomConfig,
+  BrowserZoomInput,
+  BrowserZoomToolUseBlock,
   CacheControlEphemeral,
   CacheCreation,
   CacheMissMessagesChanged,
@@ -185,25 +302,81 @@ import {
   CodeExecutionToolResultError,
   CodeExecutionToolResultErrorCode,
   CodeExecutionToolResultErrorParam,
+  CompactionBlockAmbiguousError,
+  CompactionBlockAmbiguousErrorDetails,
+  CompactionBlockMisplacedError,
+  CompactionBlockMisplacedErrorDetails,
+  CompactionContentMismatchError,
+  CompactionContentMismatchErrorDetails,
+  CompactionIncompleteTurnError,
+  CompactionIncompleteTurnErrorDetails,
+  CompactionNothingToSummarizeError,
+  CompactionNothingToSummarizeErrorDetails,
+  CompactionSignatureInvalidError,
+  CompactionSignatureInvalidErrorDetails,
+  CompactionTooManyToolReferencesError,
+  CompactionTooManyToolReferencesErrorDetails,
+  CompactionToolChangesMismatchError,
+  CompactionToolChangesMismatchErrorDetails,
+  CompactionUnavailableError,
+  CompactionUnavailableErrorDetails,
   ComputerCursorPositionConfig,
+  ComputerCursorPositionInput,
+  ComputerCursorPositionToolUseBlock,
   ComputerDoubleClickConfig,
+  ComputerDoubleClickInput,
+  ComputerDoubleClickToolUseBlock,
   ComputerHoldKeyConfig,
+  ComputerHoldKeyInput,
+  ComputerHoldKeyToolUseBlock,
   ComputerKeyConfig,
+  ComputerKeyInput,
+  ComputerKeyToolUseBlock,
   ComputerLeftClickConfig,
   ComputerLeftClickDragConfig,
+  ComputerLeftClickDragInput,
+  ComputerLeftClickDragToolUseBlock,
+  ComputerLeftClickInput,
+  ComputerLeftClickToolUseBlock,
   ComputerLeftMouseDownConfig,
+  ComputerLeftMouseDownInput,
+  ComputerLeftMouseDownToolUseBlock,
   ComputerLeftMouseUpConfig,
+  ComputerLeftMouseUpInput,
+  ComputerLeftMouseUpToolUseBlock,
+  ComputerMemberInput,
+  ComputerMemberName,
   ComputerMiddleClickConfig,
+  ComputerMiddleClickInput,
+  ComputerMiddleClickToolUseBlock,
   ComputerMouseMoveConfig,
+  ComputerMouseMoveInput,
+  ComputerMouseMoveToolUseBlock,
   ComputerRightClickConfig,
+  ComputerRightClickInput,
+  ComputerRightClickToolUseBlock,
   ComputerScreenshotConfig,
+  ComputerScreenshotInput,
+  ComputerScreenshotToolUseBlock,
   ComputerScrollConfig,
+  ComputerScrollDirection,
+  ComputerScrollInput,
+  ComputerScrollToolUseBlock,
+  ComputerToolUseBlock,
   ComputerToolset20260801,
   ComputerToolsetConfigs,
   ComputerTripleClickConfig,
+  ComputerTripleClickInput,
+  ComputerTripleClickToolUseBlock,
   ComputerTypeConfig,
+  ComputerTypeInput,
+  ComputerTypeToolUseBlock,
   ComputerWaitConfig,
+  ComputerWaitInput,
+  ComputerWaitToolUseBlock,
   ComputerZoomConfig,
+  ComputerZoomInput,
+  ComputerZoomToolUseBlock,
   Container,
   ContainerParams,
   ContainerSkill,
@@ -231,6 +404,7 @@ import {
   JSONOutputFormat,
   MemoryTool20250818,
   Message,
+  MessageContentParam,
   MessageStreamParams,
   MessageCountTokensParams,
   MessageCountTokensTool,
@@ -262,6 +436,57 @@ import {
   RedactedThinkingBlock,
   RedactedThinkingBlockParam,
   RefusalStopDetails,
+  ResponseBrowserCloseTabToolUseBlock,
+  ResponseBrowserDoubleClickToolUseBlock,
+  ResponseBrowserFileUploadToolUseBlock,
+  ResponseBrowserFindToolUseBlock,
+  ResponseBrowserFormInputToolUseBlock,
+  ResponseBrowserGetPageTextToolUseBlock,
+  ResponseBrowserHoldKeyToolUseBlock,
+  ResponseBrowserHoverToolUseBlock,
+  ResponseBrowserJavascriptExecToolUseBlock,
+  ResponseBrowserKeyToolUseBlock,
+  ResponseBrowserLeftClickDragToolUseBlock,
+  ResponseBrowserLeftClickToolUseBlock,
+  ResponseBrowserLeftMouseDownToolUseBlock,
+  ResponseBrowserLeftMouseUpToolUseBlock,
+  ResponseBrowserListTabsToolUseBlock,
+  ResponseBrowserMiddleClickToolUseBlock,
+  ResponseBrowserMouseMoveToolUseBlock,
+  ResponseBrowserNavigateToolUseBlock,
+  ResponseBrowserNewTabToolUseBlock,
+  ResponseBrowserReadConsoleToolUseBlock,
+  ResponseBrowserReadNetworkToolUseBlock,
+  ResponseBrowserReadPageToolUseBlock,
+  ResponseBrowserRightClickToolUseBlock,
+  ResponseBrowserScreenshotToolUseBlock,
+  ResponseBrowserScrollToToolUseBlock,
+  ResponseBrowserScrollToolUseBlock,
+  ResponseBrowserSwitchTabToolUseBlock,
+  ResponseBrowserToolUseBlock,
+  ResponseBrowserTripleClickToolUseBlock,
+  ResponseBrowserTypeToolUseBlock,
+  ResponseBrowserWaitToolUseBlock,
+  ResponseBrowserZoomToolUseBlock,
+  ResponseComputerCursorPositionToolUseBlock,
+  ResponseComputerDoubleClickToolUseBlock,
+  ResponseComputerHoldKeyToolUseBlock,
+  ResponseComputerKeyToolUseBlock,
+  ResponseComputerLeftClickDragToolUseBlock,
+  ResponseComputerLeftClickToolUseBlock,
+  ResponseComputerLeftMouseDownToolUseBlock,
+  ResponseComputerLeftMouseUpToolUseBlock,
+  ResponseComputerMiddleClickToolUseBlock,
+  ResponseComputerMouseMoveToolUseBlock,
+  ResponseComputerRightClickToolUseBlock,
+  ResponseComputerScreenshotToolUseBlock,
+  ResponseComputerScrollToolUseBlock,
+  ResponseComputerToolUseBlock,
+  ResponseComputerTripleClickToolUseBlock,
+  ResponseComputerTypeToolUseBlock,
+  ResponseComputerWaitToolUseBlock,
+  ResponseComputerZoomToolUseBlock,
+  ResponseToolUseBlockUnion,
   SearchResultBlockParam,
   ServerToolCaller,
   ServerToolCaller20260120,
@@ -271,6 +496,7 @@ import {
   SignatureDelta,
   SkillParams,
   StopReason,
+  SystemMessageParam,
   TextBlock,
   TextBlockParam,
   TextCitation,
@@ -295,6 +521,17 @@ import {
   ThinkingConfigEnabled,
   ThinkingConfigParam,
   ThinkingDelta,
+  ThreadAlreadyContinuedError,
+  ThreadAlreadyContinuedErrorDetails,
+  ThreadContinueInFlightError,
+  ThreadContinueInFlightErrorDetails,
+  ThreadFingerprintMismatchError,
+  ThreadFingerprintMismatchErrorDetails,
+  ThreadNotFoundError,
+  ThreadNotFoundErrorDetails,
+  ThreadUnsupportedFeatureName,
+  ThreadUnsupportedRequestError,
+  ThreadUnsupportedRequestErrorDetails,
   Tool,
   ToolBash20250124,
   ToolChoice,
@@ -302,8 +539,12 @@ import {
   ToolChoiceAuto,
   ToolChoiceNone,
   ToolChoiceTool,
+  ToolNameConflictError,
+  ToolNameConflictErrorDetails,
   ToolReferenceBlock,
   ToolReferenceBlockParam,
+  ToolReferenceUnresolvedError,
+  ToolReferenceUnresolvedErrorDetails,
   ToolResultBlockParam,
   ToolSearchToolBm25_20251119,
   ToolSearchToolRegex20251119,
@@ -320,10 +561,13 @@ import {
   ToolUnion,
   ToolUseBlock,
   ToolUseBlockParam,
+  ToolUseCaller,
+  ToolsetToolUseBlock,
   URLImageSource,
   URLPDFSource,
   Usage,
   UserLocation,
+  UserMessageParam,
   WebFetchBlock,
   WebFetchBlockParam,
   WebFetchTool20250910,
@@ -354,18 +598,61 @@ import {
   WebSearchToolResultError,
   WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
-import { Organization, OrganizationInfo, OrganizationRole } from './resources/organization/organization';
+import {
+  ConcurrentMembershipChangeError,
+  ConcurrentMembershipChangeErrorDetails,
+  OrgMemberLimitExceededError,
+  OrgMemberLimitExceededErrorDetails,
+  Organization,
+  OrganizationInfo,
+  OrganizationRole,
+} from './resources/organization/organization';
 import {
   DeletedSkill,
   Skill,
   SkillCreateParams,
   SkillDeleteParams,
   SkillListParams,
+  SkillReadBlockedUndecryptableError,
+  SkillReadBlockedUndecryptableErrorDetails,
   SkillRetrieveParams,
   SkillSource,
   Skills,
   SkillsPageCursor,
 } from './resources/skills/skills';
+import {
+  DeletedUserProfile,
+  UserProfile,
+  UserProfileAccessType,
+  UserProfileCreateParams,
+  UserProfileCyberProgram,
+  UserProfileCyberRequirements,
+  UserProfileCyberTier,
+  UserProfileDeleteParams,
+  UserProfileEfsFeature,
+  UserProfileEfsProgram,
+  UserProfileEnforcementAction,
+  UserProfileEnforcementActionBan,
+  UserProfileEnforcementActionNextStep,
+  UserProfileEnforcementActionReason,
+  UserProfileEnforcementActionRestriction,
+  UserProfileEnforcementStatus,
+  UserProfileExternalUserAccountStatus,
+  UserProfileExternalUserDetails,
+  UserProfileExternalUserDetailsParams,
+  UserProfileExternalUserEntityType,
+  UserProfileListOrder,
+  UserProfileListOrderBy,
+  UserProfileListParams,
+  UserProfileNotFoundError,
+  UserProfileNotFoundErrorDetails,
+  UserProfileProgramStatus,
+  UserProfilePrograms,
+  UserProfileRetrieveParams,
+  UserProfileUpdateParams,
+  UserProfiles,
+  UserProfilesPageCursor,
+} from './resources/user-profiles/user-profiles';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
@@ -380,9 +667,7 @@ import {
   parseLogLevel,
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
-
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
+import { checkNever, CREDENTIAL_OPTIONS, type CredentialOption } from './internal/utils/values';
 
 /**
  * Shared auth state. A `withOptions()` clone receives the parent's instance
@@ -420,12 +705,20 @@ type InternalClientOptions = ClientOptions & {
 
 export type ApiKeySetter = () => Promise<string>;
 
+let warnedOfKeyAndTokenInEnv = false;
+
+type Credential =
+  | { [Name in CredentialOption]: { type: Name; value: NonNullable<ClientOptions[Name]> } }[CredentialOption]
+  | { type: 'defaultChain' };
+
 export interface ClientOptions {
   /**
    * API key used for authentication.
    *
    * - Accepts either a static string or an async function that resolves to a string.
-   * - Defaults to process.env['ANTHROPIC_API_KEY'].
+   * - Sent as `Authorization: Bearer <key>`.
+   * - Mutually exclusive with `authToken`, `credentials`, `config`, and `profile`.
+   * - Defaults to process.env['ANTHROPIC_API_KEY'], which is not read when one of those options is passed.
    * - When a function is provided, it is invoked before each request so you can rotate
    *   or refresh credentials at runtime.
    * - The function must return a non-empty string; otherwise an AnthropicError is thrown.
@@ -436,6 +729,10 @@ export interface ClientOptions {
 
   /**
    * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
+   *
+   * The environment variable is not used when `apiKey`, `credentials`,
+   * `config`, or `profile` is passed, or when `ANTHROPIC_API_KEY` is set, which
+   * logs a warning once per process. Mutually exclusive with those options.
    */
   authToken?: string | null | undefined;
 
@@ -443,33 +740,37 @@ export interface ClientOptions {
    * An {@link AccessTokenProvider} for OAuth/workload-identity authentication.
    *
    * When set, the provider is wrapped in a {@link TokenCache} and used for
-   * Bearer token auth on every request. Takes precedence over `authToken`
-   * but not `apiKey`.
+   * Bearer token auth on every request. Mutually exclusive with `apiKey`,
+   * `authToken`, `config`, and `profile`.
    *
-   * If omitted (and no `apiKey` or `authToken` is provided), the client
-   * automatically resolves credentials from config files or environment
-   * variables on the first request.
+   * If none of these options is passed (and neither `ANTHROPIC_API_KEY` nor
+   * `ANTHROPIC_AUTH_TOKEN` is set), the client resolves credentials on the
+   * first request, from the first of these: the profile `ANTHROPIC_PROFILE`
+   * names, which is an error if it does not exist; the workload identity
+   * federation variables; the active profile on disk, which is the one the
+   * `active_config` file names, otherwise `default`.
    */
   credentials?: AccessTokenProvider | null | undefined;
 
   /**
    * An {@link AnthropicConfig} object to resolve credentials from directly,
-   * bypassing config-file and environment-variable lookup. This is the
-   * TypeScript equivalent of Go's `option.WithConfig(cfg)`.
+   * bypassing config-file and environment-variable lookup.
    *
-   * Ignored when `credentials` is set. For `oidc_federation`, the SDK
-   * performs the jwt-bearer exchange in-process; for `user_oauth`,
-   * `authentication.credentials_path` must point at the credentials file.
+   * Mutually exclusive with `apiKey`, `authToken`, `credentials`, and
+   * `profile`. For `oidc_federation`, the SDK performs the jwt-bearer exchange
+   * in-process; for `user_oauth`, `authentication.credentials_path` must point
+   * at the credentials file.
    */
   config?: AnthropicConfig | null | undefined;
 
   /**
    * Name of a profile to load from `<config_dir>/configs/<profile>.json`.
    *
-   * Equivalent to setting the `ANTHROPIC_PROFILE` environment variable, but
-   * scoped to this client instance. As an explicit constructor argument it
-   * takes precedence over `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` in the
-   * environment. Mutually exclusive with `credentials` and `config`.
+   * Selects a profile as the `ANTHROPIC_PROFILE` environment variable does, but
+   * for this client instance only. As an explicit constructor argument it takes
+   * precedence over every credential in the environment, so a profile that
+   * does not exist is an error. Mutually exclusive with `apiKey`, `authToken`,
+   * `credentials`, and `config`.
    */
   profile?: string | null | undefined;
 
@@ -551,6 +852,28 @@ export interface ClientOptions {
   dangerouslyAllowBrowser?: boolean | undefined;
 
   /**
+   * OpenTelemetry tracing of this client's API calls. Each API call emits a span when
+   * the application has registered a tracer provider with the OpenTelemetry API.
+   *
+   * `false`, short for `{ traces: false }`, disables the spans.
+   * `propagation: false` keeps the spans and sends no trace context with the requests.
+   *
+   * A client without this option reads its environment variables once, when it is constructed:
+   * `ANTHROPIC_OPEN_TELEMETRY` set to `false` disables the spans,
+   * `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION` set to `false` turns `propagation` off, and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES` give `traces.contentMode` and
+   * `traces.maxContentBytes`. A client with this option does not read them: a field that the
+   * option leaves unset has its default.
+   *
+   * A `withOptions()` copy without its own `openTelemetry` option keeps this client's settled one.
+   * A copy with its own option uses that in place of this client's whole option, so it keeps none
+   * of this client's fields. Spread {@link BaseAnthropic.openTelemetry} into the copy's option to
+   * keep them.
+   */
+  openTelemetry?: OpenTelemetryOptions | false | undefined;
+
+  /**
    * Set the log level.
    *
    * Defaults to process.env['ANTHROPIC_LOG'] or 'warn' if it isn't set.
@@ -607,7 +930,58 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected _options: ClientOptions;
+  #apiKeyFunction: ApiKeySetter | null;
+  #openTelemetry: ResolvedOpenTelemetryOptions;
+
+  /**
+   * The `openTelemetry` option as this client settled it when it was constructed: `propagation` and
+   * each field of `traces` from the option, or else its default. A client constructed without the
+   * option has what the environment variables said. One constructed with `openTelemetry: false` has
+   * `traces.enabled: false` here.
+   *
+   * The value is frozen. It is a valid `openTelemetry` option, so a copy of this client can change
+   * one setting and keep the others:
+   *
+   * ```ts
+   * const { openTelemetry } = client;
+   * client.withOptions({
+   *   openTelemetry: { ...openTelemetry, traces: { ...openTelemetry.traces, contentMode: 'content' } },
+   * });
+   * ```
+   */
+  get openTelemetry(): ResolvedOpenTelemetryOptions {
+    return this.#openTelemetry;
+  }
+
+  /**
+   * The tracer that starts the call spans of this client's API calls, or `undefined` when the
+   * client's spans are disabled.
+   * @internal
+   */
+  _tracer: Tracer | undefined;
+
+  /**
+   * The options this client was constructed with, from which `withOptions()` builds its clone.
+   * @internal
+   */
+  _options: ClientOptions;
+
+  /**
+   * The `gen_ai.provider.name` of this client's spans: the platform that serves its requests.
+   * The clients for third-party platforms override it.
+   * @internal
+   */
+  _genAIProviderName: string = 'anthropic';
+
+  /**
+   * The instrumentation scope of this client's spans: the version of the package that the client
+   * is from, and for the client of another platform the platform's name, which the scope's name
+   * ends with. The clients for other platforms override it. The constructor calls it.
+   * @internal
+   */
+  _instrumentationScope(): { version: string; platform?: string | undefined } {
+    return { version: VERSION };
+  }
 
   /**
    * API Client for interfacing with the Anthropic API.
@@ -631,20 +1005,30 @@ export class BaseAnthropic {
     webhookKey = readEnv('ANTHROPIC_WEBHOOK_SIGNING_KEY') ?? null,
     ...opts
   }: ClientOptions = {}) {
-    // An explicit `profile` is a constructor-level credential choice; when set,
-    // do not let env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN shadow it.
-    if (apiKey === undefined) {
-      apiKey = opts.profile != null ? null : readEnv('ANTHROPIC_API_KEY') ?? null;
+    const given: ClientOptions = { apiKey, authToken, ...opts };
+    const passed = CREDENTIAL_OPTIONS.filter((name) => given[name] != null);
+    if (passed.length > 1) {
+      const list = (names: readonly string[]) => names.map((name) => `\`${name}\``).join(', ');
+      throw new TypeError(`Pass at most one of ${list(CREDENTIAL_OPTIONS)}. Received ${list(passed)}.`);
     }
-    if (authToken === undefined) {
-      authToken = opts.profile != null ? null : readEnv('ANTHROPIC_AUTH_TOKEN') ?? null;
-    }
-    if (opts.profile != null && (opts.credentials != null || opts.config != null)) {
-      throw new TypeError('Pass at most one of `profile`, `credentials`, or `config`.');
-    }
+    const [passedName] = passed;
+    // A credential passed in code is the client's only one, so the environment
+    // is not read for another. `null` keeps that option's variable unread.
+    const env =
+      passedName != null ? null : (
+        {
+          apiKey: apiKey === undefined ? readEnv('ANTHROPIC_API_KEY') : undefined,
+          authToken: authToken === undefined ? readEnv('ANTHROPIC_AUTH_TOKEN') : undefined,
+        }
+      );
+    const credential: Credential =
+      passedName != null ? ({ type: passedName, value: given[passedName] } as Credential)
+      : env?.apiKey != null ? { type: 'apiKey', value: env.apiKey }
+      : env?.authToken != null ? { type: 'authToken', value: env.authToken }
+      : { type: 'defaultChain' };
     const options: ClientOptions = {
-      apiKey,
-      authToken,
+      apiKey: credential.type === 'apiKey' ? credential.value : null,
+      authToken: credential.type === 'authToken' ? credential.value : null,
       webhookKey,
       ...opts,
       baseURL: baseURL || `https://api.anthropic.com`,
@@ -672,8 +1056,18 @@ export class BaseAnthropic {
       parseLogLevel(options.logLevel, 'ClientOptions.logLevel', loggerFor(this)) ??
       parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
+    if (env?.apiKey != null && env.authToken != null && !warnedOfKeyAndTokenInEnv) {
+      warnedOfKeyAndTokenInEnv = true;
+      loggerFor(this).warn(
+        'Anthropic: ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN are both set. Using ANTHROPIC_API_KEY.',
+      );
+    }
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
+    const scope = this._instrumentationScope();
+    this.#openTelemetry = resolveOpenTelemetryOptions(options.openTelemetry);
+    options.openTelemetry = this.#openTelemetry;
+    this._tracer = guardTracing(this, () => getTracer(this.#openTelemetry, scope.version, scope.platform));
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -699,8 +1093,9 @@ export class BaseAnthropic {
     delete (options as InternalClientOptions).__baseURLIsExplicit;
     this._options = options;
 
-    this.apiKey = typeof apiKey === 'string' ? apiKey : null;
-    this.authToken = authToken;
+    this.apiKey = typeof options.apiKey === 'string' ? options.apiKey : null;
+    this.#apiKeyFunction = typeof options.apiKey === 'function' ? options.apiKey : null;
+    this.authToken = options.authToken ?? null;
     this.webhookKey = webhookKey;
 
     if (inherited) {
@@ -711,27 +1106,35 @@ export class BaseAnthropic {
     } else {
       this._authState = { provider: null, tokenCache: null, resolution: null, error: null, extraHeaders: {} };
 
-      // apiKey/authToken win over credentials/config/profile; don't build a
-      // token cache or resolve a config that the request path will then ignore.
-      if (this.apiKey == null && this.authToken == null) {
-        const credentials = options.credentials ?? null;
-        if (credentials) {
-          this._authState.provider = credentials;
-          this._authState.tokenCache = this._makeTokenCache(credentials);
-        } else if (options.config != null) {
-          const result = resolveCredentialsFromConfig(options.config, this._credentialResolverOptions());
+      switch (credential.type) {
+        case 'apiKey':
+        case 'authToken':
+          break;
+        case 'credentials':
+          this._authState.provider = credential.value;
+          this._authState.tokenCache = this._makeTokenCache(credential.value);
+          break;
+        case 'config': {
+          const result = resolveCredentialsFromConfig(credential.value, this._credentialResolverOptions());
           this._authState.provider = result.provider;
           this._authState.tokenCache = this._makeTokenCache(result.provider);
           this._authState.extraHeaders = result.extraHeaders;
           this._applyCredentialBaseURL(result.baseURL);
-        } else if (options.profile != null) {
-          this._authState.resolution = this._resolveDefaultCredentials(options.profile);
-        } else if (this._shouldResolveDefaultCredentials()) {
-          // No explicit auth provided — lazily resolve from the credential
-          // chain on first request. Errors are captured into _auth.error and
-          // surfaced on first use rather than as an unhandled rejection.
-          this._authState.resolution = this._resolveDefaultCredentials();
+          break;
         }
+        case 'profile':
+          this._authState.resolution = this._resolveDefaultCredentials(credential.value);
+          break;
+        case 'defaultChain':
+          if (this._shouldResolveDefaultCredentials()) {
+            // No explicit auth provided — lazily resolve from the credential
+            // chain on first request. Errors are captured into _auth.error and
+            // surfaced on first use rather than as an unhandled rejection.
+            this._authState.resolution = this._resolveDefaultCredentials();
+          }
+          break;
+        default:
+          checkNever(credential);
       }
     }
   }
@@ -806,14 +1209,22 @@ export class BaseAnthropic {
   /**
    * Create a new client instance re-using the same options given to the
    * current client with optional overriding.
+   *
+   * Passing `apiKey`, `authToken`, `credentials`, `config`, or `profile`
+   * replaces the current client's credential, whatever its kind. With none of
+   * them passed, the new client keeps it. Either way it keeps
+   * `defaultHeaders`, including an `X-Api-Key` or `Authorization` set there.
    */
   withOptions(options: Partial<ClientOptions>): this {
-    // Share the auth state object unless the caller passes any auth-related
-    // key. The `in` check is intentional: even `apiKey: undefined` opts the
-    // clone out of sharing (it gets its own _auth and TokenCache, though it
-    // may still wrap the parent's provider via the credentials spread below).
-    const overridesStructuredAuth = 'credentials' in options || 'config' in options || 'profile' in options;
-    const overridesAuth = 'apiKey' in options || 'authToken' in options || overridesStructuredAuth;
+    // Left in, an `undefined` would overwrite the inherited credential and
+    // send the clone back to the environment.
+    options = { ...options };
+    for (const name of CREDENTIAL_OPTIONS) {
+      if (options[name] === undefined) delete options[name];
+    }
+    // `null` counts here: it clears a credential, so the clone can't share.
+    const overridesAuth = CREDENTIAL_OPTIONS.some((name) => name in options);
+    const replacesCredential = CREDENTIAL_OPTIONS.some((name) => options[name] != null);
     const internal: InternalClientOptions = {
       ...this._options,
       // Only forward baseURL when the caller (or env) explicitly chose it.
@@ -832,20 +1243,13 @@ export class BaseAnthropic {
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
       middleware: this.middleware,
-      apiKey: this.apiKey,
+      apiKey: this.apiKey ?? this.#apiKeyFunction,
       authToken: this.authToken,
       webhookKey: this.webhookKey,
-      // credentials: this.credentials is a no-op when __auth is shared (the
-      // ctor takes the inherited path and ignores options.credentials); when
-      // overridesAuth is true via apiKey/authToken only, it lets the clone
-      // build a fresh TokenCache around the parent's provider.
-      credentials: this.credentials,
-      // When the caller passes a structured-credential override, drop inherited
-      // structured-credential options so only `...options` supplies them —
-      // otherwise an inherited `credentials`/`config`/`profile` would trip the
-      // mutual-exclusion check or precedence over the override.
-      ...(overridesStructuredAuth ? { credentials: undefined, config: undefined, profile: undefined } : {}),
+      // Left in, the inherited credential would trip the mutual-exclusion check.
+      ...(replacesCredential ? Object.fromEntries(CREDENTIAL_OPTIONS.map((name) => [name, null])) : {}),
       ...options,
+      openTelemetry: options.openTelemetry ?? this.#openTelemetry,
       // Always set __auth so any stale value from ...this._options is
       // overwritten. undefined means "build fresh auth from these options".
       __auth: overridesAuth ? undefined : this._authState,
@@ -910,10 +1314,10 @@ export class BaseAnthropic {
       return; // auth will be injected per-request via authHeaders
     }
 
-    if (this.apiKey && values.get('x-api-key')) {
+    if (this.apiKey && values.get('authorization')) {
       return;
     }
-    if (nulls.has('x-api-key')) {
+    if (nulls.has('authorization')) {
       return;
     }
 
@@ -925,7 +1329,7 @@ export class BaseAnthropic {
     }
 
     throw new Error(
-      'Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted',
+      'Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for the "Authorization" header to be explicitly omitted',
     );
   }
 
@@ -948,20 +1352,36 @@ export class BaseAnthropic {
     if (this._authState.error) {
       return undefined;
     }
+    if (this.#apiKeyFunction && this.apiKey == null) {
+      let apiKey: string;
+      try {
+        apiKey = await this.#apiKeyFunction();
+      } catch (err) {
+        throw new Errors.AnthropicError(`The \`apiKey\` function failed: ${castToError(err).message}`, {
+          cause: err,
+        });
+      }
+      if (!apiKey) {
+        throw new Errors.AnthropicError(
+          `The \`apiKey\` function must return a non-empty string. It returned ${JSON.stringify(apiKey)}.`,
+        );
+      }
+      return buildHeaders([{ Authorization: `Bearer ${apiKey}` }]);
+    }
     // If we have a token cache and no API key is set, use token auth
     if (this._authState.tokenCache && this.apiKey == null) {
       const token = await this._authState.tokenCache.getToken();
       this._authFlags(opts).usedTokenCache = true;
       return buildHeaders([{ Authorization: `Bearer ${token}` }]);
     }
-    return buildHeaders([await this.apiKeyAuth(opts), await this.bearerAuth(opts)]);
+    return buildHeaders([await this.bearerAuth(opts), await this.apiKeyAuth(opts)]);
   }
 
   protected async apiKeyAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
     if (this.apiKey == null) {
       return undefined;
     }
-    return buildHeaders([{ 'X-Api-Key': this.apiKey }]);
+    return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
   }
 
   protected async bearerAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
@@ -985,6 +1405,14 @@ export class BaseAnthropic {
     message: string | undefined,
     headers: Headers,
   ): Errors.APIError {
+    const body = (error ?? {}) as any;
+    const errorCode = body.error?.details?.error_code;
+    const errorClass =
+      typeof errorCode === 'string' ? ERROR_CODE_CLASSES.get(`${status} ${errorCode}`) : undefined;
+    if (errorClass) {
+      return new errorClass(status, error, message, headers);
+    }
+
     return Errors.APIError.generate(status, error, message, headers);
   }
 
@@ -1012,13 +1440,20 @@ export class BaseAnthropic {
     return url.toString();
   }
 
+  /**
+   * Whether this client talks to a surface that holds message threads. `client.beta.messages.thread()` throws where
+   * this is false, and `client.beta.messages.toolRunner()` sends the full history every turn.
+   * @internal
+   */
+  _supportsMessageThreads: boolean = false;
+
   _calculateNonstreamingTimeout(maxTokens: number): number {
     const defaultTimeout = 10 * 60;
     const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
     if (expectedTimeout > defaultTimeout) {
       throw new Errors.AnthropicError(
         'Streaming is required for operations that may take longer than 10 minutes. ' +
-          'See https://github.com/anthropics/anthropic-sdk-typescript#streaming-responses for more details',
+          'See https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript#streaming-responses for more details',
       );
     }
     return defaultTimeout * 1000;
@@ -1037,8 +1472,11 @@ export class BaseAnthropic {
    *
    * Runs after all middleware (including {@link backendMiddleware}),
    * immediately before each underlying fetch call, so it sees exactly what
-   * goes over the wire. Middleware may replay a request by calling `next()`
-   * more than once, so this hook can run multiple times per attempt:
+   * goes over the wire, except the trace-context headers of a traced call
+   * (`traceparent`, `tracestate`, `baggage`, and any other that the registered
+   * propagator writes): the client sets them again after this hook, so that a
+   * signature does not cover them. Middleware may replay a request by calling
+   * `next()` more than once, so this hook can run multiple times per attempt:
    * overrides must be idempotent and overwrite headers from a previous
    * invocation rather than append to them.
    */
@@ -1079,7 +1517,8 @@ export class BaseAnthropic {
    * Running inside the user's middleware means user middleware always observes
    * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
    * re-signs) on every `next()` invocation, covering whatever the middleware
-   * mutated.
+   * mutated. It does not see the trace-context headers of a traced call: see
+   * {@link prepareRequest}.
    *
    * Errors thrown here follow the middleware error policy: they propagate to
    * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
@@ -1126,13 +1565,42 @@ export class BaseAnthropic {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    if (!this._tracer) {
+      return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    }
+    return new APIPromise(this, this.makeTracedRequest(options, remainingRetries));
+  }
+
+  /**
+   * Makes the request inside the call span that the SDK method started and passed in the options
+   * (`__span`). The span ends here when the call fails, and otherwise when the application has
+   * read the response body: see `APIPromise`.
+   */
+  private async makeTracedRequest(
+    optionsInput: PromiseOrValue<FinalRequestOptions>,
+    retriesRemaining: number | null,
+  ): Promise<APIResponseProps> {
+    const options = await optionsInput;
+    const span = options.__span?.span;
+    if (!span) {
+      return this.makeRequest(options, retriesRemaining, undefined);
+    }
+    try {
+      return await context.with(trace.setSpan(context.active(), span), () =>
+        this.makeRequest(options, retriesRemaining, undefined, span),
+      );
+    } catch (error) {
+      const result: ApiCallResult = { status: 'error', options, error };
+      guardTracing(this, () => endApiCallSpan(span, result));
+      throw error;
+    }
   }
 
   private async makeRequest(
     optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
     retryOfRequestLogID: string | undefined,
+    span?: Span | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
     let maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
@@ -1155,6 +1623,9 @@ export class BaseAnthropic {
     /** Not an API request ID, just for correlating local log entries. */
     const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    if (span && this.openTelemetry.propagation) {
+      req.headers = guardTracing(this, () => injectTraceHeaders(span, req.headers)) ?? req.headers;
+    }
     const startTime = Date.now();
 
     if (options.signal?.aborted) {
@@ -1213,7 +1684,7 @@ export class BaseAnthropic {
             message: response.message,
           },
         );
-        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID, span);
       }
       loggerFor(this).info(
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
@@ -1267,6 +1738,7 @@ export class BaseAnthropic {
           options,
           retriesRemaining,
           retryOfRequestLogID ?? requestLogID,
+          span,
           response.headers,
         );
       }
@@ -1326,7 +1798,11 @@ export class BaseAnthropic {
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
     options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
-    const request = this.makeRequest(options, null, undefined);
+    if (!this._tracer) {
+      const request = this.makeRequest(options, null, undefined);
+      return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
+    }
+    const request = this.makeTracedRequest(options, null);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
   }
 
@@ -1382,10 +1858,11 @@ export class BaseAnthropic {
 
     // Prepare the request (auth signing and other `prepareRequest` hooks) as
     // the innermost step, after any middleware — including the backend
-    // middleware, so it sees exactly what goes over the wire. Runs per
-    // inner-fetch invocation, so a request middleware rewrote — or replayed
-    // via a second `next()` call — is prepared fresh each time. Preparation is
-    // outside the timeout timer, matching its pre-middleware behavior.
+    // middleware, so it sees exactly what goes over the wire, except the trace
+    // headers. Runs per inner-fetch invocation, so a request middleware rewrote
+    // — or replayed via a second `next()` call — is prepared fresh each time.
+    // Preparation is outside the timeout timer, matching its pre-middleware
+    // behavior.
     const innerFetch: Fetch =
       requestOptions === undefined ? timedFetch : (
         async (innerUrl, innerInit = {}) => {
@@ -1396,7 +1873,26 @@ export class BaseAnthropic {
           innerInit.headers =
             innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
 
+          let traceHeaders: Array<[string, string]> = [];
+          if (requestOptions.__span) {
+            innerInit.headers = new Headers(innerInit.headers);
+            traceHeaders = takeTraceHeaders(innerInit.headers);
+          }
           await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+          if (traceHeaders.length) {
+            innerInit.headers = buildHeaders([innerInit.headers, traceHeaders]).values;
+          }
+          const call = requestOptions.__span;
+          if (call) {
+            guardTracing(this, () =>
+              recordAttempt(
+                call,
+                innerInit.method ?? 'GET',
+                innerUrlStr,
+                this.openTelemetry.traces.contentMode === 'content',
+              ),
+            );
+          }
 
           if (logCtx) {
             debugLogRequestDetails(loggerFor(this), `[${logCtx.requestLogID}] sending request`, {
@@ -1413,7 +1909,8 @@ export class BaseAnthropic {
       );
 
     const requestMiddleware = requestOptions?.middleware;
-    const backendMiddleware = this.backendMiddleware();
+    const backendMiddleware =
+      requestOptions?.__span ? this.backendMiddleware().map(withoutTraceHeaders) : this.backendMiddleware();
     const allMiddleware =
       requestMiddleware?.length || backendMiddleware.length ?
         [...this.middleware, ...(requestMiddleware ?? []), ...backendMiddleware]
@@ -1465,6 +1962,7 @@ export class BaseAnthropic {
     options: FinalRequestOptions,
     retriesRemaining: number,
     requestLogID: string,
+    span: Span | undefined,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
@@ -1498,7 +1996,7 @@ export class BaseAnthropic {
     }
     await sleep(timeoutMillis, options.signal ?? undefined);
 
-    return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+    return this.makeRequest(options, retriesRemaining - 1, requestLogID, span);
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
@@ -1523,7 +2021,7 @@ export class BaseAnthropic {
     const expectedTime = (maxTime * maxTokens) / 128000;
     if (expectedTime > defaultTime || (maxNonstreamingTokens != null && maxTokens > maxNonstreamingTokens)) {
       throw new Errors.AnthropicError(
-        'Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details',
+        'Streaming is required for operations that may take longer than 10 minutes. See https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript#long-requests for more details',
       );
     }
 
@@ -1597,7 +2095,7 @@ export class BaseAnthropic {
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
         : undefined),
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2026-10-21',
       },
       await this.authHeaders(options),
       this._options.defaultHeaders,
@@ -1685,37 +2183,85 @@ export class BaseAnthropic {
   static ConflictError = Errors.ConflictError;
   static RateLimitError = Errors.RateLimitError;
   static BadRequestError = Errors.BadRequestError;
+  static OverloadedError = Errors.OverloadedError;
   static AuthenticationError = Errors.AuthenticationError;
+  static RequestTimeoutError = Errors.RequestTimeoutError;
   static InternalServerError = Errors.InternalServerError;
+  static NotImplementedError = Errors.NotImplementedError;
+  static GatewayTimeoutError = Errors.GatewayTimeoutError;
+  static ContentTooLargeError = Errors.ContentTooLargeError;
   static PermissionDeniedError = Errors.PermissionDeniedError;
+  static PreconditionFailedError = Errors.PreconditionFailedError;
+  static ServiceUnavailableError = Errors.ServiceUnavailableError;
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
+  static ClientClosedRequestError = Errors.ClientClosedRequestError;
+  static RequestHeaderFieldsTooLargeError = Errors.RequestHeaderFieldsTooLargeError;
 
   static toFile = Uploads.toFile;
-
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
 }
 
 /**
  * API Client for interfacing with the Anthropic API.
  */
 export class Anthropic extends BaseAnthropic {
-  completions: API.Completions = new API.Completions(this);
+  /** @internal */
+  override _supportsMessageThreads: boolean = true;
+
   messages: API.Messages = new API.Messages(this);
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
   skills: API.Skills = new API.Skills(this);
+  userProfiles: API.UserProfiles = new API.UserProfiles(this);
   organization: API.Organization = new API.Organization(this);
   beta: API.Beta = new API.Beta(this);
 }
 
-Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
+Anthropic.AvailableToolsLimitExceededError = AvailableToolsLimitExceededError;
+Anthropic.CompactionBlockAmbiguousError = CompactionBlockAmbiguousError;
+Anthropic.CompactionBlockMisplacedError = CompactionBlockMisplacedError;
+Anthropic.CompactionContentMismatchError = CompactionContentMismatchError;
+Anthropic.CompactionIncompleteTurnError = CompactionIncompleteTurnError;
+Anthropic.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
+Anthropic.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
+Anthropic.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
+Anthropic.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Anthropic.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
+Anthropic.ThreadContinueInFlightError = ThreadContinueInFlightError;
+Anthropic.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
+Anthropic.ThreadUnsupportedRequestError = ThreadUnsupportedRequestError;
+Anthropic.ToolNameConflictError = ToolNameConflictError;
+Anthropic.ToolReferenceUnresolvedError = ToolReferenceUnresolvedError;
+Anthropic.ThreadNotFoundError = ThreadNotFoundError;
+Anthropic.CompactionUnavailableError = CompactionUnavailableError;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
+Anthropic.FileNotDownloadableError = FileNotDownloadableError;
+Anthropic.StorageQuotaExceededError = StorageQuotaExceededError;
+Anthropic.FileExpiredError = FileExpiredError;
 Anthropic.Skills = Skills;
+Anthropic.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
+Anthropic.UserProfiles = UserProfiles;
+Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
 Anthropic.Organization = Organization;
+Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
+Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
+Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
+Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
+Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
+Anthropic.CMEKKeyDisabledError = CMEKKeyDisabledError;
+Anthropic.CMEKKeyNetworkBlockedError = CMEKKeyNetworkBlockedError;
+Anthropic.OrganizationOnHoldError = OrganizationOnHoldError;
+Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
+Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
+Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
+Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
+Anthropic.RampLimitExceededError = RampLimitExceededError;
+Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
+Anthropic.CMEKKeyUnreachableError = CMEKKeyUnreachableError;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
@@ -1744,15 +2290,32 @@ export declare namespace Anthropic {
   };
 
   export {
-    Completions as Completions,
-    type Completion as Completion,
-    type CompletionCreateParams as CompletionCreateParams,
-    type CompletionCreateParamsNonStreaming as CompletionCreateParamsNonStreaming,
-    type CompletionCreateParamsStreaming as CompletionCreateParamsStreaming,
+    type ReportPageCursor as ReportPageCursor,
+    type ReportPageCursorParams as ReportPageCursorParams,
+    type ReportPageCursorResponse as ReportPageCursorResponse,
   };
 
   export {
     Messages as Messages,
+    AvailableToolsLimitExceededError as AvailableToolsLimitExceededError,
+    CompactionBlockAmbiguousError as CompactionBlockAmbiguousError,
+    CompactionBlockMisplacedError as CompactionBlockMisplacedError,
+    CompactionContentMismatchError as CompactionContentMismatchError,
+    CompactionIncompleteTurnError as CompactionIncompleteTurnError,
+    CompactionNothingToSummarizeError as CompactionNothingToSummarizeError,
+    CompactionSignatureInvalidError as CompactionSignatureInvalidError,
+    CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
+    CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
+    ThreadContinueInFlightError as ThreadContinueInFlightError,
+    ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
+    ThreadUnsupportedRequestError as ThreadUnsupportedRequestError,
+    ToolNameConflictError as ToolNameConflictError,
+    ToolReferenceUnresolvedError as ToolReferenceUnresolvedError,
+    ThreadNotFoundError as ThreadNotFoundError,
+    CompactionUnavailableError as CompactionUnavailableError,
+    type AssistantMessageParam as AssistantMessageParam,
+    type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -1764,32 +2327,92 @@ export declare namespace Anthropic {
     type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
     type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
     type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
+    type BrowserClickTarget as BrowserClickTarget,
     type BrowserCloseTabConfig as BrowserCloseTabConfig,
+    type BrowserCloseTabInput as BrowserCloseTabInput,
+    type BrowserCloseTabToolUseBlock as BrowserCloseTabToolUseBlock,
+    type BrowserCoordinateTarget as BrowserCoordinateTarget,
     type BrowserDoubleClickConfig as BrowserDoubleClickConfig,
+    type BrowserDoubleClickInput as BrowserDoubleClickInput,
+    type BrowserDoubleClickToolUseBlock as BrowserDoubleClickToolUseBlock,
     type BrowserFileUploadConfig as BrowserFileUploadConfig,
+    type BrowserFileUploadInput as BrowserFileUploadInput,
+    type BrowserFileUploadToolUseBlock as BrowserFileUploadToolUseBlock,
     type BrowserFindConfig as BrowserFindConfig,
+    type BrowserFindInput as BrowserFindInput,
+    type BrowserFindToolUseBlock as BrowserFindToolUseBlock,
     type BrowserFormInputConfig as BrowserFormInputConfig,
+    type BrowserFormInputInput as BrowserFormInputInput,
+    type BrowserFormInputToolUseBlock as BrowserFormInputToolUseBlock,
+    type BrowserFormInputValue as BrowserFormInputValue,
     type BrowserGetPageTextConfig as BrowserGetPageTextConfig,
+    type BrowserGetPageTextInput as BrowserGetPageTextInput,
+    type BrowserGetPageTextToolUseBlock as BrowserGetPageTextToolUseBlock,
     type BrowserHoldKeyConfig as BrowserHoldKeyConfig,
+    type BrowserHoldKeyInput as BrowserHoldKeyInput,
+    type BrowserHoldKeyToolUseBlock as BrowserHoldKeyToolUseBlock,
     type BrowserHoverConfig as BrowserHoverConfig,
+    type BrowserHoverInput as BrowserHoverInput,
+    type BrowserHoverToolUseBlock as BrowserHoverToolUseBlock,
     type BrowserJavascriptExecConfig as BrowserJavascriptExecConfig,
+    type BrowserJavascriptExecInput as BrowserJavascriptExecInput,
+    type BrowserJavascriptExecToolUseBlock as BrowserJavascriptExecToolUseBlock,
     type BrowserKeyConfig as BrowserKeyConfig,
+    type BrowserKeyInput as BrowserKeyInput,
+    type BrowserKeyToolUseBlock as BrowserKeyToolUseBlock,
     type BrowserLeftClickConfig as BrowserLeftClickConfig,
     type BrowserLeftClickDragConfig as BrowserLeftClickDragConfig,
+    type BrowserLeftClickDragInput as BrowserLeftClickDragInput,
+    type BrowserLeftClickDragToolUseBlock as BrowserLeftClickDragToolUseBlock,
+    type BrowserLeftClickInput as BrowserLeftClickInput,
+    type BrowserLeftClickToolUseBlock as BrowserLeftClickToolUseBlock,
     type BrowserLeftMouseDownConfig as BrowserLeftMouseDownConfig,
+    type BrowserLeftMouseDownInput as BrowserLeftMouseDownInput,
+    type BrowserLeftMouseDownToolUseBlock as BrowserLeftMouseDownToolUseBlock,
     type BrowserLeftMouseUpConfig as BrowserLeftMouseUpConfig,
+    type BrowserLeftMouseUpInput as BrowserLeftMouseUpInput,
+    type BrowserLeftMouseUpToolUseBlock as BrowserLeftMouseUpToolUseBlock,
     type BrowserListTabsConfig as BrowserListTabsConfig,
+    type BrowserListTabsInput as BrowserListTabsInput,
+    type BrowserListTabsToolUseBlock as BrowserListTabsToolUseBlock,
+    type BrowserMemberInput as BrowserMemberInput,
+    type BrowserMemberName as BrowserMemberName,
     type BrowserMiddleClickConfig as BrowserMiddleClickConfig,
+    type BrowserMiddleClickInput as BrowserMiddleClickInput,
+    type BrowserMiddleClickToolUseBlock as BrowserMiddleClickToolUseBlock,
     type BrowserMouseMoveConfig as BrowserMouseMoveConfig,
+    type BrowserMouseMoveInput as BrowserMouseMoveInput,
+    type BrowserMouseMoveToolUseBlock as BrowserMouseMoveToolUseBlock,
     type BrowserNavigateConfig as BrowserNavigateConfig,
+    type BrowserNavigateInput as BrowserNavigateInput,
+    type BrowserNavigateToolUseBlock as BrowserNavigateToolUseBlock,
     type BrowserNewTabConfig as BrowserNewTabConfig,
+    type BrowserNewTabInput as BrowserNewTabInput,
+    type BrowserNewTabToolUseBlock as BrowserNewTabToolUseBlock,
     type BrowserReadConsoleConfig as BrowserReadConsoleConfig,
+    type BrowserReadConsoleInput as BrowserReadConsoleInput,
+    type BrowserReadConsoleToolUseBlock as BrowserReadConsoleToolUseBlock,
     type BrowserReadNetworkConfig as BrowserReadNetworkConfig,
+    type BrowserReadNetworkInput as BrowserReadNetworkInput,
+    type BrowserReadNetworkToolUseBlock as BrowserReadNetworkToolUseBlock,
     type BrowserReadPageConfig as BrowserReadPageConfig,
+    type BrowserReadPageFilter as BrowserReadPageFilter,
+    type BrowserReadPageInput as BrowserReadPageInput,
+    type BrowserReadPageToolUseBlock as BrowserReadPageToolUseBlock,
+    type BrowserRefTarget as BrowserRefTarget,
     type BrowserRightClickConfig as BrowserRightClickConfig,
+    type BrowserRightClickInput as BrowserRightClickInput,
+    type BrowserRightClickToolUseBlock as BrowserRightClickToolUseBlock,
     type BrowserScreenshotConfig as BrowserScreenshotConfig,
+    type BrowserScreenshotInput as BrowserScreenshotInput,
+    type BrowserScreenshotToolUseBlock as BrowserScreenshotToolUseBlock,
     type BrowserScrollConfig as BrowserScrollConfig,
+    type BrowserScrollDirection as BrowserScrollDirection,
+    type BrowserScrollInput as BrowserScrollInput,
     type BrowserScrollToConfig as BrowserScrollToConfig,
+    type BrowserScrollToInput as BrowserScrollToInput,
+    type BrowserScrollToToolUseBlock as BrowserScrollToToolUseBlock,
+    type BrowserScrollToolUseBlock as BrowserScrollToolUseBlock,
     type BrowserStateBlockParam as BrowserStateBlockParam,
     type BrowserStateChange as BrowserStateChange,
     type BrowserStateChangeDownloadCompleted as BrowserStateChangeDownloadCompleted,
@@ -1798,12 +2421,23 @@ export declare namespace Anthropic {
     type BrowserStateChangeTabOpened as BrowserStateChangeTabOpened,
     type BrowserStateTabEntry as BrowserStateTabEntry,
     type BrowserSwitchTabConfig as BrowserSwitchTabConfig,
+    type BrowserSwitchTabInput as BrowserSwitchTabInput,
+    type BrowserSwitchTabToolUseBlock as BrowserSwitchTabToolUseBlock,
+    type BrowserToolUseBlock as BrowserToolUseBlock,
     type BrowserToolset20260801 as BrowserToolset20260801,
     type BrowserToolsetConfigs as BrowserToolsetConfigs,
     type BrowserTripleClickConfig as BrowserTripleClickConfig,
+    type BrowserTripleClickInput as BrowserTripleClickInput,
+    type BrowserTripleClickToolUseBlock as BrowserTripleClickToolUseBlock,
     type BrowserTypeConfig as BrowserTypeConfig,
+    type BrowserTypeInput as BrowserTypeInput,
+    type BrowserTypeToolUseBlock as BrowserTypeToolUseBlock,
     type BrowserWaitConfig as BrowserWaitConfig,
+    type BrowserWaitInput as BrowserWaitInput,
+    type BrowserWaitToolUseBlock as BrowserWaitToolUseBlock,
     type BrowserZoomConfig as BrowserZoomConfig,
+    type BrowserZoomInput as BrowserZoomInput,
+    type BrowserZoomToolUseBlock as BrowserZoomToolUseBlock,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
     type CacheMissMessagesChanged as CacheMissMessagesChanged,
@@ -1842,25 +2476,72 @@ export declare namespace Anthropic {
     type CodeExecutionToolResultError as CodeExecutionToolResultError,
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type CompactionBlockAmbiguousErrorDetails as CompactionBlockAmbiguousErrorDetails,
+    type CompactionBlockMisplacedErrorDetails as CompactionBlockMisplacedErrorDetails,
+    type CompactionContentMismatchErrorDetails as CompactionContentMismatchErrorDetails,
+    type CompactionIncompleteTurnErrorDetails as CompactionIncompleteTurnErrorDetails,
+    type CompactionNothingToSummarizeErrorDetails as CompactionNothingToSummarizeErrorDetails,
+    type CompactionSignatureInvalidErrorDetails as CompactionSignatureInvalidErrorDetails,
+    type CompactionTooManyToolReferencesErrorDetails as CompactionTooManyToolReferencesErrorDetails,
+    type CompactionToolChangesMismatchErrorDetails as CompactionToolChangesMismatchErrorDetails,
+    type CompactionUnavailableErrorDetails as CompactionUnavailableErrorDetails,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
+    type ComputerCursorPositionInput as ComputerCursorPositionInput,
+    type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
     type ComputerDoubleClickConfig as ComputerDoubleClickConfig,
+    type ComputerDoubleClickInput as ComputerDoubleClickInput,
+    type ComputerDoubleClickToolUseBlock as ComputerDoubleClickToolUseBlock,
     type ComputerHoldKeyConfig as ComputerHoldKeyConfig,
+    type ComputerHoldKeyInput as ComputerHoldKeyInput,
+    type ComputerHoldKeyToolUseBlock as ComputerHoldKeyToolUseBlock,
     type ComputerKeyConfig as ComputerKeyConfig,
+    type ComputerKeyInput as ComputerKeyInput,
+    type ComputerKeyToolUseBlock as ComputerKeyToolUseBlock,
     type ComputerLeftClickConfig as ComputerLeftClickConfig,
     type ComputerLeftClickDragConfig as ComputerLeftClickDragConfig,
+    type ComputerLeftClickDragInput as ComputerLeftClickDragInput,
+    type ComputerLeftClickDragToolUseBlock as ComputerLeftClickDragToolUseBlock,
+    type ComputerLeftClickInput as ComputerLeftClickInput,
+    type ComputerLeftClickToolUseBlock as ComputerLeftClickToolUseBlock,
     type ComputerLeftMouseDownConfig as ComputerLeftMouseDownConfig,
+    type ComputerLeftMouseDownInput as ComputerLeftMouseDownInput,
+    type ComputerLeftMouseDownToolUseBlock as ComputerLeftMouseDownToolUseBlock,
     type ComputerLeftMouseUpConfig as ComputerLeftMouseUpConfig,
+    type ComputerLeftMouseUpInput as ComputerLeftMouseUpInput,
+    type ComputerLeftMouseUpToolUseBlock as ComputerLeftMouseUpToolUseBlock,
+    type ComputerMemberInput as ComputerMemberInput,
+    type ComputerMemberName as ComputerMemberName,
     type ComputerMiddleClickConfig as ComputerMiddleClickConfig,
+    type ComputerMiddleClickInput as ComputerMiddleClickInput,
+    type ComputerMiddleClickToolUseBlock as ComputerMiddleClickToolUseBlock,
     type ComputerMouseMoveConfig as ComputerMouseMoveConfig,
+    type ComputerMouseMoveInput as ComputerMouseMoveInput,
+    type ComputerMouseMoveToolUseBlock as ComputerMouseMoveToolUseBlock,
     type ComputerRightClickConfig as ComputerRightClickConfig,
+    type ComputerRightClickInput as ComputerRightClickInput,
+    type ComputerRightClickToolUseBlock as ComputerRightClickToolUseBlock,
     type ComputerScreenshotConfig as ComputerScreenshotConfig,
+    type ComputerScreenshotInput as ComputerScreenshotInput,
+    type ComputerScreenshotToolUseBlock as ComputerScreenshotToolUseBlock,
     type ComputerScrollConfig as ComputerScrollConfig,
+    type ComputerScrollDirection as ComputerScrollDirection,
+    type ComputerScrollInput as ComputerScrollInput,
+    type ComputerScrollToolUseBlock as ComputerScrollToolUseBlock,
+    type ComputerToolUseBlock as ComputerToolUseBlock,
     type ComputerToolset20260801 as ComputerToolset20260801,
     type ComputerToolsetConfigs as ComputerToolsetConfigs,
     type ComputerTripleClickConfig as ComputerTripleClickConfig,
+    type ComputerTripleClickInput as ComputerTripleClickInput,
+    type ComputerTripleClickToolUseBlock as ComputerTripleClickToolUseBlock,
     type ComputerTypeConfig as ComputerTypeConfig,
+    type ComputerTypeInput as ComputerTypeInput,
+    type ComputerTypeToolUseBlock as ComputerTypeToolUseBlock,
     type ComputerWaitConfig as ComputerWaitConfig,
+    type ComputerWaitInput as ComputerWaitInput,
+    type ComputerWaitToolUseBlock as ComputerWaitToolUseBlock,
     type ComputerZoomConfig as ComputerZoomConfig,
+    type ComputerZoomInput as ComputerZoomInput,
+    type ComputerZoomToolUseBlock as ComputerZoomToolUseBlock,
     type Container as Container,
     type ContainerParams as ContainerParams,
     type ContainerSkill as ContainerSkill,
@@ -1888,6 +2569,7 @@ export declare namespace Anthropic {
     type JSONOutputFormat as JSONOutputFormat,
     type MemoryTool20250818 as MemoryTool20250818,
     type Message as Message,
+    type MessageContentParam as MessageContentParam,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageCreateParamsContainer as MessageCreateParamsContainer,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1922,6 +2604,7 @@ export declare namespace Anthropic {
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
     type StopReason as StopReason,
+    type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
     type TextCitation as TextCitation,
@@ -1946,6 +2629,12 @@ export declare namespace Anthropic {
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
     type ThinkingDelta as ThinkingDelta,
+    type ThreadAlreadyContinuedErrorDetails as ThreadAlreadyContinuedErrorDetails,
+    type ThreadContinueInFlightErrorDetails as ThreadContinueInFlightErrorDetails,
+    type ThreadFingerprintMismatchErrorDetails as ThreadFingerprintMismatchErrorDetails,
+    type ThreadNotFoundErrorDetails as ThreadNotFoundErrorDetails,
+    type ThreadUnsupportedFeatureName as ThreadUnsupportedFeatureName,
+    type ThreadUnsupportedRequestErrorDetails as ThreadUnsupportedRequestErrorDetails,
     type Tool as Tool,
     type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
@@ -1953,8 +2642,10 @@ export declare namespace Anthropic {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolNameConflictErrorDetails as ToolNameConflictErrorDetails,
     type ToolReferenceBlock as ToolReferenceBlock,
     type ToolReferenceBlockParam as ToolReferenceBlockParam,
+    type ToolReferenceUnresolvedErrorDetails as ToolReferenceUnresolvedErrorDetails,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
     type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
@@ -1971,10 +2662,13 @@ export declare namespace Anthropic {
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type ToolUseCaller as ToolUseCaller,
+    type ToolsetToolUseBlock as ToolsetToolUseBlock,
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type UserLocation as UserLocation,
+    type UserMessageParam as UserMessageParam,
     type WebFetchBlock as WebFetchBlock,
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,
@@ -2004,6 +2698,57 @@ export declare namespace Anthropic {
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
     type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
+    type ResponseToolUseBlockUnion as ResponseToolUseBlockUnion,
+    type ResponseBrowserToolUseBlock as ResponseBrowserToolUseBlock,
+    type ResponseBrowserCloseTabToolUseBlock as ResponseBrowserCloseTabToolUseBlock,
+    type ResponseBrowserDoubleClickToolUseBlock as ResponseBrowserDoubleClickToolUseBlock,
+    type ResponseBrowserFileUploadToolUseBlock as ResponseBrowserFileUploadToolUseBlock,
+    type ResponseBrowserFindToolUseBlock as ResponseBrowserFindToolUseBlock,
+    type ResponseBrowserFormInputToolUseBlock as ResponseBrowserFormInputToolUseBlock,
+    type ResponseBrowserGetPageTextToolUseBlock as ResponseBrowserGetPageTextToolUseBlock,
+    type ResponseBrowserHoldKeyToolUseBlock as ResponseBrowserHoldKeyToolUseBlock,
+    type ResponseBrowserHoverToolUseBlock as ResponseBrowserHoverToolUseBlock,
+    type ResponseBrowserJavascriptExecToolUseBlock as ResponseBrowserJavascriptExecToolUseBlock,
+    type ResponseBrowserKeyToolUseBlock as ResponseBrowserKeyToolUseBlock,
+    type ResponseBrowserLeftClickDragToolUseBlock as ResponseBrowserLeftClickDragToolUseBlock,
+    type ResponseBrowserLeftClickToolUseBlock as ResponseBrowserLeftClickToolUseBlock,
+    type ResponseBrowserLeftMouseDownToolUseBlock as ResponseBrowserLeftMouseDownToolUseBlock,
+    type ResponseBrowserLeftMouseUpToolUseBlock as ResponseBrowserLeftMouseUpToolUseBlock,
+    type ResponseBrowserListTabsToolUseBlock as ResponseBrowserListTabsToolUseBlock,
+    type ResponseBrowserMiddleClickToolUseBlock as ResponseBrowserMiddleClickToolUseBlock,
+    type ResponseBrowserMouseMoveToolUseBlock as ResponseBrowserMouseMoveToolUseBlock,
+    type ResponseBrowserNavigateToolUseBlock as ResponseBrowserNavigateToolUseBlock,
+    type ResponseBrowserNewTabToolUseBlock as ResponseBrowserNewTabToolUseBlock,
+    type ResponseBrowserReadConsoleToolUseBlock as ResponseBrowserReadConsoleToolUseBlock,
+    type ResponseBrowserReadNetworkToolUseBlock as ResponseBrowserReadNetworkToolUseBlock,
+    type ResponseBrowserReadPageToolUseBlock as ResponseBrowserReadPageToolUseBlock,
+    type ResponseBrowserRightClickToolUseBlock as ResponseBrowserRightClickToolUseBlock,
+    type ResponseBrowserScreenshotToolUseBlock as ResponseBrowserScreenshotToolUseBlock,
+    type ResponseBrowserScrollToToolUseBlock as ResponseBrowserScrollToToolUseBlock,
+    type ResponseBrowserScrollToolUseBlock as ResponseBrowserScrollToolUseBlock,
+    type ResponseBrowserSwitchTabToolUseBlock as ResponseBrowserSwitchTabToolUseBlock,
+    type ResponseBrowserTripleClickToolUseBlock as ResponseBrowserTripleClickToolUseBlock,
+    type ResponseBrowserTypeToolUseBlock as ResponseBrowserTypeToolUseBlock,
+    type ResponseBrowserWaitToolUseBlock as ResponseBrowserWaitToolUseBlock,
+    type ResponseBrowserZoomToolUseBlock as ResponseBrowserZoomToolUseBlock,
+    type ResponseComputerToolUseBlock as ResponseComputerToolUseBlock,
+    type ResponseComputerCursorPositionToolUseBlock as ResponseComputerCursorPositionToolUseBlock,
+    type ResponseComputerDoubleClickToolUseBlock as ResponseComputerDoubleClickToolUseBlock,
+    type ResponseComputerHoldKeyToolUseBlock as ResponseComputerHoldKeyToolUseBlock,
+    type ResponseComputerKeyToolUseBlock as ResponseComputerKeyToolUseBlock,
+    type ResponseComputerLeftClickDragToolUseBlock as ResponseComputerLeftClickDragToolUseBlock,
+    type ResponseComputerLeftClickToolUseBlock as ResponseComputerLeftClickToolUseBlock,
+    type ResponseComputerLeftMouseDownToolUseBlock as ResponseComputerLeftMouseDownToolUseBlock,
+    type ResponseComputerLeftMouseUpToolUseBlock as ResponseComputerLeftMouseUpToolUseBlock,
+    type ResponseComputerMiddleClickToolUseBlock as ResponseComputerMiddleClickToolUseBlock,
+    type ResponseComputerMouseMoveToolUseBlock as ResponseComputerMouseMoveToolUseBlock,
+    type ResponseComputerRightClickToolUseBlock as ResponseComputerRightClickToolUseBlock,
+    type ResponseComputerScreenshotToolUseBlock as ResponseComputerScreenshotToolUseBlock,
+    type ResponseComputerScrollToolUseBlock as ResponseComputerScrollToolUseBlock,
+    type ResponseComputerTripleClickToolUseBlock as ResponseComputerTripleClickToolUseBlock,
+    type ResponseComputerTypeToolUseBlock as ResponseComputerTypeToolUseBlock,
+    type ResponseComputerWaitToolUseBlock as ResponseComputerWaitToolUseBlock,
+    type ResponseComputerZoomToolUseBlock as ResponseComputerZoomToolUseBlock,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
@@ -2018,6 +2763,8 @@ export declare namespace Anthropic {
     type EffortCapability as EffortCapability,
     type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
+    type ModelLine as ModelLine,
+    type ServerToolsCapability as ServerToolsCapability,
     type ThinkingCapability as ThinkingCapability,
     type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,
@@ -2027,8 +2774,14 @@ export declare namespace Anthropic {
 
   export {
     Files as Files,
+    FileNotDownloadableError as FileNotDownloadableError,
+    StorageQuotaExceededError as StorageQuotaExceededError,
+    FileExpiredError as FileExpiredError,
     type DeletedFile as DeletedFile,
+    type FileExpiredErrorDetails as FileExpiredErrorDetails,
     type FileMetadata as FileMetadata,
+    type FileNotDownloadableErrorDetails as FileNotDownloadableErrorDetails,
+    type StorageQuotaExceededErrorDetails as StorageQuotaExceededErrorDetails,
     type FileMetadataPageCursor as FileMetadataPageCursor,
     type FileListParams as FileListParams,
     type FileDeleteParams as FileDeleteParams,
@@ -2039,8 +2792,10 @@ export declare namespace Anthropic {
 
   export {
     Skills as Skills,
+    SkillReadBlockedUndecryptableError as SkillReadBlockedUndecryptableError,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,
@@ -2050,13 +2805,53 @@ export declare namespace Anthropic {
   };
 
   export {
+    UserProfiles as UserProfiles,
+    UserProfileNotFoundError as UserProfileNotFoundError,
+    type DeletedUserProfile as DeletedUserProfile,
+    type UserProfile as UserProfile,
+    type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileCyberProgram as UserProfileCyberProgram,
+    type UserProfileCyberRequirements as UserProfileCyberRequirements,
+    type UserProfileCyberTier as UserProfileCyberTier,
+    type UserProfileEfsFeature as UserProfileEfsFeature,
+    type UserProfileEfsProgram as UserProfileEfsProgram,
+    type UserProfileEnforcementAction as UserProfileEnforcementAction,
+    type UserProfileEnforcementActionBan as UserProfileEnforcementActionBan,
+    type UserProfileEnforcementActionNextStep as UserProfileEnforcementActionNextStep,
+    type UserProfileEnforcementActionReason as UserProfileEnforcementActionReason,
+    type UserProfileEnforcementActionRestriction as UserProfileEnforcementActionRestriction,
+    type UserProfileEnforcementStatus as UserProfileEnforcementStatus,
+    type UserProfileExternalUserAccountStatus as UserProfileExternalUserAccountStatus,
+    type UserProfileExternalUserDetails as UserProfileExternalUserDetails,
+    type UserProfileExternalUserDetailsParams as UserProfileExternalUserDetailsParams,
+    type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
+    type UserProfileListOrder as UserProfileListOrder,
+    type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
+    type UserProfileProgramStatus as UserProfileProgramStatus,
+    type UserProfilePrograms as UserProfilePrograms,
+    type UserProfilesPageCursor as UserProfilesPageCursor,
+    type UserProfileCreateParams as UserProfileCreateParams,
+    type UserProfileRetrieveParams as UserProfileRetrieveParams,
+    type UserProfileUpdateParams as UserProfileUpdateParams,
+    type UserProfileListParams as UserProfileListParams,
+    type UserProfileDeleteParams as UserProfileDeleteParams,
+  };
+
+  export {
     Organization as Organization,
+    OrgMemberLimitExceededError as OrgMemberLimitExceededError,
+    ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
+    type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
   };
 
   export {
     Beta as Beta,
+    BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
@@ -2068,21 +2863,53 @@ export declare namespace Anthropic {
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
+    type BetaOrganizationNotEnrolledInBetaErrorDetails as BetaOrganizationNotEnrolledInBetaErrorDetails,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
+  };
+
+  export {
+    ClaudeCodeKeyCreatorNotMemberError as ClaudeCodeKeyCreatorNotMemberError,
+    ClaudeCodeVersionTooOldError as ClaudeCodeVersionTooOldError,
+    CMEKKeyDisabledError as CMEKKeyDisabledError,
+    CMEKKeyNetworkBlockedError as CMEKKeyNetworkBlockedError,
+    OrganizationOnHoldError as OrganizationOnHoldError,
+    OrganizationTypeNotSupportedError as OrganizationTypeNotSupportedError,
+    RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
+    RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
+    EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
+    RampLimitExceededError as RampLimitExceededError,
+    CMEKContextUnavailableError as CMEKContextUnavailableError,
+    CMEKKeyUnreachableError as CMEKKeyUnreachableError,
   };
 
   export type APIErrorObject = API.APIErrorObject;
   export type AuthenticationError = API.AuthenticationError;
   export type BillingError = API.BillingError;
+  export type ClaudeCodeKeyCreatorNotMemberErrorDetails = API.ClaudeCodeKeyCreatorNotMemberErrorDetails;
+  export type ClaudeCodeVersionTooOldErrorDetails = API.ClaudeCodeVersionTooOldErrorDetails;
+  export type CMEKContextUnavailableErrorDetails = API.CMEKContextUnavailableErrorDetails;
+  export type CMEKKeyDisabledErrorDetails = API.CMEKKeyDisabledErrorDetails;
+  export type CMEKKeyNetworkBlockedErrorDetails = API.CMEKKeyNetworkBlockedErrorDetails;
+  export type CMEKKeyUnreachableErrorDetails = API.CMEKKeyUnreachableErrorDetails;
+  export type EnforcedSpendLimitReachedErrorDetails = API.EnforcedSpendLimitReachedErrorDetails;
+  export type ErrorDetails = API.ErrorDetails;
   export type ErrorObject = API.ErrorObject;
   export type ErrorResponse = API.ErrorResponse;
   export type ErrorType = API.ErrorType;
   export type GatewayTimeoutError = API.GatewayTimeoutError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type NotFoundError = API.NotFoundError;
+  export type OrganizationOnHoldErrorDetails = API.OrganizationOnHoldErrorDetails;
+  export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
   export type OverloadedError = API.OverloadedError;
   export type PermissionError = API.PermissionError;
+  export type RampLimitExceededErrorDetails = API.RampLimitExceededErrorDetails;
   export type RateLimitError = API.RateLimitError;
+  export type RequestBodyEncodingInvalidErrorDetails = API.RequestBodyEncodingInvalidErrorDetails;
+  export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;
+  export type RequestBodyTooLargeAfterDecodingErrorDetails = API.RequestBodyTooLargeAfterDecodingErrorDetails;
 }

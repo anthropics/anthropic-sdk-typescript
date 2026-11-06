@@ -2,9 +2,11 @@ import type { Anthropic } from '../../../client';
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import { APIPromise } from '../../../core/api-promise';
+import { PreconditionFailedError } from '../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 import {
   WorkPoller,
@@ -15,6 +17,18 @@ import {
   type EnvironmentWorkerOptions as RunnerEnvironmentWorkerOptions,
 } from '../../../lib/environments/worker';
 
+/**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export class BetaHeartbeatPreconditionFailedError extends PreconditionFailedError {
+  declare readonly errorCode: 'heartbeat_precondition_failed';
+  declare readonly details: BetaHeartbeatPreconditionFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaHeartbeatPreconditionFailedError';
+}
+
 export class Work extends APIResource {
   /**
    * Note: these endpoints are called automatically by the pre-built environment
@@ -23,6 +37,9 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Retrieve detailed information about a specific work item.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -38,7 +55,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+    return this._client.get(path`/v1/environments/${environment_id}/work/${workID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -47,6 +64,11 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.retrieve', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -57,6 +79,10 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Update work item metadata with merge semantics.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaInvalidMetadataError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -69,7 +95,7 @@ export class Work extends APIResource {
    */
   update(workID: string, params: WorkUpdateParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -79,6 +105,11 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.update', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -107,7 +138,7 @@ export class Work extends APIResource {
   ): PagePromise<BetaSelfHostedWorksPageCursor, BetaSelfHostedWork> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/environments/${environmentID}/work?beta=true`,
+      path`/v1/environments/${environmentID}/work`,
       PageCursor<BetaSelfHostedWork>,
       {
         query,
@@ -116,6 +147,12 @@ export class Work extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.environments.work.list', options, {
+          route: '/v1/environments/{environment_id}/work',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.environment.id': environmentID },
+        }),
       },
     );
   }
@@ -139,12 +176,17 @@ export class Work extends APIResource {
    */
   ack(workID: string, params: WorkAckParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/ack?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/ack`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.ack', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/ack',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -155,6 +197,8 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Record a heartbeat for a work item to maintain the lease.
+   *
+   * @throws {BetaHeartbeatPreconditionFailedError}
    *
    * @example
    * ```ts
@@ -170,13 +214,19 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWorkHeartbeatResponse> {
     const { environment_id, desired_ttl_seconds, expected_last_heartbeat, betas } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/heartbeat?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/heartbeat`, {
       query: { desired_ttl_seconds, expected_last_heartbeat },
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.heartbeat', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/heartbeat',
+        queryParams: ['desired_ttl_seconds', 'expected_last_heartbeat'],
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -202,7 +252,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWork | null> {
     const { betas, 'Anthropic-Worker-ID': anthropicWorkerID, ...query } = params ?? {};
-    return this._client.get(path`/v1/environments/${environmentID}/work/poll?beta=true`, {
+    return this._client.get(path`/v1/environments/${environmentID}/work/poll`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -212,11 +262,20 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.poll', options, {
+        route: '/v1/environments/{environment_id}/work/poll',
+        queryParams: ['block_ms', 'reclaim_older_than_ms'],
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
   /**
    * Get statistics about the work queue for an environment.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -232,7 +291,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWorkQueueStats> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/environments/${environmentID}/work/stats?beta=true`, {
+    return this._client.get(path`/v1/environments/${environmentID}/work/stats`, {
       ...options,
       headers: buildHeaders([
         {
@@ -241,6 +300,11 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.stats', options, {
+        route: '/v1/environments/{environment_id}/work/stats',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -252,6 +316,9 @@ export class Work extends APIResource {
    *
    * Stop a work item, initiating graceful or forced shutdown.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaSelfHostedWork =
@@ -262,7 +329,7 @@ export class Work extends APIResource {
    */
   stop(workID: string, params: WorkStopParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/stop?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/stop`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -272,6 +339,11 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.stop', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/stop',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -346,6 +418,19 @@ export interface BetaHealthCheckWorkData {
 }
 
 /**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export interface BetaHeartbeatPreconditionFailedErrorDetails {
+  /**
+   * The lease as the server holds it.
+   */
+  current_state: BetaWorkLeaseState;
+
+  error_code: 'heartbeat_precondition_failed';
+}
+
+/**
  * Work resource representing a unit of work in a self-hosted environment.
  *
  * Work items are queued when sessions are created or when long-dormant sessions
@@ -354,7 +439,7 @@ export interface BetaHealthCheckWorkData {
  */
 export interface BetaSelfHostedWork {
   /**
-   * Work identifier (e.g., 'work\_...')
+   * Work identifier (e.g., 'work_...')
    */
   id: string;
 
@@ -425,7 +510,8 @@ export interface BetaSelfHostedWork {
  */
 export interface BetaSelfHostedWorkHeartbeatResponse {
   /**
-   * RFC 3339 timestamp of the actual heartbeat from DB
+   * RFC 3339 timestamp of the most recent heartbeat recorded for this work item, or
+   * an empty string if none has been recorded
    */
   last_heartbeat: string;
 
@@ -467,12 +553,10 @@ export interface BetaSelfHostedWorkListResponse {
 
 /**
  * Statistics about the work queue for an environment.
- *
- * Uses Redis Stream consumer group metrics for O(1) queries.
  */
 export interface BetaSelfHostedWorkQueueStats {
   /**
-   * Number of work items waiting to be picked up (lag from consumer group)
+   * Number of work items waiting to be picked up
    */
   depth: number;
 
@@ -528,7 +612,7 @@ export interface BetaSelfHostedWorkUpdateRequest {
  */
 export interface BetaSessionWorkData {
   /**
-   * Session identifier (e.g., 'session\_...')
+   * Session identifier (e.g., 'session_...')
    */
   id: string;
 
@@ -536,6 +620,31 @@ export interface BetaSessionWorkData {
    * Type of work data
    */
   type: 'session';
+}
+
+/**
+ * A work item's lease as the server holds it.
+ */
+export interface BetaWorkLeaseState {
+  /**
+   * RFC 3339 timestamp of the stored heartbeat, or null if there has been none
+   */
+  last_heartbeat: string | null;
+
+  /**
+   * Always false: a refused heartbeat does not extend the lease
+   */
+  lease_extended: boolean;
+
+  /**
+   * Current state of the work item
+   */
+  state: 'queued' | 'starting' | 'active' | 'stopping' | 'stopped';
+
+  /**
+   * TTL of the lease
+   */
+  ttl_seconds: number;
 }
 
 /**
@@ -726,6 +835,7 @@ export interface WorkStopParams {
 export { WorkPoller, type WorkPollerOptions } from '../../../lib/environments/poller';
 export { EnvironmentWorker, type EnvironmentWorkerOptions } from '../../../lib/environments/worker';
 
+Work.BetaHeartbeatPreconditionFailedError = BetaHeartbeatPreconditionFailedError;
 Work.WorkPoller = WorkPoller;
 Work.EnvironmentWorker = EnvironmentWorker;
 
@@ -733,7 +843,9 @@ export declare namespace Work {
   export { WorkPoller, EnvironmentWorker };
 
   export {
+    BetaHeartbeatPreconditionFailedError as BetaHeartbeatPreconditionFailedError,
     type BetaHealthCheckWorkData as BetaHealthCheckWorkData,
+    type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,
     type BetaSelfHostedWorkHeartbeatResponse as BetaSelfHostedWorkHeartbeatResponse,
     type BetaSelfHostedWorkListResponse as BetaSelfHostedWorkListResponse,
@@ -741,6 +853,7 @@ export declare namespace Work {
     type BetaSelfHostedWorkStopRequest as BetaSelfHostedWorkStopRequest,
     type BetaSelfHostedWorkUpdateRequest as BetaSelfHostedWorkUpdateRequest,
     type BetaSessionWorkData as BetaSessionWorkData,
+    type BetaWorkLeaseState as BetaWorkLeaseState,
     type BetaWorkSecret as BetaWorkSecret,
     type BetaSelfHostedWorksPageCursor as BetaSelfHostedWorksPageCursor,
     type WorkRetrieveParams as WorkRetrieveParams,

@@ -5,6 +5,7 @@ import { APIPromise } from '../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
 import { AnthropicError } from '../../error';
 import { path } from '../../internal/utils/path';
@@ -20,6 +21,11 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {EnforcedSpendLimitReachedError}
+   *
    * @example
    * ```ts
    * const messageBatch = await client.messages.batches.create({
@@ -31,7 +37,7 @@ export class Batches extends APIResource {
    *         messages: [
    *           { content: 'Hello, world', role: 'user' },
    *         ],
-   *         model: 'claude-opus-5',
+   *         model: 'claude-opus-5-5',
    *       },
    *     },
    *   ],
@@ -50,6 +56,12 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
+        route: '/v1/messages/batches',
+        // A request without `requests` is for the API to refuse, not for this line to throw on.
+        attributes: { 'anthropic.message.batch.request_count': body.requests?.length },
+        createdIDAttribute: 'anthropic.message.batch.id',
+      }),
     });
   }
 
@@ -60,6 +72,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -80,6 +95,10 @@ export class Batches extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.retrieve', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -89,6 +108,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -110,6 +132,10 @@ export class Batches extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.list', options, {
+        route: '/v1/messages/batches',
+        queryParams: ['after_id', 'before_id', 'limit'],
+      }),
     });
   }
 
@@ -121,6 +147,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -140,6 +169,10 @@ export class Batches extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.delete', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -156,6 +189,9 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -176,6 +212,10 @@ export class Batches extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.cancel', options, {
+        route: '/v1/messages/batches/{message_batch_id}/cancel',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -189,10 +229,18 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
-   * const messageBatchIndividualResponse =
-   *   await client.messages.batches.results('message_batch_id');
+   * const stream = await client.messages.batches.results(
+   *   'message_batch_id',
+   * );
+   * for await (const messageBatchIndividualResponse of stream) {
+   *   // ...
+   * }
    * ```
    */
   async results(
@@ -220,6 +268,10 @@ export class Batches extends APIResource {
         ]),
         stream: true,
         __binaryResponse: true,
+        __span: startApiCallSpan(this._client, 'anthropic.messages.batches.results', options, {
+          route: '/v1/messages/batches/{message_batch_id}/results',
+          attributes: { 'anthropic.message.batch.id': messageBatchID },
+        }),
       })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
       JSONLDecoder<MessageBatchIndividualResponse>
@@ -415,10 +467,9 @@ export interface BatchCreateParams {
 
   /**
    * Header param: The user profile ID to attribute the requests in this batch to.
-   * Use when acting on behalf of a party other than your organization. Requires the
-   * `user-profiles` beta header. Applies to every request in the batch; an
-   * individual request whose `user_profile_id` body field conflicts with this header
-   * is errored.
+   * Use when acting on behalf of a party other than your organization. Applies to
+   * every request in the batch; an individual request whose `user_profile_id` body
+   * field conflicts with this header is errored.
    */
   user_profile_id?: string;
 

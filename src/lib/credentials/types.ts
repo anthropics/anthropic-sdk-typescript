@@ -50,8 +50,7 @@ export const OAUTH_API_BETA_HEADER = 'oauth-2025-04-20';
 
 /**
  * `anthropic-beta` value required on jwt-bearer exchanges against the token
- * endpoint. It routes the request to the federation service; it must NOT be
- * sent on `refresh_token` grants, which are handled by a different backend.
+ * endpoint. It must NOT be sent on `refresh_token` grants.
  */
 export const FEDERATION_BETA_HEADER = 'oidc-federation-2026-04-01';
 
@@ -287,6 +286,7 @@ export class WorkloadIdentityError extends AnthropicError {
     requestId: string | null = null,
   ) {
     super(message);
+    this.name = 'WorkloadIdentityError';
     this.statusCode = statusCode;
     this.body = body;
     this.requestId = requestId;

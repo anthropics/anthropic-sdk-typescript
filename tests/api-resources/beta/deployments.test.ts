@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource deployments', () => {
@@ -56,8 +57,7 @@ describe('resource deployments', () => {
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('retrieve', async () => {
+  test('retrieve', async () => {
     const responsePromise = client.beta.deployments.retrieve('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -68,8 +68,7 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('retrieve: request options and params are passed correctly', async () => {
+  test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.retrieve(
@@ -91,8 +90,7 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.deployments.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -103,8 +101,7 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.list(

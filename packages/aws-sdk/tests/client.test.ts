@@ -1,5 +1,6 @@
 import type { MockedFunction } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { copyClientForHelper } from '@anthropic-ai/sdk/lib/helper-client';
 import { AnthropicAws } from '../src';
 import { getAuthHeaders } from '../src/core/auth';
 
@@ -306,66 +307,31 @@ describe('AnthropicAws', () => {
     });
   });
 
-  describe('structured-credential options are ignored with a warning', () => {
-    // These base-client options are never valid auth for the AWS gateway; a
-    // config-supplied base_url must not be able to redirect signed traffic.
-    const makeLogger = () => ({
-      error: vi.fn(),
-      warn: vi.fn(),
-      info: vi.fn(),
-      debug: vi.fn(),
-    });
-
-    test.each([
-      ['credentials', { credentials: { getAccessToken: async () => ({ token: 'x' }) } }],
+  describe.each<[string, (extra: object) => AnthropicAws]>([
+    [
+      'the constructor',
+      (extra) =>
+        new AnthropicAws({ apiKey: 'my-api-key', awsRegion: 'us-east-1', workspaceId: 'ws-test', ...extra }),
+    ],
+    [
+      'withOptions',
+      (extra) =>
+        new AnthropicAws({
+          apiKey: 'my-api-key',
+          awsRegion: 'us-east-1',
+          workspaceId: 'ws-test',
+        }).withOptions(extra),
+    ],
+  ])('%s', (_where, build) => {
+    test.each<[string, object]>([
+      ['credentials', { credentials: async () => ({ token: 'first-party-token', expiresAt: null }) }],
       ['config', { config: { authentication: { type: 'user_oauth' } } }],
       ['profile', { profile: 'my-profile' }],
-    ] as const)('warns when `%s` is provided', (_name, extra) => {
-      const logger = makeLogger();
-      new AnthropicAws({
-        awsAccessKey: 'my-access-key',
-        awsSecretAccessKey: 'my-secret-key',
-        awsRegion: 'us-east-1',
-        workspaceId: 'ws-test',
-        logger,
-        ...(extra as object),
-      });
-      expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn.mock.calls[0]![0]).toContain('not supported by the AWS client');
-    });
-
-    test('a config-supplied base_url does not redirect requests', async () => {
-      const logger = makeLogger();
-      const client = new AnthropicAws({
-        config: { authentication: { type: 'user_oauth' }, base_url: 'https://config-host.example.com' },
-        awsAccessKey: 'my-access-key',
-        awsSecretAccessKey: 'my-secret-key',
-        awsRegion: 'us-west-2',
-        workspaceId: 'ws-test',
-        logger,
-        maxRetries: 0,
-      });
-
-      await makeRequest(client);
-
-      const [url] = mockFetch.mock.calls[0]!;
-      expect(url).toBe('https://aws-external-anthropic.us-west-2.api.aws/v1/messages');
-      const headers = getRequestHeaders();
-      // the ignored config must not leak OAuth artifacts onto signed requests
-      expect(headers.get('anthropic-beta')).toBeNull();
-    });
-
-    test('clones do not warn (base withOptions forwards credentials: null)', () => {
-      const logger = makeLogger();
-      const client = new AnthropicAws({
-        awsAccessKey: 'my-access-key',
-        awsSecretAccessKey: 'my-secret-key',
-        awsRegion: 'us-east-1',
-        workspaceId: 'ws-test',
-        logger,
-      });
-      client.withOptions({ maxRetries: 3 });
-      expect(logger.warn).not.toHaveBeenCalled();
+    ])('rejects `%s`', (name, extra) => {
+      expect(() => build(extra)).toThrow(
+        `The \`${name}\` option is not supported by AnthropicAws; ` +
+          'authentication uses an API key (`apiKey`) or AWS credentials (SigV4).',
+      );
     });
   });
 
@@ -481,7 +447,7 @@ describe('AnthropicAws', () => {
   });
 
   describe('auth precedence', () => {
-    test('apiKey arg sends x-api-key header, not SigV4', async () => {
+    test('apiKey arg sends a bearer header, not SigV4', async () => {
       const client = new AnthropicAws({
         apiKey: 'my-api-key',
         awsAccessKey: 'my-access-key',
@@ -494,8 +460,21 @@ describe('AnthropicAws', () => {
       await makeRequest(client);
 
       const headers = getRequestHeaders();
-      expect(headers.get('x-api-key')).toBe('my-api-key');
+      expect(headers.get('authorization')).toBe('Bearer my-api-key');
+      expect(headers.get('x-api-key')).toBeNull();
       expect(mockGetAuthHeaders).not.toHaveBeenCalled();
+    });
+
+    test('apiKey together with authToken is rejected', () => {
+      expect(
+        () =>
+          new AnthropicAws({
+            apiKey: 'my-api-key',
+            authToken: 'my-auth-token',
+            awsRegion: 'us-east-1',
+            workspaceId: 'ws-test',
+          }),
+      ).toThrow(/Pass at most one of .* Received `apiKey`, `authToken`\./);
     });
 
     test('explicit AWS creds use SigV4, not API key', async () => {
@@ -516,6 +495,7 @@ describe('AnthropicAws', () => {
 
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
     test('explicit AWS creds take precedence over env ANTHROPIC_AWS_API_KEY', async () => {
@@ -534,6 +514,7 @@ describe('AnthropicAws', () => {
       expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
     test('awsProfile uses SigV4 and passes profile to auth', async () => {
@@ -552,6 +533,7 @@ describe('AnthropicAws', () => {
 
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
     test('awsProfile takes precedence over env ANTHROPIC_AWS_API_KEY', async () => {
@@ -569,9 +551,10 @@ describe('AnthropicAws', () => {
       expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
-    test('env ANTHROPIC_AWS_API_KEY sends x-api-key header when no constructor auth', async () => {
+    test('env ANTHROPIC_AWS_API_KEY sends a bearer header when no constructor auth', async () => {
       process.env['ANTHROPIC_AWS_API_KEY'] = 'env-api-key';
 
       const client = new AnthropicAws({ awsRegion: 'us-east-1', workspaceId: 'ws-test', maxRetries: 0 });
@@ -579,7 +562,7 @@ describe('AnthropicAws', () => {
       await makeRequest(client);
 
       const headers = getRequestHeaders();
-      expect(headers.get('x-api-key')).toBe('env-api-key');
+      expect(headers.get('authorization')).toBe('Bearer env-api-key');
       expect(mockGetAuthHeaders).not.toHaveBeenCalled();
     });
 
@@ -600,6 +583,7 @@ describe('AnthropicAws', () => {
 
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
   });
 
@@ -669,7 +653,7 @@ describe('AnthropicAws', () => {
   });
 
   describe('API key auth headers', () => {
-    test('sends x-api-key header', async () => {
+    test('sends a bearer header', async () => {
       const client = new AnthropicAws({
         apiKey: 'test-api-key',
         awsRegion: 'us-east-1',
@@ -684,12 +668,12 @@ describe('AnthropicAws', () => {
       expect(url).toBe('https://aws-external-anthropic.us-east-1.api.aws/v1/messages');
 
       const headers = getRequestHeaders();
-      expect(headers.get('x-api-key')).toBe('test-api-key');
+      expect(headers.get('authorization')).toBe('Bearer test-api-key');
       expect(headers.get('anthropic-version')).toBeTruthy();
       expect(headers.get('content-type')).toBe('application/json');
     });
 
-    test('the x-api-key logical credential is visible to user middleware', async () => {
+    test('the API key logical credential is visible to user middleware', async () => {
       let middlewareSawApiKey: string | null = null;
       const client = new AnthropicAws({
         apiKey: 'test-api-key',
@@ -698,7 +682,7 @@ describe('AnthropicAws', () => {
         maxRetries: 0,
         middleware: [
           async (request, next) => {
-            middlewareSawApiKey = request.headers.get('x-api-key');
+            middlewareSawApiKey = request.headers.get('authorization');
             return next(request);
           },
         ],
@@ -706,7 +690,7 @@ describe('AnthropicAws', () => {
 
       await makeRequest(client);
 
-      expect(middlewareSawApiKey).toBe('test-api-key');
+      expect(middlewareSawApiKey).toBe('Bearer test-api-key');
     });
   });
 
@@ -822,7 +806,7 @@ describe('AnthropicAws', () => {
       expect(headers.get('anthropic-workspace-id')).toBe('ws-test');
     });
 
-    test('does not send x-api-key header when skipAuth is true', async () => {
+    test('does not send an auth header when skipAuth is true', async () => {
       const client = new AnthropicAws({
         baseURL: 'https://my-gateway.example.com',
         skipAuth: true,
@@ -834,6 +818,7 @@ describe('AnthropicAws', () => {
 
       const headers = getRequestHeaders();
       expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBeNull();
       expect(mockGetAuthHeaders).not.toHaveBeenCalled();
     });
 
@@ -894,6 +879,127 @@ describe('AnthropicAws', () => {
     });
   });
 
+  describe('user profiles', () => {
+    const profileURL = 'https://aws-external-anthropic.us-west-2.api.aws/v1/user_profiles';
+
+    const requestCases: Array<[string, (client: AnthropicAws) => PromiseLike<unknown>, string, string]> = [
+      ['create', (client) => client.userProfiles.create({}), 'POST', profileURL],
+      ['retrieve', (client) => client.userProfiles.retrieve('uprof_fake'), 'GET', `${profileURL}/uprof_fake`],
+      [
+        'update',
+        (client) => client.userProfiles.update('uprof_fake', { metadata: { key: 'value' } }),
+        'POST',
+        `${profileURL}/uprof_fake`,
+      ],
+      ['list', (client) => client.userProfiles.list(), 'GET', profileURL],
+      ['delete', (client) => client.userProfiles.delete('uprof_fake'), 'DELETE', `${profileURL}/uprof_fake`],
+    ];
+
+    test.each(requestCases)('%s is signed with SigV4', async (_name, send, method, url) => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect(mockGetAuthHeaders.mock.calls[0]![1].url).toBe(url);
+
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-test');
+    });
+
+    test.each(requestCases)('%s sends the API key', async (_name, send, method, url) => {
+      const client = new AnthropicAws({
+        apiKey: 'test-api-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect(mockGetAuthHeaders).not.toHaveBeenCalled();
+
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBe('Bearer test-api-key');
+      expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-test');
+    });
+
+    const newClient = () =>
+      new AnthropicAws({
+        apiKey: 'test-api-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+    test('beta.userProfiles.list goes to the same path', async () => {
+      await newClient().beta.userProfiles.list();
+
+      expect(mockFetch.mock.calls[0]![0]).toBe(profileURL);
+    });
+
+    const params = {
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,
+      messages: [{ content: 'Test message', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+
+    test.each<[string, (client: AnthropicAws) => Promise<unknown>]>([
+      ['messages.create', (client) => client.messages.create({ ...params, user_profile_id: 'uprof_fake' })],
+      [
+        'beta.messages.create',
+        (client) => client.beta.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'messages.countTokens',
+        (client) => client.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'beta.messages.countTokens',
+        (client) => client.beta.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+    ])('%s sends the ID as a header', async (_name, send) => {
+      await send(newClient());
+
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBe('uprof_fake');
+      const [, requestInit] = mockFetch.mock.calls[0]!;
+      expect(JSON.parse(requestInit.body).user_profile_id).toBeUndefined();
+    });
+
+    const unavailable = 'User profile action URLs are not available on `AnthropicAws`';
+
+    test('userProfiles.actionURLs throws an explanatory error', () => {
+      expect(() => newClient().userProfiles.actionURLs).toThrow(unavailable);
+    });
+
+    test('beta.userProfiles.actionURLs throws an explanatory error', () => {
+      expect(() => newClient().beta.userProfiles.actionURLs).toThrow(unavailable);
+    });
+
+    test('a clone from withOptions has no action URLs either', () => {
+      const clone = newClient().withOptions({ maxRetries: 1 });
+
+      expect(() => clone.userProfiles.actionURLs).toThrow(unavailable);
+      expect(() => clone.beta.userProfiles.actionURLs).toThrow(unavailable);
+    });
+  });
+
   describe('withOptions', () => {
     test('clone preserves AWS SigV4 configuration', () => {
       const providerChainResolver = async () => {
@@ -935,9 +1041,9 @@ describe('AnthropicAws', () => {
     });
 
     test('auth-override clone (as used by the environment work helpers) preserves workspace + region', () => {
-      // Mirrors copyClientForHelper's withOptions({ apiKey: null, authToken,
-      // credentials: undefined, ... }): the sub-client must keep the workspace
-      // id + region so the environment helpers can authenticate via SigV4.
+      // Mirrors copyClientForHelper's withOptions({ authToken, ... }): the
+      // sub-client must keep the workspace id + region so the environment
+      // helpers can authenticate via SigV4.
       const client = new AnthropicAws({
         awsAccessKey: 'my-access-key',
         awsSecretAccessKey: 'my-secret-key',
@@ -946,15 +1052,61 @@ describe('AnthropicAws', () => {
       });
 
       const scoped = client.withOptions({
-        apiKey: null,
         authToken: 'unused-under-sigv4',
-        credentials: undefined,
         baseURL: client.baseURL,
       });
 
       expect(scoped).toBeInstanceOf(AnthropicAws);
       expect(scoped.workspaceId).toBe('ws-test');
       expect(scoped.awsRegion).toBe('us-west-2');
+    });
+
+    test('auth-override clone does not pick the key back up from env ANTHROPIC_AWS_API_KEY', async () => {
+      process.env['ANTHROPIC_AWS_API_KEY'] = 'env-api-key';
+
+      const client = new AnthropicAws({ awsRegion: 'us-east-1', workspaceId: 'ws-test', maxRetries: 0 });
+      expect(client.apiKey).toBe('env-api-key');
+
+      const scoped = client.withOptions({
+        authToken: 'env-scoped-bearer',
+        baseURL: client.baseURL,
+      });
+      expect(scoped.apiKey).toBeNull();
+
+      await makeRequest(scoped);
+
+      expect(getRequestHeaders().get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+    });
+
+    test('a helper sub-client of an API-key client signs with AWS credentials, not the API key', async () => {
+      const client = new AnthropicAws({
+        apiKey: 'my-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await makeRequest(
+        copyClientForHelper(client, { authToken: 'environment-key', helper: 'environments-work-poller' }),
+      );
+
+      expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
+      expect(getRequestHeaders().get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+      expect(getRequestHeaders().get('x-api-key')).toBeNull();
+    });
+
+    test('a copy that clears the apiKey signs instead of reading ANTHROPIC_AWS_API_KEY', async () => {
+      process.env['ANTHROPIC_AWS_API_KEY'] = 'env-aws-api-key';
+      const client = new AnthropicAws({
+        apiKey: 'my-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client.withOptions({ apiKey: null }));
+
+      expect(getRequestHeaders().get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
     test('SigV4 clone is not flipped to API-key mode by env ANTHROPIC_API_KEY', async () => {
@@ -982,7 +1134,7 @@ describe('AnthropicAws', () => {
       expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
     });
 
-    test('env ANTHROPIC_AUTH_TOKEN is not sent as a bearer header in API-key mode', async () => {
+    test('env ANTHROPIC_AUTH_TOKEN is not sent in API-key mode', async () => {
       process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-oauth-token';
 
       const client = new AnthropicAws({
@@ -999,8 +1151,7 @@ describe('AnthropicAws', () => {
       await makeRequest(clone);
 
       const headers = getRequestHeaders();
-      expect(headers.get('x-api-key')).toBe('my-api-key');
-      expect(headers.get('authorization')).toBeNull();
+      expect(headers.get('authorization')).toBe('Bearer my-api-key');
     });
 
     test('clone re-derives the endpoint when awsRegion is overridden', () => {

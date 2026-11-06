@@ -1,17 +1,18 @@
 import { APIResource } from '../../../../core/resource';
 import * as MembersAPI from './members';
 import {
+  BetaDeletedRBACGroupMember,
   BetaRBACGroupMember,
   BetaRBACGroupMembersPageCursor,
   MemberAddParams,
   MemberListParams,
   MemberRemoveParams,
-  MemberRemoveResponse,
   Members,
 } from './members';
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class RBACGroups extends APIResource {
@@ -32,7 +33,15 @@ export class RBACGroups extends APIResource {
    * ```
    */
   create(body: RBACGroupCreateParams, options?: RequestOptions): APIPromise<BetaRBACGroup> {
-    return this._client.post('/v1/organizations/rbac_groups?beta=true', { body, ...options });
+    return this._client.post('/v1/organizations/rbac_groups', {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.create', options, {
+        route: '/v1/organizations/rbac_groups',
+        createdIDAttribute: 'anthropic.organization.rbac_group.id',
+      }),
+    });
   }
 
   /**
@@ -49,7 +58,14 @@ export class RBACGroups extends APIResource {
    * ```
    */
   retrieve(rbacGroupID: string, options?: RequestOptions): APIPromise<BetaRBACGroup> {
-    return this._client.get(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.retrieve', options, {
+        route: '/v1/organizations/rbac_groups/{rbac_group_id}',
+        attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
+      }),
+    });
   }
 
   /**
@@ -64,6 +80,7 @@ export class RBACGroups extends APIResource {
    * const betaRBACGroup =
    *   await client.beta.organization.rbacGroups.update(
    *     'rbac_group_id',
+   *     {},
    *   );
    * ```
    */
@@ -72,9 +89,14 @@ export class RBACGroups extends APIResource {
     body: RBACGroupUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaRBACGroup> {
-    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.update', options, {
+        route: '/v1/organizations/rbac_groups/{rbac_group_id}',
+        attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
+      }),
     });
   }
 
@@ -95,9 +117,14 @@ export class RBACGroups extends APIResource {
     query: RBACGroupListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaRBACGroupsPageCursor, BetaRBACGroup> {
-    return this._client.getAPIList('/v1/organizations/rbac_groups?beta=true', PageCursor<BetaRBACGroup>, {
+    return this._client.getAPIList('/v1/organizations/rbac_groups', PageCursor<BetaRBACGroup>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.list', options, {
+        route: '/v1/organizations/rbac_groups',
+        queryParams: ['limit', 'page'],
+      }),
     });
   }
 
@@ -108,20 +135,44 @@ export class RBACGroups extends APIResource {
    *
    * The RBAC Groups API is available to Claude Enterprise organizations only.
    *
+   * @throws {RBACGroupGrantsOwnerAccessError}
+   * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   *
    * @example
    * ```ts
-   * const rbacGroup =
+   * const betaDeletedRBACGroup =
    *   await client.beta.organization.rbacGroups.delete(
    *     'rbac_group_id',
    *   );
    * ```
    */
-  delete(rbacGroupID: string, options?: RequestOptions): APIPromise<RBACGroupDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, options);
+  delete(rbacGroupID: string, options?: RequestOptions): APIPromise<BetaDeletedRBACGroup> {
+    return this._client.delete(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.delete', options, {
+        route: '/v1/organizations/rbac_groups/{rbac_group_id}',
+        attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
+      }),
+    });
   }
 }
 
 export type BetaRBACGroupsPageCursor = PageCursor<BetaRBACGroup>;
+
+export interface BetaDeletedRBACGroup {
+  /**
+   * ID of the RBAC Group.
+   */
+  id: string;
+
+  /**
+   * Deleted object type.
+   *
+   * For RBAC Groups, this is always `"rbac_group_deleted"`.
+   */
+  type: 'rbac_group_deleted';
+}
 
 export interface BetaRBACGroup {
   /**
@@ -166,20 +217,6 @@ export interface BetaRBACGroup {
   updated_at: string;
 }
 
-export interface RBACGroupDeleteResponse {
-  /**
-   * ID of the RBAC Group.
-   */
-  id: string;
-
-  /**
-   * Deleted object type.
-   *
-   * For RBAC Groups, this is always `"rbac_group_deleted"`.
-   */
-  type: 'rbac_group_deleted';
-}
-
 export interface RBACGroupCreateParams {
   /**
    * Name of the RBAC Group. Not uniqueness-enforced.
@@ -200,8 +237,8 @@ RBACGroups.Members = Members;
 
 export declare namespace RBACGroups {
   export {
+    type BetaDeletedRBACGroup as BetaDeletedRBACGroup,
     type BetaRBACGroup as BetaRBACGroup,
-    type RBACGroupDeleteResponse as RBACGroupDeleteResponse,
     type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,
@@ -210,8 +247,8 @@ export declare namespace RBACGroups {
 
   export {
     Members as Members,
+    type BetaDeletedRBACGroupMember as BetaDeletedRBACGroupMember,
     type BetaRBACGroupMember as BetaRBACGroupMember,
-    type MemberRemoveResponse as MemberRemoveResponse,
     type BetaRBACGroupMembersPageCursor as BetaRBACGroupMembersPageCursor,
     type MemberListParams as MemberListParams,
     type MemberAddParams as MemberAddParams,

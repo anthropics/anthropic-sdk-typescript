@@ -4,6 +4,17 @@ import * as ArtifactsAPI from './artifacts';
 import { ArtifactListParams, Artifacts } from './artifacts';
 import * as ConnectorsAPI from './connectors';
 import { ConnectorListParams, Connectors } from './connectors';
+import * as CostAPI from './cost';
+import {
+  BetaAnalyticsCostGroup,
+  BetaAnalyticsCostGroupBy,
+  BetaAnalyticsCostItem,
+  BetaAnalyticsCostItemsReportPageCursor,
+  BetaAnalyticsCostMetrics,
+  BetaAnalyticsCostOrderBy,
+  Cost,
+  CostListParams,
+} from './cost';
 import * as CostReportAPI from './cost-report';
 import { CostReport, CostReportListParams } from './cost-report';
 import * as PluginsAPI from './plugins';
@@ -12,6 +23,17 @@ import * as SkillsAPI from './skills';
 import { SkillListParams, Skills } from './skills';
 import * as SummariesAPI from './summaries';
 import { Summaries, SummaryListParams } from './summaries';
+import * as UsageAPI from './usage';
+import {
+  BetaAnalyticsUsageGroup,
+  BetaAnalyticsUsageGroupBy,
+  BetaAnalyticsUsageItem,
+  BetaAnalyticsUsageItemsReportPageCursor,
+  BetaAnalyticsUsageMetrics,
+  BetaAnalyticsUsageOrderBy,
+  Usage,
+  UsageListParams,
+} from './usage';
 import * as UsageReportAPI from './usage-report';
 import { UsageReport, UsageReportListParams } from './usage-report';
 import * as UserCostReportAPI from './user-cost-report';
@@ -22,7 +44,7 @@ import * as UsersAPI from './users';
 import { UserListParams, Users } from './users';
 import * as AppsAPI from './apps/apps';
 import { Apps } from './apps/apps';
-import { PageCursor } from '../../../../core/pagination';
+import { PageCursor, ReportPageCursor } from '../../../../core/pagination';
 
 export class Analytics extends APIResource {
   summaries: SummariesAPI.Summaries = new SummariesAPI.Summaries(this._client);
@@ -32,6 +54,8 @@ export class Analytics extends APIResource {
   plugins: PluginsAPI.Plugins = new PluginsAPI.Plugins(this._client);
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
   artifacts: ArtifactsAPI.Artifacts = new ArtifactsAPI.Artifacts(this._client);
+  usage: UsageAPI.Usage = new UsageAPI.Usage(this._client);
+  cost: CostAPI.Cost = new CostAPI.Cost(this._client);
   usageReport: UsageReportAPI.UsageReport = new UsageReportAPI.UsageReport(this._client);
   userUsageReport: UserUsageReportAPI.UserUsageReport = new UserUsageReportAPI.UserUsageReport(this._client);
   costReport: CostReportAPI.CostReport = new CostReportAPI.CostReport(this._client);
@@ -53,13 +77,35 @@ export type BetaAnalyticsSkillActivitiesPageCursor = PageCursor<BetaAnalyticsSki
 
 export type BetaAnalyticsArtifactActivitiesPageCursor = PageCursor<BetaAnalyticsArtifactActivity>;
 
-export type BetaAnalyticsUsageReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsUsageReportTimeBucket>;
+export type BetaAnalyticsUsageReportTimeBucketsReportPageCursor =
+  ReportPageCursor<BetaAnalyticsUsageReportTimeBucket>;
 
-export type BetaAnalyticsUsageUsersItemsPageCursor = PageCursor<BetaAnalyticsUsageUsersItem>;
+export type BetaAnalyticsUsageUsersItemsReportPageCursor = ReportPageCursor<BetaAnalyticsUsageUsersItem>;
 
-export type BetaAnalyticsCostReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsCostReportTimeBucket>;
+export type BetaAnalyticsCostReportTimeBucketsReportPageCursor =
+  ReportPageCursor<BetaAnalyticsCostReportTimeBucket>;
 
-export type BetaAnalyticsCostUsersItemsPageCursor = PageCursor<BetaAnalyticsCostUsersItem>;
+export type BetaAnalyticsCostUsersItemsReportPageCursor = ReportPageCursor<BetaAnalyticsCostUsersItem>;
+
+export type BetaAnalyticsActor =
+  | BetaAnalyticsReportUserActor
+  | BetaAnalyticsServiceAccountActor
+  | BetaAnalyticsFederatedActor
+  | BetaAnalyticsAPIActor;
+
+/**
+ * Kind of identity a row's usage is attributed to.
+ */
+export type BetaAnalyticsActorType = 'api_actor' | 'federated_actor' | 'service_account_actor' | 'user_actor';
+
+export interface BetaAnalyticsAPIActor {
+  /**
+   * Tagged API key ID.
+   */
+  api_key_id: string;
+
+  type: 'api_actor';
+}
 
 /**
  * Artifact-creation activity for one (`artifact_type`, `is_shared`) bucket on a
@@ -108,13 +154,15 @@ export interface BetaAnalyticsArtifactActivity {
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent` (the canonical Cost & Usage product naming; an
-   * `office_agent` row's per-surface breakdown is in its `office_metrics`). On
-   * `/plugins` only `cowork` and `claude_code` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, and `cowork` occur
-   * (the surfaces that create artifacts); `/apps/chat/projects` does not support the
-   * product dimension (a `product` entry in `group_by[]` or `filter[]` there is
-   * rejected). Present only when the request grouped by `product`.
+   * `cowork`, `office_agent`, or `chat_cowork_unified` (Chat and Cowork unified).
+   * These are the canonical Cost & Usage product names; an `office_agent` row's
+   * per-surface breakdown is in its `office_metrics`. On `/plugins` only `cowork`,
+   * `claude_code` and `chat_cowork_unified` occur (the only surfaces with plugin
+   * attribution); on `/artifacts` only `chat`, `claude_code`, `cowork` and
+   * `chat_cowork_unified` occur (the surfaces that create artifacts);
+   * `/apps/chat/projects` does not support the product dimension (a `product` entry
+   * in `group_by[]` or `filter[]` there is rejected). Present only when the request
+   * grouped by `product`.
    */
   product?: string | null;
 
@@ -136,6 +184,243 @@ export interface BetaAnalyticsArtifactActivity {
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * A dimension to group artifact activity by.
+ */
+export type BetaAnalyticsArtifactGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
+ * Chat activity recorded while members had Chat and Cowork unified turned on.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.connectors_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  connectors_used_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_artifacts_created_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Exact in
+   * date-range mode: a creation belongs to exactly one day, so the per-day counts
+   * never overlap and their sum over the window is the exact count of distinct
+   * creations in it.
+   */
+  distinct_artifacts_created_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_connectors_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_connectors_used_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_conversation_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_files_uploaded_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. It counts uploaded
+   * files as well as files Claude created and images returned by Claude's tools,
+   * such as screenshots. Approximate (HLL, typical error <2%) in date-range mode.
+   * Null on aggregated rows where a distinct count cannot be computed.
+   */
+  distinct_files_uploaded_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_projects_created_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Exact in
+   * date-range mode: a creation belongs to exactly one day, so the per-day counts
+   * never overlap and their sum over the window is the exact count of distinct
+   * creations in it.
+   */
+  distinct_projects_created_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_projects_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_projects_used_count: number | null;
+
+  /**
+   * Always null: shared-artifact views are not currently measured.
+   */
+  distinct_shared_artifacts_viewed_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_skills_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
+   * error <2%) in date-range mode. Null on aggregated rows where a distinct count
+   * cannot be computed.
+   */
+  distinct_skills_used_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.message_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  message_count: number;
+
+  /**
+   * Same measure as `chat_metrics.shared_conversations_viewed_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on.
+   */
+  shared_conversations_viewed_count: number;
+
+  /**
+   * Same measure as `chat_metrics.thinking_message_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  thinking_message_count: number;
+}
+
+/**
+ * Activity in Chat and Cowork unified for one user on one day: `chat` holds chat
+ * activity and `sessions` holds Cowork session activity.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedMetrics {
+  /**
+   * Chat activity recorded while members had Chat and Cowork unified turned on.
+   */
+  chat: BetaAnalyticsChatCoworkUnifiedChatMetrics;
+
+  /**
+   * Cowork session activity recorded while members had Chat and Cowork unified
+   * turned on.
+   */
+  sessions: BetaAnalyticsChatCoworkUnifiedSessionsMetrics;
+}
+
+/**
+ * Cowork session activity recorded while members had Chat and Cowork unified
+ * turned on.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.action_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  action_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.artifacts_created_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Exact in date-range mode: a
+   * creation belongs to exactly one day, so the per-day counts never overlap and
+   * their sum over the window is the exact count of distinct creations in it.
+   */
+  artifacts_created_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.connectors_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  connectors_used_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.dispatch_turn_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  dispatch_turn_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_connectors_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_connectors_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_plugins_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_plugins_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_session_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
+   * error <2%) in date-range mode. Null on aggregated rows where a distinct count
+   * cannot be computed.
+   */
+  distinct_session_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_skills_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_skills_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.edit_tool_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.file_edit_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  file_edit_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.message_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  message_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.multi_edit_tool_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Claude no longer has a
+   * multi-edit tool, so expect 0 when not null; each edit is now a separate Edit
+   * tool call, counted in `edit_tool_count` and `file_edit_count`.
+   */
+  multi_edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.notebook_edit_tool_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  notebook_edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.plugins_used_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  plugins_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.sessions_with_file_edits_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  sessions_with_file_edits_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.skills_used_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  skills_used_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.write_tool_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  write_tool_count: number | null;
 }
 
 /**
@@ -252,6 +537,20 @@ export interface BetaAnalyticsConnectorActivity {
   claude_code_metrics: BetaAnalyticsConnectorClaudeCodeMetrics;
 
   /**
+   * Human-readable display name for rows whose `connector_name` is an opaque
+   * connector id rather than a readable name, resolved at request time from the
+   * organization's connectors (including connectors that have since been removed).
+   * `connector_name` remains the row's stable key for sorting and pagination, and
+   * `filter[]=connector_name:{value}` also matches these rows by display name.
+   * Display names are not unique, and the same connector's claude.ai usage can
+   * appear under a separate row with a readable `connector_name`. Null when
+   * `connector_name` is already a readable name, when the id cannot be resolved to
+   * one of the organization's connectors, or when display-name resolution is not
+   * enabled for this organization.
+   */
+  connector_display_name: string | null;
+
+  /**
    * Name of the connector. Some rows carry an opaque connector id here instead of a
    * readable name; `connector_display_name` holds the resolved name for those rows.
    */
@@ -270,33 +569,13 @@ export interface BetaAnalyticsConnectorActivity {
   distinct_user_count: number;
 
   /**
-   * Office Agent activity metrics for a single connector on a given day, broken out
-   * by Office product.
-   */
-  office_metrics: BetaAnalyticsConnectorOfficeMetrics;
-
-  /**
-   * Human-readable display name for rows whose `connector_name` is an opaque
-   * connector id rather than a readable name, resolved at request time from the
-   * organization's connectors (including connectors that have since been removed).
-   * `connector_name` remains the row's stable key for sorting and pagination, and
-   * `filter[]=connector_name:{value}` also matches these rows by display name.
-   * Display names are not unique, and the same connector's claude.ai usage can
-   * appear under a separate row with a readable `connector_name`. Null when
-   * `connector_name` is already a readable name, when the id cannot be resolved to
-   * one of the organization's connectors, or when display-name resolution is not
-   * enabled for this organization.
-   */
-  connector_display_name?: string | null;
-
-  /**
    * Number of distinct users whose use of this connector on the requested day ran on
    * their own individual credential, connected through their own consent flow.
    * Companion bucket to `managed_auth_distinct_user_count`, which carries the
    * measurement, attribution, and null rules. Users whose requests used no stored
    * credential count in neither bucket.
    */
-  individual_auth_distinct_user_count?: number | null;
+  individual_auth_distinct_user_count: number | null;
 
   /**
    * Number of distinct users whose use of this connector on the requested day ran on
@@ -321,17 +600,69 @@ export interface BetaAnalyticsConnectorActivity {
    * starting earlier reports every managed-auth field as null, never a
    * partial-window value.
    */
-  managed_auth_distinct_user_count?: number | null;
+  managed_auth_distinct_user_count: number | null;
+
+  /**
+   * Office Agent activity metrics for a single connector on a given day, broken out
+   * by Office product.
+   */
+  office_metrics: BetaAnalyticsConnectorOfficeMetrics;
+
+  /**
+   * Number of connector tool calls on the requested day whose trusted read-only
+   * annotation marked them read-only. Call count, not distinct users. Every call
+   * recorded on a classified surface lands in exactly one of `read_call_count`,
+   * `write_call_count`, or `unclassified_call_count`, so the three sum to the day's
+   * classified calls. Classification is forward-only per surface: claude.ai from
+   * 2026-06-01, Claude Code from 2026-05-30, Claude in Office from 2026-05-29,
+   * Cowork from 2026-06-02 (Cowork clients predating annotation forwarding land in
+   * `unclassified_call_count`). Null, never 0, when the value cannot be stated: the
+   * read/write split is not enabled for this organization, or the day predates
+   * 2026-05-29. For a date-range total, sum the per-day values, but treat a window
+   * that extends before 2026-05-29 as null rather than summing only its covered days
+   * — date-range rollup mode (`starting_date`/`ending_date`) applies both rules
+   * server-side.
+   */
+  read_call_count: number | null;
+
+  /**
+   * Number of connector tool calls on the requested day with no trusted read-only
+   * annotation — the annotation is optional in the MCP spec and is discarded when
+   * connector access controls are active, so unclassified calls are common. This
+   * field shows how much of the day's classified activity the read/write split
+   * actually covers. Call count, not distinct users. One of the three
+   * call-classification buckets; see `read_call_count` for the per-surface
+   * data-start dates, null conditions, and date-range guidance.
+   */
+  unclassified_call_count: number | null;
+
+  /**
+   * Number of connector tool calls on the requested day whose trusted read-only
+   * annotation marked them not read-only. Call count, not distinct users. One of the
+   * three call-classification buckets; see `read_call_count` for the per-surface
+   * data-start dates, null conditions, and date-range guidance.
+   */
+  write_call_count: number | null;
+
+  /**
+   * Connector use recorded while members had Chat and Cowork unified (Cowork's
+   * features inside claude.ai chat) turned on, split into chat conversations and
+   * Cowork sessions. A count is null in date-range mode where it cannot be computed.
+   * Omitted from the response where Chat and Cowork unified is not available.
+   */
+  chat_cowork_unified_metrics?: BetaAnalyticsConnectorChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent` (the canonical Cost & Usage product naming; an
-   * `office_agent` row's per-surface breakdown is in its `office_metrics`). On
-   * `/plugins` only `cowork` and `claude_code` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, and `cowork` occur
-   * (the surfaces that create artifacts); `/apps/chat/projects` does not support the
-   * product dimension (a `product` entry in `group_by[]` or `filter[]` there is
-   * rejected). Present only when the request grouped by `product`.
+   * `cowork`, `office_agent`, or `chat_cowork_unified` (Chat and Cowork unified).
+   * These are the canonical Cost & Usage product names; an `office_agent` row's
+   * per-surface breakdown is in its `office_metrics`. On `/plugins` only `cowork`,
+   * `claude_code` and `chat_cowork_unified` occur (the only surfaces with plugin
+   * attribution); on `/artifacts` only `chat`, `claude_code`, `cowork` and
+   * `chat_cowork_unified` occur (the surfaces that create artifacts);
+   * `/apps/chat/projects` does not support the product dimension (a `product` entry
+   * in `group_by[]` or `filter[]` there is rejected). Present only when the request
+   * grouped by `product`.
    */
   product?: string | null;
 
@@ -349,46 +680,56 @@ export interface BetaAnalyticsConnectorActivity {
   rbac_group_name?: string | null;
 
   /**
-   * Number of connector tool calls on the requested day whose trusted read-only
-   * annotation marked them read-only. Call count, not distinct users. Every call
-   * recorded on a classified surface lands in exactly one of `read_call_count`,
-   * `write_call_count`, or `unclassified_call_count`, so the three sum to the day's
-   * classified calls. Classification is forward-only per surface: claude.ai from
-   * 2026-06-01, Claude Code from 2026-05-30, Claude in Office from 2026-05-29,
-   * Cowork from 2026-06-02 (Cowork clients predating annotation forwarding land in
-   * `unclassified_call_count`). Null, never 0, when the value cannot be stated: the
-   * read/write split is not enabled for this organization, or the day predates
-   * 2026-05-29. For a date-range total, sum the per-day values, but treat a window
-   * that extends before 2026-05-29 as null rather than summing only its covered days
-   * — date-range rollup mode (`starting_date`/`ending_date`) applies both rules
-   * server-side.
-   */
-  read_call_count?: number | null;
-
-  /**
-   * Number of connector tool calls on the requested day with no trusted read-only
-   * annotation — the annotation is optional in the MCP spec and is discarded when
-   * connector access controls are active, so unclassified calls are common. This
-   * field shows how much of the day's classified activity the read/write split
-   * actually covers. Call count, not distinct users. One of the three
-   * call-classification buckets; see `read_call_count` for the per-surface
-   * data-start dates, null conditions, and date-range guidance.
-   */
-  unclassified_call_count?: number | null;
-
-  /**
    * Tagged user identifier (e.g. `user_...`). Present only when the request grouped
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * A connector's use in chat conversations recorded while members had Chat and
+ * Cowork unified turned on.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_connector_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_conversation_connector_used_count: number | null;
+}
+
+/**
+ * A connector's use in Chat and Cowork unified on one day: `chat` holds its use in
+ * chat conversations and `sessions` its use in Cowork sessions.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedMetrics {
+  /**
+   * A connector's use in chat conversations recorded while members had Chat and
+   * Cowork unified turned on.
+   */
+  chat: BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics;
 
   /**
-   * Number of connector tool calls on the requested day whose trusted read-only
-   * annotation marked them not read-only. Call count, not distinct users. One of the
-   * three call-classification buckets; see `read_call_count` for the per-surface
-   * data-start dates, null conditions, and date-range guidance.
+   * A connector's use in Cowork sessions recorded while members had Chat and Cowork
+   * unified turned on.
    */
-  write_call_count?: number | null;
+  sessions: BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics;
+}
+
+/**
+ * A connector's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.distinct_session_connector_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_session_connector_used_count: number | null;
 }
 
 /**
@@ -426,6 +767,11 @@ export interface BetaAnalyticsConnectorCoworkMetrics {
    */
   distinct_session_connector_used_count: number | null;
 }
+
+/**
+ * A dimension to group connector activity by.
+ */
+export type BetaAnalyticsConnectorGroupBy = 'product' | 'rbac_group_id' | 'user_id';
 
 /**
  * Office Agent activity metrics for a single connector on a given day, broken out
@@ -520,9 +866,7 @@ export interface BetaAnalyticsCostBucketedResult {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -569,9 +913,9 @@ export interface BetaAnalyticsCostBucketedResult {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -579,8 +923,12 @@ export interface BetaAnalyticsCostBucketedResult {
    * Product surface that produced the usage or cost. Null unless product is in
    * `group_by[]`; it can also be null on grouped rows whose usage cannot be
    * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
-   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
-   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * `office_agent`, `claude_in_chrome`, `claude_design`, `claude-tag`, and
+   * `chat_cowork_unified`. `claude-tag` is Claude Tag, the Claude product in Slack.
+   * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
+   * claude.ai chat: chat and Cowork usage by a member who has it turned on is
+   * reported under this value instead of `chat` or `cowork`. It is accepted as a
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
    * is reported as "other".
    */
   product: string | null;
@@ -609,8 +957,9 @@ export interface BetaAnalyticsCostBucketedResult {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -664,9 +1013,7 @@ export interface BetaAnalyticsCostUsersItem {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -718,9 +1065,9 @@ export interface BetaAnalyticsCostUsersItem {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -728,8 +1075,12 @@ export interface BetaAnalyticsCostUsersItem {
    * Product surface that produced the usage or cost. Null unless product is in
    * `group_by[]`; it can also be null on grouped rows whose usage cannot be
    * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
-   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
-   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * `office_agent`, `claude_in_chrome`, `claude_design`, `claude-tag`, and
+   * `chat_cowork_unified`. `claude-tag` is Claude Tag, the Claude product in Slack.
+   * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
+   * claude.ai chat: chat and Cowork usage by a member who has it turned on is
+   * reported under this value instead of `chat` or `cowork`. It is accepted as a
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
    * is reported as "other".
    */
   product: string | null;
@@ -758,8 +1109,9 @@ export interface BetaAnalyticsCostUsersItem {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -818,6 +1170,14 @@ export interface BetaAnalyticsCoworkMetrics {
   distinct_connectors_used_count: number | null;
 
   /**
+   * Number of distinct plugins used in Cowork sessions. Null while Cowork plugin-use
+   * metrics are not enabled for this organization. Approximate (HLL, typical error
+   * <2%) in date-range mode. Null on aggregated rows where a distinct count cannot
+   * be computed.
+   */
+  distinct_plugins_used_count: number | null;
+
+  /**
    * Number of distinct Cowork sessions. Approximate (HLL, typical error <2%) in
    * date-range mode. Null on aggregated rows where a distinct count cannot be
    * computed.
@@ -832,53 +1192,40 @@ export interface BetaAnalyticsCoworkMetrics {
   distinct_skills_used_count: number | null;
 
   /**
-   * Number of messages sent in Cowork sessions
-   */
-  message_count: number;
-
-  /**
-   * Total number of skill invocations in Cowork sessions
-   */
-  skills_used_count: number;
-
-  /**
-   * Number of distinct plugins used in Cowork sessions. Null while Cowork plugin-use
-   * metrics are not enabled for this organization. Approximate (HLL, typical error
-   * <2%) in date-range mode. Null on aggregated rows where a distinct count cannot
-   * be computed.
-   */
-  distinct_plugins_used_count?: number | null;
-
-  /**
    * Number of successful Edit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  edit_tool_count?: number | null;
+  edit_tool_count: number | null;
 
   /**
    * Number of successful file-edit tool calls (Edit, MultiEdit, Write, NotebookEdit)
    * in Cowork sessions. Null, never 0, while the file-edit metrics are not enabled
    * for this organization.
    */
-  file_edit_count?: number | null;
+  file_edit_count: number | null;
+
+  /**
+   * Number of messages sent in Cowork sessions
+   */
+  message_count: number;
 
   /**
    * Number of successful MultiEdit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  multi_edit_tool_count?: number | null;
+  multi_edit_tool_count: number | null;
 
   /**
    * Number of successful NotebookEdit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  notebook_edit_tool_count?: number | null;
+  notebook_edit_tool_count: number | null;
 
   /**
    * Total number of plugin invocations in Cowork sessions. Null while Cowork
    * plugin-use metrics are not enabled for this organization.
    */
-  plugins_used_count?: number | null;
+  plugins_used_count: number | null;
 
   /**
    * Number of distinct Cowork sessions with at least one successful file-edit tool
@@ -886,13 +1233,18 @@ export interface BetaAnalyticsCoworkMetrics {
    * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
    * where a distinct count cannot be computed.
    */
-  sessions_with_file_edits_count?: number | null;
+  sessions_with_file_edits_count: number | null;
+
+  /**
+   * Total number of skill invocations in Cowork sessions
+   */
+  skills_used_count: number;
 
   /**
    * Number of successful Write tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  write_tool_count?: number | null;
+  write_tool_count: number | null;
 }
 
 /**
@@ -925,6 +1277,72 @@ export interface BetaAnalyticsDesignMetrics {
    */
   message_count: number;
 }
+
+export interface BetaAnalyticsFederatedActor {
+  /**
+   * The trusted provider that asserted the caller's identity.
+   */
+  provider: BetaAnalyticsFederatedActorProvider;
+
+  /**
+   * The provider's identifier for the caller: on `aws`, the IAM principal ARN (one
+   * role is one actor across its sessions); on `gcp`, the caller's IAM principal
+   * identifier as Google Cloud reports it, such as `serviceAccount:<email>`,
+   * `user:<email>`, or a `principal://...` URI.
+   */
+  subject: string | null;
+
+  type: 'federated_actor';
+}
+
+export interface BetaAnalyticsFederatedActorAWSProvider {
+  /**
+   * The AWS account the organization is bound to.
+   */
+  account_id: string;
+
+  /**
+   * The AWS-signed ARN of the IAM principal that made the requests.
+   */
+  signed_principal: string;
+
+  type: 'aws';
+}
+
+export interface BetaAnalyticsFederatedActorAzureProvider {
+  /**
+   * The Azure subscription the organization is bound to.
+   */
+  subscription_id: string;
+
+  type: 'azure';
+}
+
+export interface BetaAnalyticsFederatedActorGCPProvider {
+  /**
+   * The Google Cloud project the organization is bound to.
+   */
+  project_number: string;
+
+  type: 'gcp';
+}
+
+export interface BetaAnalyticsFederatedActorOIDCProvider {
+  /**
+   * The federation issuer's URL.
+   */
+  issuer: string | null;
+
+  type: 'oidc';
+}
+
+export type BetaAnalyticsFederatedActorProvider =
+  | BetaAnalyticsFederatedActorAWSProvider
+  | BetaAnalyticsFederatedActorAzureProvider
+  | BetaAnalyticsFederatedActorGCPProvider
+  | BetaAnalyticsFederatedActorOIDCProvider;
+
+export type BetaAnalyticsGroupedCostType = 'code_execution' | 'session_usage' | 'tokens' | 'web_search';
 
 export type BetaAnalyticsInferenceGeoFilter = 'global' | 'not_available' | 'us';
 
@@ -1016,12 +1434,20 @@ export interface BetaAnalyticsOfficeProductMetrics {
 }
 
 /**
+ * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
+ * column and to `desc` when `order_by` names a metric (a top-N ranking). Applies
+ * to `order_by`, or to the endpoint's default sort field when `order_by` is
+ * omitted.
+ */
+export type BetaAnalyticsOrder = 'asc' | 'desc';
+
+/**
  * Per-plugin install + invocation activity for a given day.
  *
- * With `group_by[]=user_id` / `rbac_group_id` / `product` (`cowork` /
- * `claude_code` only on this endpoint) each row is one (plugin, user), (plugin,
- * group), or (plugin, product) cut: the flat `user_id` / `rbac_group_id` /
- * `product` keys carry the cut and the counts are scoped to it.
+ * With `group_by[]=user_id` / `rbac_group_id` / `product` (`cowork`, `claude_code`
+ * and `chat_cowork_unified` only on this endpoint) each row is one (plugin, user),
+ * (plugin, group), or (plugin, product) cut: the flat `user_id` / `rbac_group_id`
+ * / `product` keys carry the cut and the counts are scoped to it.
  */
 export interface BetaAnalyticsPluginActivity {
   /**
@@ -1055,26 +1481,36 @@ export interface BetaAnalyticsPluginActivity {
   invocation_count: number;
 
   /**
+   * Stable plugin identifier when available (e.g. `serena@claude-plugins-official`).
+   * Null for third-party Claude Code plugins (redacted at the source) and Cowork
+   * slash commands that carry only a hashed id.
+   */
+  plugin_id: string | null;
+
+  /**
    * Name of the plugin
    */
   plugin_name: string;
 
   /**
-   * Stable plugin identifier when available (e.g. `serena@claude-plugins-official`).
-   * Null for third-party Claude Code plugins (redacted at the source) and Cowork
-   * slash commands that carry only a hashed id.
+   * Plugin use recorded while members had Chat and Cowork unified (Cowork's features
+   * inside claude.ai chat) turned on. A count is null in date-range mode where it
+   * cannot be computed. Omitted from the response where Chat and Cowork unified is
+   * not available.
    */
-  plugin_id?: string | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsPluginChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent` (the canonical Cost & Usage product naming; an
-   * `office_agent` row's per-surface breakdown is in its `office_metrics`). On
-   * `/plugins` only `cowork` and `claude_code` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, and `cowork` occur
-   * (the surfaces that create artifacts); `/apps/chat/projects` does not support the
-   * product dimension (a `product` entry in `group_by[]` or `filter[]` there is
-   * rejected). Present only when the request grouped by `product`.
+   * `cowork`, `office_agent`, or `chat_cowork_unified` (Chat and Cowork unified).
+   * These are the canonical Cost & Usage product names; an `office_agent` row's
+   * per-surface breakdown is in its `office_metrics`. On `/plugins` only `cowork`,
+   * `claude_code` and `chat_cowork_unified` occur (the only surfaces with plugin
+   * attribution); on `/artifacts` only `chat`, `claude_code`, `cowork` and
+   * `chat_cowork_unified` occur (the surfaces that create artifacts);
+   * `/apps/chat/projects` does not support the product dimension (a `product` entry
+   * in `group_by[]` or `filter[]` there is rejected). Present only when the request
+   * grouped by `product`.
    */
   product?: string | null;
 
@@ -1096,6 +1532,19 @@ export interface BetaAnalyticsPluginActivity {
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * A plugin's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsPluginChatCoworkUnifiedMetrics {
+  /**
+   * Same measure as `cowork_metrics.distinct_session_plugin_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on. Null on
+   * aggregated rows where a distinct count cannot be computed.
+   */
+  distinct_session_plugin_used_count: number | null;
 }
 
 /**
@@ -1121,11 +1570,20 @@ export interface BetaAnalyticsPluginCoworkMetrics {
 }
 
 /**
+ * A dimension to group plugin activity by.
+ */
+export type BetaAnalyticsPluginGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
  * Publicly documented product surfaces. `claude-tag` is Claude Tag, the Claude
- * product in Slack.
+ * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
+ * features inside claude.ai chat: chat and Cowork usage by a member who has it
+ * turned on is reported under this value instead of `chat` or `cowork`. It is
+ * accepted as a filter only where Chat and Cowork unified is available.
  */
 export type BetaAnalyticsProductFilter =
   | 'chat'
+  | 'chat_cowork_unified'
   | 'claude-tag'
   | 'claude_code'
   | 'claude_design'
@@ -1137,6 +1595,24 @@ export type BetaAnalyticsProductFilter =
  * Per-project activity data for a given day.
  */
 export interface BetaAnalyticsProjectActivity {
+  /**
+   * Project creation timestamp in RFC 3339 format. Null if the project was deleted
+   * before attribution was recorded.
+   */
+  created_at: string | null;
+
+  /**
+   * User who created the project. Null if the project was deleted before attribution
+   * was recorded, or if the creator's account no longer exists.
+   */
+  created_by: BetaAnalyticsUser | null;
+
+  /**
+   * Number of distinct conversations in the project. Null on aggregated rows where a
+   * distinct count cannot be computed.
+   */
+  distinct_conversation_count: number | null;
+
   /**
    * Number of distinct users who used the project on the requested day, or, in
    * date-range mode, over the requested window — recomputed as an exact distinct
@@ -1160,36 +1636,6 @@ export interface BetaAnalyticsProjectActivity {
   project_name: string;
 
   /**
-   * Project creation timestamp in RFC 3339 format. Null if the project was deleted
-   * before attribution was recorded.
-   */
-  created_at?: string | null;
-
-  /**
-   * User who created the project. Null if the project was deleted before attribution
-   * was recorded, or if the creator's account no longer exists.
-   */
-  created_by?: BetaAnalyticsUser | null;
-
-  /**
-   * Number of distinct conversations in the project. Null on aggregated rows where a
-   * distinct count cannot be computed.
-   */
-  distinct_conversation_count?: number | null;
-
-  /**
-   * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent` (the canonical Cost & Usage product naming; an
-   * `office_agent` row's per-surface breakdown is in its `office_metrics`). On
-   * `/plugins` only `cowork` and `claude_code` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, and `cowork` occur
-   * (the surfaces that create artifacts); `/apps/chat/projects` does not support the
-   * product dimension (a `product` entry in `group_by[]` or `filter[]` there is
-   * rejected). Present only when the request grouped by `product`.
-   */
-  product?: string | null;
-
-  /**
    * Tagged RBAC group identifier (`rbac_group_...`), matching the spend-limits API
    * spelling. Present only when the request grouped by `rbac_group_id`.
    */
@@ -1207,6 +1653,47 @@ export interface BetaAnalyticsProjectActivity {
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * A dimension to group chat project activity by.
+ */
+export type BetaAnalyticsProjectGroupBy = 'rbac_group_id' | 'user_id';
+
+export interface BetaAnalyticsReportUserActor {
+  /**
+   * True when the account has been deleted, or when the user is no longer a member
+   * of the organization or its associated organizations (for example, their
+   * membership was removed or they were deprovisioned via your identity provider).
+   * `email_address` stays populated for removed users and is null when the account
+   * has been deleted. `name` follows the rules described on that field. The
+   * `user_id` is still populated for reconciliation.
+   */
+  deleted: boolean;
+
+  /**
+   * The user's current email address, including for users who are no longer members
+   * of the organization. Null when the account has been deleted and for
+   * system-minted service accounts.
+   */
+  email_address: string | null;
+
+  /**
+   * The user's current full name. Null when the user has not set one.
+   * `"Deleted User"` when the account has been deleted, or when the user is no
+   * longer a member and the organization hides removed users' names.
+   */
+  name: string | null;
+
+  /**
+   * Actor type. Always `"user_actor"`.
+   */
+  type: 'user_actor';
+
+  /**
+   * Tagged user ID.
+   */
+  user_id: string;
 }
 
 /**
@@ -1248,6 +1735,23 @@ export interface BetaAnalyticsServerToolUse {
    */
   web_search_requests: number;
 }
+
+export interface BetaAnalyticsServiceAccountActor {
+  /**
+   * Tagged service account ID.
+   */
+  service_account_id: string;
+
+  type: 'service_account_actor';
+}
+
+export type BetaAnalyticsServiceTier =
+  | 'batch'
+  | 'flex'
+  | 'flex_discount'
+  | 'priority'
+  | 'priority_on_demand'
+  | 'standard';
 
 /**
  * Per-day entry in the /summaries response.
@@ -1327,6 +1831,26 @@ export interface BetaAnalyticsSingleDayActivitySummary {
    * group.
    */
   weekly_adoption_rate: number | null;
+
+  /**
+   * Number of users with activity in Chat and Cowork unified on the requested day.
+   * Omitted from the response where Chat and Cowork unified is not available.
+   */
+  chat_cowork_unified_daily_active_user_count?: number | null;
+
+  /**
+   * Number of users with activity in Chat and Cowork unified in the 28-day rolling
+   * window (30 days when the request filters by `rbac_group_id`). Omitted from the
+   * response where Chat and Cowork unified is not available.
+   */
+  chat_cowork_unified_monthly_active_user_count?: number | null;
+
+  /**
+   * Number of users with activity in Chat and Cowork unified in the 7-day rolling
+   * window. Omitted from the response where Chat and Cowork unified is not
+   * available.
+   */
+  chat_cowork_unified_weekly_active_user_count?: number | null;
 
   /**
    * Number of users with claude.ai (chat) activity on the requested day. Omitted
@@ -1447,44 +1971,6 @@ export interface BetaAnalyticsSingleDayActivitySummary {
  */
 export interface BetaAnalyticsSkillActivity {
   /**
-   * Claude.ai activity metrics for a single skill on a given day.
-   */
-  chat_metrics: BetaAnalyticsSkillChatMetrics;
-
-  /**
-   * Claude Code activity metrics for a single skill on a given day.
-   */
-  claude_code_metrics: BetaAnalyticsSkillClaudeCodeMetrics;
-
-  /**
-   * Cowork activity metrics for a single skill on a given day.
-   */
-  cowork_metrics: BetaAnalyticsSkillCoworkMetrics;
-
-  /**
-   * Number of distinct users who used the skill on the requested day, or, in
-   * date-range mode, over the requested window — recomputed as an exact distinct
-   * count over the window's per-member daily rows, never a sum of per-day values. A
-   * skill counts as used only when it is explicitly activated — the model (or the
-   * user, via the skill's slash command) invokes it, reading its instructions into
-   * context as part of that activation. Skills that are merely installed or listed
-   * as available, or whose content reaches the context without an activation
-   * (preloaded, hook-injected, or read as a plain file), are not counted.
-   */
-  distinct_user_count: number;
-
-  /**
-   * Office Agent activity metrics for a single skill on a given day, broken out by
-   * Office product.
-   */
-  office_metrics: BetaAnalyticsSkillOfficeMetrics;
-
-  /**
-   * Name of the skill
-   */
-  skill_name: string;
-
-  /**
    * List-price (rate-card) value of the member requests attributed to this skill, as
    * a decimal string in the minor unit of `currency` (cents for USD), from Claude
    * Code, Cowork, and Office Agent request-level attribution — the value of requests
@@ -1505,14 +1991,41 @@ export interface BetaAnalyticsSkillActivity {
    * attributed to a member–skill pair with no counted usage on that day is excluded
    * from those cuts.
    */
-  attributed_list_price?: string | null;
+  attributed_list_price: string | null;
+
+  /**
+   * Claude.ai activity metrics for a single skill on a given day.
+   */
+  chat_metrics: BetaAnalyticsSkillChatMetrics;
+
+  /**
+   * Claude Code activity metrics for a single skill on a given day.
+   */
+  claude_code_metrics: BetaAnalyticsSkillClaudeCodeMetrics;
+
+  /**
+   * Cowork activity metrics for a single skill on a given day.
+   */
+  cowork_metrics: BetaAnalyticsSkillCoworkMetrics;
 
   /**
    * Currency for this row's monetary fields (`estimated_overage_spend` and
    * `attributed_list_price`), as an uppercase ISO-4217 code. Always "USD" when
    * either amount is populated; null whenever both amounts are null.
    */
-  currency?: string | null;
+  currency: string | null;
+
+  /**
+   * Number of distinct users who used the skill on the requested day, or, in
+   * date-range mode, over the requested window — recomputed as an exact distinct
+   * count over the window's per-member daily rows, never a sum of per-day values. A
+   * skill counts as used only when it is explicitly activated — the model (or the
+   * user, via the skill's slash command) invokes it, reading its instructions into
+   * context as part of that activation. Skills that are merely installed or listed
+   * as available, or whose content reaches the context without an activation
+   * (preloaded, hook-injected, or read as a plain file), are not counted.
+   */
+  distinct_user_count: number;
 
   /**
    * Distinct accounts that enabled this skill on the requested day (claude.ai only —
@@ -1524,7 +2037,7 @@ export interface BetaAnalyticsSkillActivity {
    * on more than one day, so it is also null in date-range rollup mode
    * (`starting_date`/`ending_date`).
    */
-  enable_count?: number | null;
+  enable_count: number | null;
 
   /**
    * Estimated overage spend attributed to this skill, as a decimal string in the
@@ -1551,7 +2064,7 @@ export interface BetaAnalyticsSkillActivity {
    * attributed to a member–skill pair with no counted usage on that day is excluded
    * from those cuts.
    */
-  estimated_overage_spend?: string | null;
+  estimated_overage_spend: string | null;
 
   /**
    * Total number of times this skill was invoked on the requested day (the skill
@@ -1566,32 +2079,13 @@ export interface BetaAnalyticsSkillActivity {
    * window — date-range rollup mode (`starting_date`/`ending_date`) returns this sum
    * directly.
    */
-  invocation_count?: number | null;
+  invocation_count: number | null;
 
   /**
-   * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, or `office_agent` (the canonical Cost & Usage product naming; an
-   * `office_agent` row's per-surface breakdown is in its `office_metrics`). On
-   * `/plugins` only `cowork` and `claude_code` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, and `cowork` occur
-   * (the surfaces that create artifacts); `/apps/chat/projects` does not support the
-   * product dimension (a `product` entry in `group_by[]` or `filter[]` there is
-   * rejected). Present only when the request grouped by `product`.
+   * Office Agent activity metrics for a single skill on a given day, broken out by
+   * Office product.
    */
-  product?: string | null;
-
-  /**
-   * Tagged RBAC group identifier (`rbac_group_...`), matching the spend-limits API
-   * spelling. Present only when the request grouped by `rbac_group_id`.
-   */
-  rbac_group_id?: string | null;
-
-  /**
-   * Resolved RBAC group display name, alongside `rbac_group_id` when name resolution
-   * is available. Null if the group has been deleted or its name could not be
-   * resolved; `rbac_group_id` remains the stable key.
-   */
-  rbac_group_name?: string | null;
+  office_metrics: BetaAnalyticsSkillOfficeMetrics;
 
   /**
    * Skill share status (claude.ai only): one of `private`, `organization`, or
@@ -1599,7 +2093,7 @@ export interface BetaAnalyticsSkillActivity {
    * share-status concept) and when share-status reporting is not yet available for
    * the organization. Filterable via `filter[]=share_status:{value}`.
    */
-  share_status?: 'organization' | 'private' | 'public' | null;
+  share_status: 'organization' | 'private' | 'public' | null;
 
   /**
    * Human-readable display name for rows whose `skill_name` is an opaque skill id
@@ -1617,13 +2111,99 @@ export interface BetaAnalyticsSkillActivity {
    * `skill_name` is already a display name, or when display-name resolution is not
    * enabled for this organization.
    */
-  skill_display_name?: string | null;
+  skill_display_name: string | null;
+
+  /**
+   * Name of the skill
+   */
+  skill_name: string;
+
+  /**
+   * Skill use recorded while members had Chat and Cowork unified (Cowork's features
+   * inside claude.ai chat) turned on, split into chat conversations and Cowork
+   * sessions. A count is null in date-range mode where it cannot be computed.
+   * Omitted from the response where Chat and Cowork unified is not available.
+   */
+  chat_cowork_unified_metrics?: BetaAnalyticsSkillChatCoworkUnifiedMetrics | null;
+
+  /**
+   * Product that produced this row's activity: one of `chat`, `claude_code`,
+   * `cowork`, `office_agent`, or `chat_cowork_unified` (Chat and Cowork unified).
+   * These are the canonical Cost & Usage product names; an `office_agent` row's
+   * per-surface breakdown is in its `office_metrics`. On `/plugins` only `cowork`,
+   * `claude_code` and `chat_cowork_unified` occur (the only surfaces with plugin
+   * attribution); on `/artifacts` only `chat`, `claude_code`, `cowork` and
+   * `chat_cowork_unified` occur (the surfaces that create artifacts);
+   * `/apps/chat/projects` does not support the product dimension (a `product` entry
+   * in `group_by[]` or `filter[]` there is rejected). Present only when the request
+   * grouped by `product`.
+   */
+  product?: string | null;
+
+  /**
+   * Tagged RBAC group identifier (`rbac_group_...`), matching the spend-limits API
+   * spelling. Present only when the request grouped by `rbac_group_id`.
+   */
+  rbac_group_id?: string | null;
+
+  /**
+   * Resolved RBAC group display name, alongside `rbac_group_id` when name resolution
+   * is available. Null if the group has been deleted or its name could not be
+   * resolved; `rbac_group_id` remains the stable key.
+   */
+  rbac_group_name?: string | null;
 
   /**
    * Tagged user identifier (e.g. `user_...`). Present only when the request grouped
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * A skill's use in chat conversations recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_skill_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_conversation_skill_used_count: number | null;
+}
+
+/**
+ * A skill's use in Chat and Cowork unified on one day: `chat` holds its use in
+ * chat conversations and `sessions` its use in Cowork sessions.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedMetrics {
+  /**
+   * A skill's use in chat conversations recorded while members had Chat and Cowork
+   * unified turned on.
+   */
+  chat: BetaAnalyticsSkillChatCoworkUnifiedChatMetrics;
+
+  /**
+   * A skill's use in Cowork sessions recorded while members had Chat and Cowork
+   * unified turned on.
+   */
+  sessions: BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics;
+}
+
+/**
+ * A skill's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.distinct_session_skill_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_session_skill_used_count: number | null;
 }
 
 /**
@@ -1678,6 +2258,11 @@ export interface BetaAnalyticsSkillCoworkMetrics {
 }
 
 /**
+ * A dimension to group skill activity by.
+ */
+export type BetaAnalyticsSkillGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
  * Office Agent activity metrics for a single skill on a given day, broken out by
  * Office product.
  */
@@ -1724,6 +2309,10 @@ export interface BetaAnalyticsSkillOfficeProductMetrics {
    */
   distinct_session_skill_used_count: number | null;
 }
+
+export type BetaAnalyticsSpeed = 'fast' | 'standard';
+
+export type BetaAnalyticsTimeBucketWidth = '1d' | '1h' | '1m';
 
 export type BetaAnalyticsTokenType =
   | 'cache_creation.ephemeral_1h_input_tokens'
@@ -1789,9 +2378,7 @@ export interface BetaAnalyticsUsageBucketedResult {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -1822,9 +2409,9 @@ export interface BetaAnalyticsUsageBucketedResult {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -1837,8 +2424,12 @@ export interface BetaAnalyticsUsageBucketedResult {
    * Product surface that produced the usage or cost. Null unless product is in
    * `group_by[]`; it can also be null on grouped rows whose usage cannot be
    * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
-   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
-   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * `office_agent`, `claude_in_chrome`, `claude_design`, `claude-tag`, and
+   * `chat_cowork_unified`. `claude-tag` is Claude Tag, the Claude product in Slack.
+   * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
+   * claude.ai chat: chat and Cowork usage by a member who has it turned on is
+   * reported under this value instead of `chat` or `cowork`. It is accepted as a
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
    * is reported as "other".
    */
   product: string | null;
@@ -1870,8 +2461,9 @@ export interface BetaAnalyticsUsageBucketedResult {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -1886,6 +2478,31 @@ export interface BetaAnalyticsUsageBucketedResult {
    */
   uncached_input_tokens: number;
 }
+
+export type BetaAnalyticsUsageCostInferenceGeo = 'global' | 'us';
+
+/**
+ * Publicly documented product surfaces. `claude_tag` is Claude Tag, the Claude
+ * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
+ * features inside claude.ai chat: chat and Cowork usage by a member who has it
+ * turned on is reported under this value instead of `chat` or `cowork`. It is
+ * accepted as a filter only where Chat and Cowork unified is available.
+ */
+export type BetaAnalyticsUsageCostProductFilter =
+  | 'chat'
+  | 'chat_cowork_unified'
+  | 'claude_code'
+  | 'claude_console'
+  | 'claude_design'
+  | 'claude_in_chrome'
+  | 'claude_tag'
+  | 'cowork'
+  | 'managed_agents_api'
+  | 'message_batches_api'
+  | 'messages_api'
+  | 'office_agent';
+
+export type BetaAnalyticsUsageCostSortOrder = 'asc' | 'desc';
 
 export interface BetaAnalyticsUsageReportTimeBucket {
   /**
@@ -1928,9 +2545,7 @@ export interface BetaAnalyticsUsageUsersItem {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -1967,9 +2582,9 @@ export interface BetaAnalyticsUsageUsersItem {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -1982,8 +2597,12 @@ export interface BetaAnalyticsUsageUsersItem {
    * Product surface that produced the usage or cost. Null unless product is in
    * `group_by[]`; it can also be null on grouped rows whose usage cannot be
    * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
-   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
-   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * `office_agent`, `claude_in_chrome`, `claude_design`, `claude-tag`, and
+   * `chat_cowork_unified`. `claude-tag` is Claude Tag, the Claude product in Slack.
+   * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
+   * claude.ai chat: chat and Cowork usage by a member who has it turned on is
+   * reported under this value instead of `chat` or `cowork`. It is accepted as a
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
    * is reported as "other".
    */
   product: string | null;
@@ -2015,8 +2634,9 @@ export interface BetaAnalyticsUsageUsersItem {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -2090,6 +2710,14 @@ export interface BetaAnalyticsUserActivity {
   design_metrics: BetaAnalyticsDesignMetrics;
 
   /**
+   * Number of distinct active users represented by this row. Only set for grouped
+   * rollups (`group_by[]`); null for per-user rows. In date-range mode, recomputed
+   * as an exact distinct count of the group's active members over the requested
+   * window, never a sum of per-day values.
+   */
+  distinct_user_count: number | null;
+
+  /**
    * Office Agent activity metrics for a single user on a given day, broken out by
    * Office product.
    */
@@ -2101,17 +2729,22 @@ export interface BetaAnalyticsUserActivity {
   science_metrics: BetaAnalyticsScienceMetrics;
 
   /**
+   * The user this row describes. Null on rows aggregated across users.
+   */
+  user: BetaAnalyticsUser | null;
+
+  /**
    * Number of web searches performed
    */
   web_search_count: number;
 
   /**
-   * Number of distinct active users represented by this row. Only set for grouped
-   * rollups (`group_by[]`); null for per-user rows. In date-range mode, recomputed
-   * as an exact distinct count of the group's active members over the requested
-   * window, never a sum of per-day values.
+   * Activity recorded while the member had Chat and Cowork unified (Cowork's
+   * features inside claude.ai chat) turned on, split into `chat` (chat activity) and
+   * `sessions` (Cowork activity). Omitted from the response where Chat and Cowork
+   * unified is not available.
    */
-  distinct_user_count?: number | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsChatCoworkUnifiedMetrics | null;
 
   /**
    * Most recent UTC day (YYYY-MM-DD) on which the user had any counted activity,
@@ -2139,11 +2772,6 @@ export interface BetaAnalyticsUserActivity {
    * resolved; `rbac_group_id` remains the stable key.
    */
   rbac_group_name?: string | null;
-
-  /**
-   * The user this row describes. Null on rows aggregated across users.
-   */
-  user?: BetaAnalyticsUser | null;
 }
 
 export interface BetaAnalyticsUserActor {
@@ -2171,8 +2799,7 @@ export interface BetaAnalyticsUserActor {
    * no longer a member of the organization or its associated organizations and the
    * organization has chosen to hide the names of removed users. Otherwise, the name
    * stays populated for removed users. Rows for system-minted service accounts
-   * render the service name (for example, `"Claude Security"` for usage by
-   * Anthropic's security-patching service) or null.
+   * render the service name (for example, `"Claude Security"`) or null.
    */
   name: string | null;
 
@@ -2187,6 +2814,11 @@ export interface BetaAnalyticsUserActor {
   user_id: string;
 }
 
+/**
+ * A dimension to group user activity by.
+ */
+export type BetaAnalyticsUserGroupBy = 'rbac_group_id';
+
 Analytics.Summaries = Summaries;
 Analytics.Users = Users;
 Analytics.Apps = Apps;
@@ -2194,6 +2826,8 @@ Analytics.Connectors = Connectors;
 Analytics.Plugins = Plugins;
 Analytics.Skills = Skills;
 Analytics.Artifacts = Artifacts;
+Analytics.Usage = Usage;
+Analytics.Cost = Cost;
 Analytics.UsageReport = UsageReport;
 Analytics.UserUsageReport = UserUsageReport;
 Analytics.CostReport = CostReport;
@@ -2201,14 +2835,25 @@ Analytics.UserCostReport = UserCostReport;
 
 export declare namespace Analytics {
   export {
+    type BetaAnalyticsActor as BetaAnalyticsActor,
+    type BetaAnalyticsActorType as BetaAnalyticsActorType,
+    type BetaAnalyticsAPIActor as BetaAnalyticsAPIActor,
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsArtifactGroupBy as BetaAnalyticsArtifactGroupBy,
+    type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsChatCoworkUnifiedMetrics as BetaAnalyticsChatCoworkUnifiedMetrics,
+    type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
     type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
     type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
     type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
+    type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedMetrics as BetaAnalyticsConnectorChatCoworkUnifiedMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics as BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
     type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
     type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
+    type BetaAnalyticsConnectorGroupBy as BetaAnalyticsConnectorGroupBy,
     type BetaAnalyticsConnectorOfficeMetrics as BetaAnalyticsConnectorOfficeMetrics,
     type BetaAnalyticsConnectorOfficeProductMetrics as BetaAnalyticsConnectorOfficeProductMetrics,
     type BetaAnalyticsContextWindow as BetaAnalyticsContextWindow,
@@ -2219,33 +2864,57 @@ export declare namespace Analytics {
     type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
     type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
     type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
+    type BetaAnalyticsFederatedActor as BetaAnalyticsFederatedActor,
+    type BetaAnalyticsFederatedActorAWSProvider as BetaAnalyticsFederatedActorAWSProvider,
+    type BetaAnalyticsFederatedActorAzureProvider as BetaAnalyticsFederatedActorAzureProvider,
+    type BetaAnalyticsFederatedActorGCPProvider as BetaAnalyticsFederatedActorGCPProvider,
+    type BetaAnalyticsFederatedActorOIDCProvider as BetaAnalyticsFederatedActorOIDCProvider,
+    type BetaAnalyticsFederatedActorProvider as BetaAnalyticsFederatedActorProvider,
+    type BetaAnalyticsGroupedCostType as BetaAnalyticsGroupedCostType,
     type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
     type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
     type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
     type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
+    type BetaAnalyticsOrder as BetaAnalyticsOrder,
     type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
+    type BetaAnalyticsPluginChatCoworkUnifiedMetrics as BetaAnalyticsPluginChatCoworkUnifiedMetrics,
     type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
+    type BetaAnalyticsPluginGroupBy as BetaAnalyticsPluginGroupBy,
     type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
     type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsProjectGroupBy as BetaAnalyticsProjectGroupBy,
+    type BetaAnalyticsReportUserActor as BetaAnalyticsReportUserActor,
     type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
     type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
+    type BetaAnalyticsServiceAccountActor as BetaAnalyticsServiceAccountActor,
+    type BetaAnalyticsServiceTier as BetaAnalyticsServiceTier,
     type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
     type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
+    type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedMetrics as BetaAnalyticsSkillChatCoworkUnifiedMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics as BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
     type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
     type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
+    type BetaAnalyticsSkillGroupBy as BetaAnalyticsSkillGroupBy,
     type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
     type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
+    type BetaAnalyticsSpeed as BetaAnalyticsSpeed,
+    type BetaAnalyticsTimeBucketWidth as BetaAnalyticsTimeBucketWidth,
     type BetaAnalyticsTokenType as BetaAnalyticsTokenType,
     type BetaAnalyticsToolActionCounts as BetaAnalyticsToolActionCounts,
     type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
     type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
+    type BetaAnalyticsUsageCostInferenceGeo as BetaAnalyticsUsageCostInferenceGeo,
+    type BetaAnalyticsUsageCostProductFilter as BetaAnalyticsUsageCostProductFilter,
+    type BetaAnalyticsUsageCostSortOrder as BetaAnalyticsUsageCostSortOrder,
     type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
     type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
     type BetaAnalyticsUser as BetaAnalyticsUser,
     type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
     type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
+    type BetaAnalyticsUserGroupBy as BetaAnalyticsUserGroupBy,
   };
 
   export { Summaries as Summaries, type SummaryListParams as SummaryListParams };
@@ -2261,6 +2930,28 @@ export declare namespace Analytics {
   export { Skills as Skills, type SkillListParams as SkillListParams };
 
   export { Artifacts as Artifacts, type ArtifactListParams as ArtifactListParams };
+
+  export {
+    Usage as Usage,
+    type BetaAnalyticsUsageGroup as BetaAnalyticsUsageGroup,
+    type BetaAnalyticsUsageGroupBy as BetaAnalyticsUsageGroupBy,
+    type BetaAnalyticsUsageItem as BetaAnalyticsUsageItem,
+    type BetaAnalyticsUsageMetrics as BetaAnalyticsUsageMetrics,
+    type BetaAnalyticsUsageOrderBy as BetaAnalyticsUsageOrderBy,
+    type BetaAnalyticsUsageItemsReportPageCursor as BetaAnalyticsUsageItemsReportPageCursor,
+    type UsageListParams as UsageListParams,
+  };
+
+  export {
+    Cost as Cost,
+    type BetaAnalyticsCostGroup as BetaAnalyticsCostGroup,
+    type BetaAnalyticsCostGroupBy as BetaAnalyticsCostGroupBy,
+    type BetaAnalyticsCostItem as BetaAnalyticsCostItem,
+    type BetaAnalyticsCostMetrics as BetaAnalyticsCostMetrics,
+    type BetaAnalyticsCostOrderBy as BetaAnalyticsCostOrderBy,
+    type BetaAnalyticsCostItemsReportPageCursor as BetaAnalyticsCostItemsReportPageCursor,
+    type CostListParams as CostListParams,
+  };
 
   export { UsageReport as UsageReport, type UsageReportListParams as UsageReportListParams };
 

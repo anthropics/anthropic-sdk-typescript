@@ -1,4 +1,4 @@
-import { createPathTagFunction, encodeURIPath } from '@anthropic-ai/sdk/internal/utils/path';
+import { createPathTagFunction, encodeURIPath, path } from '@anthropic-ai/sdk/internal/utils/path';
 import { inspect } from 'node:util';
 import { runInNewContext } from 'node:vm';
 
@@ -39,7 +39,7 @@ describe('path template tag function', () => {
     const emptyObject = {};
     const mathObject = Math;
     const numberObject = new Number();
-    const stringObject = new String();
+    const stringObject = new String('s');
     const basicClass = new (class {})();
     const classWithToString = new (class {
       toString() {
@@ -81,8 +81,21 @@ describe('path template tag function', () => {
     expect(() => rawPath`/../${''}`).toThrow(
       'Path parameters result in path with invalid segments:\n' +
         'Value ".." can\'t be safely passed as a path parameter\n' +
+        'Value "" can\'t be safely passed as a path parameter\n' +
         '/../\n' +
-        ' ^^',
+        ' ^^ ^',
+    );
+    expect(() => rawPath`/a/${''}`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value "" can\'t be safely passed as a path parameter\n' +
+        '/a/\n' +
+        '   ^',
+    );
+    expect(() => rawPath`/a/${new String()}/b`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value "" can\'t be safely passed as a path parameter\n' +
+        '/a//b\n' +
+        '   ^',
     );
     expect(() => rawPath`/../${{}}`).toThrow(
       'Path parameters result in path with invalid segments:\n' +
@@ -91,12 +104,26 @@ describe('path template tag function', () => {
         '/../[object Object]\n' +
         ' ^^ ^^^^^^^^^^^^^^',
     );
+    expect(() => rawPath`/a/${'%2e%2e;x'}/b`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value "%2e%2e;x" can\'t be safely passed as a path parameter\n' +
+        '/a/%2e%2e;x/b\n' +
+        '   ^^^^^^^^',
+    );
+    expect(() => rawPath`/a/${';x'}/b`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value ";x" can\'t be safely passed as a path parameter\n' +
+        '/a/;x/b\n' +
+        '   ^^',
+    );
 
     // Valid values
     expect(rawPath`/${0}`).toBe('/0');
-    expect(rawPath`/${''}`).toBe('/');
     expect(rawPath`/${numberObject}`).toBe('/0');
-    expect(rawPath`${stringObject}/`).toBe('/');
+    expect(rawPath`${stringObject}/`).toBe('s/');
+    expect(rawPath`/a?b=${''}`).toBe('/a?b=');
+    expect(rawPath`/a#${''}`).toBe('/a#');
+    expect(rawPath`/a?b=${'x'}&c=${''}`).toBe('/a?b=x&c=');
     expect(rawPath`/${classWithToString}`).toBe('/ok');
 
     // We need to check what happens with cross-realm values, which we might get from
@@ -108,7 +135,7 @@ describe('path template tag function', () => {
     const crossRealmObject = newRealm.Object();
     const crossRealmMathObject = newRealm.Math;
     const crossRealmNumber = new newRealm.Number();
-    const crossRealmString = new newRealm.String();
+    const crossRealmString = new newRealm.String('s');
     const crossRealmClass = new (class extends newRealm.Object {})();
     const crossRealmClassWithToString = new (class extends newRealm.Object {
       toString() {
@@ -138,7 +165,7 @@ describe('path template tag function', () => {
 
     // Valid cross-realm values
     expect(rawPath`/${crossRealmNumber}`).toBe('/0');
-    expect(rawPath`${crossRealmString}/`).toBe('/');
+    expect(rawPath`${crossRealmString}/`).toBe('s/');
     expect(rawPath`/${crossRealmClassWithToString}`).toBe('/ok');
 
     const results: {
@@ -159,8 +186,12 @@ describe('path template tag function', () => {
         const normalizedStringRaw = new URL(stringRaw, 'https://example.com').href;
         const normalizedPlainString = new URL(plainString, 'https://example.com').href;
         const pathResultsKey = JSON.stringify(params);
+        const hasEmptyPathParam = params.some(
+          (param, i) => param === '' && !/[?#]/.test(pathParts.slice(0, i + 1).join('')),
+        );
         try {
           const result = rawPath(pathParts, ...params);
+          expect(hasEmptyPathParam).toBe(false);
           expect(result).toBe(stringRaw);
           // there are no special segments, so the length of the normalized path is
           // equal to the length of the normalized plain path.
@@ -172,9 +203,10 @@ describe('path template tag function', () => {
         } catch (e) {
           const error = String(e);
           expect(error).toMatch(/Path parameters result in path with invalid segment/);
-          // there are special segments, so the length of the normalized path is
+          expect(error.includes('Value ""')).toBe(hasEmptyPathParam);
+          // any other error is for a special segment, so the length of the normalized path is
           // different than the length of the normalized plain path.
-          expect(normalizedStringRaw.length).not.toBe(normalizedPlainString.length);
+          expect(/Value "[^"]/.test(error)).toBe(normalizedStringRaw.length !== normalizedPlainString.length);
           pathResults[pathResultsKey] = {
             valid: false,
             error,
@@ -186,11 +218,18 @@ describe('path template tag function', () => {
     expect(results).toMatchObject({
       '["/path_params/","/a"]': {
         '["x"]': { valid: true, result: '/path_params/x/a' },
-        '[""]': { valid: true, result: '/path_params//a' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params//a\n' +
+            '             ^',
+        },
         '["%2E%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E%2e" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E%2e/a\n' +
             '             ^^^^^^',
@@ -198,7 +237,7 @@ describe('path template tag function', () => {
         '["%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E/a\n' +
             '             ^^^',
@@ -206,11 +245,18 @@ describe('path template tag function', () => {
       },
       '["/path_params/","/"]': {
         '["x"]': { valid: true, result: '/path_params/x/' },
-        '[""]': { valid: true, result: '/path_params//' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params//\n' +
+            '             ^',
+        },
         '["%2e%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2e%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2e%2E/\n' +
             '             ^^^^^^',
@@ -218,19 +264,26 @@ describe('path template tag function', () => {
         '["%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2e" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2e/\n' +
             '             ^^^',
         },
       },
       '["/path_params/",""]': {
-        '[""]': { valid: true, result: '/path_params/' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/\n' +
+            '             ^',
+        },
         '["x"]': { valid: true, result: '/path_params/x' },
         '["%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E\n' +
             '             ^^^',
@@ -238,25 +291,32 @@ describe('path template tag function', () => {
         '["%2E%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E%2e" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E%2e\n' +
             '             ^^^^^^',
         },
       },
       '["","/a"]': {
-        '[""]': { valid: true, result: '/a' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/a\n' +
+            '^',
+        },
         '["x"]': { valid: true, result: 'x/a' },
         '["%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E" can\'t be safely passed as a path parameter\n%2E/a\n^^^',
         },
         '["%2e%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2e%2E" can\'t be safely passed as a path parameter\n' +
             '%2e%2E/a\n' +
             '^^^^^^',
@@ -264,11 +324,18 @@ describe('path template tag function', () => {
       },
       '["","/"]': {
         '["x"]': { valid: true, result: 'x/' },
-        '[""]': { valid: true, result: '/' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/\n' +
+            '^',
+        },
         '["%2E%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E%2e" can\'t be safely passed as a path parameter\n' +
             '%2E%2e/\n' +
             '^^^^^^',
@@ -276,25 +343,32 @@ describe('path template tag function', () => {
         '["."]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "." can\'t be safely passed as a path parameter\n' +
             './\n^',
         },
       },
       '["",""]': {
-        '[""]': { valid: true, result: '' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '\n' +
+            '^',
+        },
         '["x"]': { valid: true, result: 'x' },
         '[".."]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value ".." can\'t be safely passed as a path parameter\n' +
             '..\n^^',
         },
         '["."]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "." can\'t be safely passed as a path parameter\n' +
             '.\n^',
         },
@@ -302,7 +376,14 @@ describe('path template tag function', () => {
       '["a"]': {},
       '[""]': {},
       '["/path_params/",":initiate"]': {
-        '[""]': { valid: true, result: '/path_params/:initiate' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/:initiate\n' +
+            '             ^',
+        },
         '["."]': { valid: true, result: '/path_params/.:initiate' },
       },
       '["/path_params/",".json"]': {
@@ -311,11 +392,18 @@ describe('path template tag function', () => {
       },
       '["/path_params/","?beta=true"]': {
         '["x"]': { valid: true, result: '/path_params/x?beta=true' },
-        '[""]': { valid: true, result: '/path_params/?beta=true' },
+        '[""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/?beta=true\n' +
+            '             ^',
+        },
         '["%2E%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E%2E?beta=true\n' +
             '             ^^^^^^',
@@ -323,7 +411,7 @@ describe('path template tag function', () => {
         '["%2e%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2e%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2e%2E?beta=true\n' +
             '             ^^^^^^',
@@ -335,7 +423,8 @@ describe('path template tag function', () => {
         '[""]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             'Value "." can\'t be safely passed as a path parameter\n' +
             '/path_params/.?beta=true\n' +
             '             ^',
@@ -343,19 +432,34 @@ describe('path template tag function', () => {
         '["%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2e." can\'t be safely passed as a path parameter\n' +
             '/path_params/%2e.?beta=true\n' +
             '             ^^^^',
         },
       },
       '["/path_params/","/","/download"]': {
-        '["",""]': { valid: true, result: '/path_params///download' },
-        '["","x"]': { valid: true, result: '/path_params//x/download' },
+        '["",""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params///download\n' +
+            '             ^^',
+        },
+        '["","x"]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params//x/download\n' +
+            '             ^',
+        },
         '[".","%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "." can\'t be safely passed as a path parameter\n' +
             'Value "%2e" can\'t be safely passed as a path parameter\n' +
             '/path_params/./%2e/download\n' +
@@ -364,7 +468,7 @@ describe('path template tag function', () => {
         '["%2E%2e","%2e"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E%2e" can\'t be safely passed as a path parameter\n' +
             'Value "%2e" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E%2e/%2e/download\n' +
@@ -372,7 +476,14 @@ describe('path template tag function', () => {
         },
       },
       '["/path_params/","-","/download"]': {
-        '["","%2e"]': { valid: true, result: '/path_params/-%2e/download' },
+        '["","%2e"]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/-%2e/download\n' +
+            '             ^',
+        },
         '["%2E",".."]': { valid: true, result: '/path_params/%2E-../download' },
       },
       '["/path_params/","","/download"]': {
@@ -381,7 +492,8 @@ describe('path template tag function', () => {
         '["","%2E"]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             'Value "%2E" can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E/download\n' +
             '             ^^^',
@@ -389,45 +501,92 @@ describe('path template tag function', () => {
         '["%2E","."]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
             'Value "%2E." can\'t be safely passed as a path parameter\n' +
             '/path_params/%2E./download\n' +
             '             ^^^^',
         },
       },
       '["/path_params/",".","/download"]': {
-        '["%2e%2e",""]': { valid: true, result: '/path_params/%2e%2e./download' },
-        '["","%2e%2e"]': { valid: true, result: '/path_params/.%2e%2e/download' },
+        '["%2e%2e",""]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/%2e%2e./download\n' +
+            '                    ^',
+        },
+        '["","%2e%2e"]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/.%2e%2e/download\n' +
+            '             ^',
+        },
         '["",""]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             'Value "." can\'t be safely passed as a path parameter\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             '/path_params/./download\n' +
-            '             ^',
+            '             ^^',
         },
         '["","."]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             'Value ".." can\'t be safely passed as a path parameter\n' +
             '/path_params/../download\n' +
             '             ^^',
         },
       },
       '["/path_params/","..","/download"]': {
-        '["","%2E"]': { valid: true, result: '/path_params/..%2E/download' },
-        '["","x"]': { valid: true, result: '/path_params/..x/download' },
+        '["","%2E"]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/..%2E/download\n' +
+            '             ^',
+        },
+        '["","x"]': {
+          valid: false,
+          error:
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
+            '/path_params/..x/download\n' +
+            '             ^',
+        },
         '["",""]': {
           valid: false,
           error:
-            'Error: Path parameters result in path with invalid segments:\n' +
+            'AnthropicError: Path parameters result in path with invalid segments:\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             'Value ".." can\'t be safely passed as a path parameter\n' +
+            'Value "" can\'t be safely passed as a path parameter\n' +
             '/path_params/../download\n' +
-            '             ^^',
+            '             ^^^',
         },
       },
     });
+  });
+
+  test.each(['..;x', '.;x', '..;', ';x', ';'])('rejects %j', (param) => {
+    expect(() => path`/path_params/${param}`).toThrow(
+      `Value "${param}" can't be safely passed as a path parameter`,
+    );
+  });
+
+  test.each([
+    ['a;b', '/path_params/a;b'],
+    ['...;x', '/path_params/...;x'],
+    ['a;', '/path_params/a;'],
+  ])('accepts %j', (param, expected) => {
+    expect(path`/path_params/${param}`).toBe(expected);
   });
 });
 

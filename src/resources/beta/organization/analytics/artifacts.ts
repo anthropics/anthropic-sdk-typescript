@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsArtifactActivitiesPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Artifacts extends APIResource {
   /**
@@ -28,9 +29,17 @@ export class Artifacts extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsArtifactActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsArtifactActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/artifacts?beta=true',
+      '/v1/organizations/analytics/artifacts',
       PageCursor<AnalyticsAPI.BetaAnalyticsArtifactActivity>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.artifacts.list', options, {
+          route: '/v1/organizations/analytics/artifacts',
+          queryParams: ['date', 'filter', 'group_by', 'limit', 'page'],
+        }),
+      },
     );
   }
 }
@@ -50,12 +59,14 @@ export interface ArtifactListParams extends PageCursorParams {
    * dimensions on this endpoint: `artifact_type`, `is_shared`, `product`,
    * `rbac_group_id`, `user_id`. Value forms: `artifact_type` is a canonical artifact
    * MIME type (e.g. `text/markdown`) or `other`; `is_shared` is `true` or `false`;
-   * `product` is `chat`, `claude_code`, or `cowork` (the surfaces that create
-   * artifacts); `rbac_group_id` takes the tagged id (`rbac_group_...`, as emitted in
-   * responses and by the spend-limits API) or a bare group UUID, and matches users
-   * who held the group at any point during each covered UTC day (time-of-usage
-   * attribution); `user_id` takes a tagged user id (`user_...`), as emitted in
-   * responses. An unsupported dimension returns 400. At most 100 entries.
+   * `product` is `chat_cowork_unified`, `chat`, `claude_code`, or `cowork` (the
+   * surfaces that create artifacts); `rbac_group_id` takes the tagged id
+   * (`rbac_group_...`, as emitted in responses and by the spend-limits API) or a
+   * bare group UUID, and matches users who held the group at any point during each
+   * covered UTC day (time-of-usage attribution); `user_id` takes a tagged user id
+   * (`user_...`), as emitted in responses. An unsupported dimension returns 400. At
+   * most 100 entries. `chat_cowork_unified` is accepted as a `product` value only
+   * where Chat and Cowork unified is available.
    */
   filter?: Array<string> | null;
 
@@ -63,12 +74,12 @@ export interface ArtifactListParams extends PageCursorParams {
    * Dimensions to break results out by: `product`, `user_id` and/or `rbac_group_id`.
    * The ungrouped artifact-type cube is finite and returned in full; grouped queries
    * multiply the cube and paginate via `next_page`. `product` takes the values
-   * `chat`, `claude_code`, or `cowork` (the surfaces that create artifacts).
-   * `rbac_group_id` attributes a user to every group they held at any point during
-   * the requested UTC day, so grouped rows are not an exclusive partition. At most
-   * 100 entries.
+   * `chat_cowork_unified`, `chat`, `claude_code`, or `cowork` (the surfaces that
+   * create artifacts). `rbac_group_id` attributes a user to every group they held at
+   * any point during the requested UTC day, so grouped rows are not an exclusive
+   * partition. At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsArtifactGroupBy> | null;
 }
 
 export declare namespace Artifacts {

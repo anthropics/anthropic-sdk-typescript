@@ -20,7 +20,8 @@ const MODELS = ['mock-model-3', 'mock-model-2', 'mock-model-1'].map((id, i) => (
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': '*',
-  'access-control-allow-headers': '*',
+  // The wildcard does not cover `authorization`.
+  'access-control-allow-headers': '*, authorization',
   'access-control-expose-headers': '*',
 };
 
@@ -76,8 +77,11 @@ function message(model, content, stop_reason, output_tokens) {
 /** Returns [status, problem] for the first header the SDK got wrong. */
 function headerProblem(req, url) {
   const h = req.headers;
-  if (h['x-api-key'] !== EXPECTED_API_KEY && h['authorization'] !== `Bearer ${EXPECTED_API_KEY}`) {
-    return [401, `expected x-api-key: ${EXPECTED_API_KEY}, got ${JSON.stringify(h['x-api-key'])}`];
+  if (h['authorization'] !== `Bearer ${EXPECTED_API_KEY}`) {
+    return [
+      401,
+      `expected authorization: Bearer ${EXPECTED_API_KEY}, got ${JSON.stringify(h['authorization'])}`,
+    ];
   }
   if (!h['anthropic-version']) return [400, 'missing anthropic-version header'];
   if (!h['user-agent']) return [400, 'missing user-agent header'];

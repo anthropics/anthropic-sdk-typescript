@@ -23,12 +23,74 @@ import {
   Versions,
 } from './versions';
 import { APIPromise } from '../../../../core/api-promise';
+import { BadRequestError, ConflictError, ServiceUnavailableError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
+ */
+export class BetaScanFailedError extends BadRequestError {
+  declare readonly errorCode: 'scan_failed';
+  declare readonly details: BetaScanFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanFailedError';
+}
+
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export class BetaPluginNameTakenError extends ConflictError {
+  declare readonly errorCode: 'plugin_name_taken';
+  declare readonly details: BetaPluginNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaPluginNameTakenError';
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export class BetaScanPendingError extends ConflictError {
+  declare readonly errorCode: 'scan_pending';
+  declare readonly details: BetaScanPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanPendingError';
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export class BetaSkillNameTakenError extends ConflictError {
+  declare readonly errorCode: 'skill_name_taken';
+  declare readonly details: BetaSkillNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSkillNameTakenError';
+}
+
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export class BetaRegistrationPendingError extends ServiceUnavailableError {
+  declare readonly errorCode: 'registration_pending';
+  declare readonly details: BetaRegistrationPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRegistrationPendingError';
+}
 
 export class Plugins extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
@@ -74,6 +136,13 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaUnsupportedCharsetError}
+   * @throws {BetaPluginNameTakenError}
+   * @throws {BetaSkillNameTakenError}
+   * @throws {BetaRegistrationPendingError}
+   *
    * @example
    * ```ts
    * const betaPlugin =
@@ -85,7 +154,7 @@ export class Plugins extends APIResource {
   create(params: PluginCreateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
     return this._client.post(
-      '/v1/organizations/plugins?beta=true',
+      '/v1/organizations/plugins',
       multipartFormRequestOptions(
         {
           body,
@@ -94,6 +163,11 @@ export class Plugins extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
+          __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.create', options, {
+            route: '/v1/organizations/plugins',
+            createdIDAttribute: 'anthropic.organization.plugin.id',
+          }),
         },
         this._client,
       ),
@@ -128,13 +202,19 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugins/${pluginID}`, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.retrieve', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        queryParams: ['organization_id'],
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 
@@ -149,15 +229,18 @@ export class Plugins extends APIResource {
    * already served to pin it without changing what is served. No new version is
    * created.
    *
-   * When the organization has content scanning enabled, a version whose scan is
-   * still running is refused with a 409 (`error_code` `scan_pending`; retry once the
-   * scan finishes) and one whose scan failed, errored or reached no verdict with a
-   * 400 (`scan_failed`; a `warn` is accepted). When the Plugin is in the
-   * organization's library marketplace, a version other than the one served is also
-   * refused with a 409 when one of its skills has a name that an organization skill
-   * (one an administrator uploaded for the whole organization in claude.ai) has
-   * since taken: `error_code` `skill_name_taken`, with that name in
-   * `details.skill_name`. A member-owned Plugin cannot be updated here (403).
+   * When the organization has content scanning enabled, a version whose
+   * `content_scan.status` is `processing` is refused with a 409 (`error_code`
+   * `scan_pending`; retry once the scan finishes). A version whose
+   * `content_scan.status` is `errored`, or whose `content_scan.assessment` is `fail`
+   * or `unknown`, is refused with a 400 (`error_code` `scan_failed`); a `warn` is
+   * accepted. If the scan outcome cannot be read at that moment, the request fails
+   * with a retryable 503 instead. When the Plugin is in the organization's library
+   * marketplace, a version other than the one served is also refused with a 409 when
+   * one of its skills has a name that an organization skill (one an administrator
+   * uploaded for the whole organization in claude.ai) has since taken: `error_code`
+   * `skill_name_taken`, with that name in `details.skill_name`. A member-owned
+   * Plugin cannot be updated here (403).
    *
    * This endpoint does not write installation settings; they are written at
    * `/v1/organizations/plugins/{plugin_id}/installation_settings/{target}`.
@@ -170,6 +253,12 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaScanFailedError}
+   * @throws {BetaScanPendingError}
+   * @throws {BetaSkillNameTakenError}
    *
    * @example
    * ```ts
@@ -185,13 +274,18 @@ export class Plugins extends APIResource {
    */
   update(pluginID: string, params: PluginUpdateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/plugins/${pluginID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.update', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 
@@ -229,13 +323,29 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaPluginsPageCursor, BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/organizations/plugins?beta=true', PageCursor<BetaPlugin>, {
+    return this._client.getAPIList('/v1/organizations/plugins', PageCursor<BetaPlugin>, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.list', options, {
+        route: '/v1/organizations/plugins',
+        queryParams: [
+          'created_at[gt]',
+          'created_at[gte]',
+          'created_at[lt]',
+          'created_at[lte]',
+          'limit',
+          'marketplace_id',
+          'organization_id',
+          'owner_type',
+          'owner_user_id',
+          'page',
+        ],
+      }),
     });
   }
 
@@ -262,6 +372,8 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError}
+   *
    * @example
    * ```ts
    * const betaDeletedPlugin =
@@ -276,12 +388,17 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedPlugin> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/plugins/${pluginID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.delete', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 }
@@ -342,7 +459,8 @@ export interface BetaPlugin {
   latest_version_id: string;
 
   /**
-   * The version string the served version's manifest declares.
+   * The served version's manifest `version`, normalized for display, or `null` (the
+   * Plugin Version's `manifest_version` says how and when).
    */
   manifest_version: string | null;
 
@@ -381,9 +499,24 @@ export interface BetaPlugin {
   owner: BetaPluginOwnerOrganization | BetaPluginOwnerUser;
 
   /**
-   * How far the served version reaches: `remote` when it declares an MCP server or a
-   * CLI, `privileged` when it declares a hook, monitor, language server or settings
-   * but nothing remote, `contained` otherwise; null when not classifiable.
+   * How far the served version reaches, or `null` if it is not classified.
+   *
+   * `remote` means it declares an MCP server or a CLI, or something that counts as
+   * one. `privileged` means it is not `remote`, but declares a hook (of any type,
+   * even one that posts to a URL), monitor, language server, Claude Code workflow
+   * (any file in a `workflows/` folder at its root counts as one), or settings, or
+   * has a skill, command, or other Markdown file whose frontmatter pre-approves
+   * tools (`allowed-tools` with any value other than an empty one or one that names
+   * only `AskUserQuestion`, `TodoWrite`, and `ToolSearch`). Otherwise it is
+   * `contained`.
+   *
+   * If the frontmatter of a skill, command, or other Markdown file that could change
+   * the value could not be read, or was past a size limit, the version is `null` or
+   * `privileged` (or `remote`, if something else it declares makes it `remote`), not
+   * `contained`. The value is normally worked out when a version is stored, under
+   * the rules of that time, so an older version can be `null`, `contained` where the
+   * same files stored today would be `privileged`, `remote`, or `null`, or
+   * `privileged` where they would be `remote`.
    */
   reach: 'contained' | 'privileged' | 'remote' | null;
 
@@ -393,8 +526,11 @@ export interface BetaPlugin {
   served_version_id: string;
 
   /**
-   * False while the served version follows each new version; true once it has been
-   * pinned to one.
+   * True once the served version has been pinned, through Update Plugin or in
+   * claude.ai. While false, a new version normally becomes the served version when
+   * it is stored. While the newest version is not the served version, as when a
+   * version saved in claude.ai is waiting for its content scan, `served_version_id`
+   * differs from `latest_version_id`.
    */
   served_version_pinned: boolean;
 
@@ -404,8 +540,11 @@ export interface BetaPlugin {
   type: 'plugin';
 
   /**
-   * RFC 3339. Moves on a new version and on a served-version change; a change to the
-   * Plugin's installation settings or shares does not move it.
+   * RFC 3339. Moves on a served-version change (including pinning an unpinned Plugin
+   * to the version it already serves) and, normally, on a new version. A version
+   * saved in claude.ai that waits for its content scan moves it when it becomes the
+   * served version, and not necessarily when it is stored. A change to the Plugin's
+   * installation settings or shares does not move it.
    */
   updated_at: string;
 }
@@ -443,7 +582,8 @@ export interface BetaPluginComponent {
 
 export interface BetaPluginContentScan {
   /**
-   * The scan's verdict; set only when `status` is `completed`.
+   * The scan's verdict; set only when `status` is `completed`. A `warn` can mean a
+   * `fail` that was allowed in claude.ai.
    */
   assessment: 'fail' | 'pass' | 'unknown' | 'warn' | null;
 
@@ -457,9 +597,21 @@ export interface BetaPluginContentScan {
 
   /**
    * `processing` while a scan runs, `completed` when it ran to completion, `errored`
-   * when it could not run or its outcome cannot be read.
+   * when it could not run. Once a scan of the version has completed, `content_scan`
+   * describes the newest completed scan, even while a later scan runs. While the
+   * scan outcome cannot be read, `status` is `errored` instead.
    */
   status: 'completed' | 'errored' | 'processing';
+}
+
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export interface BetaPluginNameTakenErrorDetails {
+  error_code: 'plugin_name_taken';
+
+  plugin_id?: string | null;
 }
 
 export interface BetaPluginOwnerOrganization {
@@ -528,6 +680,48 @@ export interface BetaPluginUserActor {
    * The member's User ID.
    */
   user_id: string;
+}
+
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export interface BetaRegistrationPendingErrorDetails {
+  error_code: 'registration_pending';
+
+  plugin_id: string;
+
+  plugin_version_id: string;
+}
+
+/**
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
+ */
+export interface BetaScanFailedErrorDetails {
+  error_code: 'scan_failed';
+
+  plugin_version_id: string;
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export interface BetaScanPendingErrorDetails {
+  error_code: 'scan_pending';
+
+  plugin_version_id: string;
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export interface BetaSkillNameTakenErrorDetails {
+  error_code: 'skill_name_taken';
+
+  skill_name: string;
 }
 
 export interface PluginCreateParams {
@@ -660,23 +854,38 @@ export interface PluginDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+Plugins.BetaScanFailedError = BetaScanFailedError;
+Plugins.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Plugins.BetaScanPendingError = BetaScanPendingError;
+Plugins.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Plugins.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Plugins.Versions = Versions;
 Plugins.InstallationSettings = InstallationSettings;
 Plugins.Shares = Shares;
 
 export declare namespace Plugins {
   export {
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,

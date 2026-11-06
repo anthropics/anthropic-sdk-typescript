@@ -1,3 +1,4 @@
+import type { Span } from '@opentelemetry/api';
 import { AnthropicError, APIError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type { BetaSelfHostedWork, BetaWorkSecret } from '../../resources/beta/environments/work';
@@ -10,11 +11,13 @@ import { isFatal4xx, isStatus } from '../../internal/utils/backoff';
 import { linkAbort } from '../../internal/utils/abort';
 import { isObj } from '../../internal/utils/values';
 import { buildHeaders } from '../../internal/headers';
+import { guardTracing } from '../../internal/tracing';
 import type { BetaRunnableTool } from '../tools/BetaRunnableTool';
 import type { BetaToolRunnerRequestOptions } from '../tools/BetaToolRunner';
 import { SessionToolRunner } from '../tools/SessionToolRunner';
 import { WorkPoller } from './poller';
 import { copyClientForHelper } from '../helper-client';
+import { withEnvironmentWorkSpan } from '../internal/tracing';
 // `tools/agent-toolset/node` is Node-only (node:child_process, node:fs, …).
 // Only the type is imported statically (erased at build); the module's values
 // (`setupSkills`, `betaAgentToolset20260401`) are loaded lazily inside the
@@ -108,7 +111,7 @@ export interface EnvironmentWorkerOptions {
   signal?: AbortSignal;
   /**
    * Extra per-request options merged into every call this worker issues — the
-   * work poll/ack/heartbeat/stop control-plane calls and the per-session
+   * work poll/ack/heartbeat/stop calls and the per-session
    * SessionToolRunner's stream/list/send. Mirrors what
    * `client.beta.messages.toolRunner` accepts: custom `headers` (e.g. a proxy's
    * auth/routing headers) reach all of them. The worker owns the abort signals,
@@ -195,8 +198,8 @@ export function sessionsTokenFromSecret(secret: string | null | undefined): stri
 }
 
 /**
- * The self-hosted environment runner, composed from the control-plane
- * {@link WorkPoller} and the per-session {@link SessionToolRunner}.
+ * The self-hosted environment runner, composed from the {@link WorkPoller}
+ * and the per-session {@link SessionToolRunner}.
  *
  * For each claimed `session` work item it: builds the per-session
  * {@link AgentToolContext}, downloads the session agent's skills
@@ -307,8 +310,11 @@ export class EnvironmentWorker {
     });
 
     for await (const work of poller) {
+      const workSpan = poller._workSpan;
       try {
-        await this.#handleItem(work, environmentKey, poller.signal);
+        await withEnvironmentWorkSpan(this.client, workSpan, poller.signal, () =>
+          this.#handleItem(work, environmentKey, poller.signal, workSpan),
+        );
       } catch (e) {
         // One bad item fails that item, not the worker: the handler's teardown
         // already stopped or released it, so the next poll claims the next
@@ -326,7 +332,7 @@ export class EnvironmentWorker {
    * download the session agent's skills (`setupSkills`), run a
    * {@link SessionToolRunner} for the session while heartbeating the work-item
    * lease, and force-stop the work item on exit (whether the runner finishes
-   * normally, throws, or the control plane signals shutdown). The one
+   * normally, throws, or the API signals shutdown). The one
    * exception is a lost lease: the item then belongs to the queue or another
    * worker and is left alone.
    *
@@ -405,6 +411,7 @@ export class EnvironmentWorker {
     work: ClaimedWork,
     environmentKey: string | undefined,
     externalSignal: AbortSignal | undefined,
+    workSpan?: Span,
   ): Promise<void> {
     const log = loggerFor(this.client);
     // The per-item credential: the sessions token carried inside the work
@@ -431,9 +438,8 @@ export class EnvironmentWorker {
     // lease heartbeat, the skill download, and the work force-stop —
     // authenticates with the per-item credential. Scope a client to it once and
     // thread that through. `copyClientForHelper` also clears the parent's
-    // `apiKey`, so the sub-client emits *only* the bearer credential on the
-    // wire (a plain `withOptions({authToken})` would leave `X-Api-Key` set as
-    // well).
+    // `apiKey`, so the sub-client emits *only* the per-item credential on the
+    // wire.
     const sessionClient = copyClientForHelper(this.client, {
       authToken: itemCredential,
       helper: 'environments-worker',
@@ -603,6 +609,8 @@ export class EnvironmentWorker {
       } else {
         await forceStop(sessionClient, work, log, this.requestOptions);
       }
+      // The worker no longer holds the item, so it neither finished with it nor failed: no status.
+      if (lease.lost || lease.rejected) guardTracing(this.client, () => workSpan?.end());
     }
   }
 }
@@ -652,12 +660,7 @@ async function forceStop(
 }
 
 /** Why heartbeating of a work item ended, as recorded on its {@link Lease}. */
-type LeaseEndReason =
-  | 'runner_done'
-  | 'control_plane_stop'
-  | 'lease_lost'
-  | 'heartbeat_rejected'
-  | 'assumed_lost';
+type LeaseEndReason = 'runner_done' | 'heartbeat_stop' | 'lease_lost' | 'heartbeat_rejected' | 'assumed_lost';
 
 /**
  * This worker's view of one work-item lease: the per-item abort signal plus
@@ -686,6 +689,11 @@ class Lease {
   get lost(): boolean {
     return this.#endReason === 'lease_lost' || this.#endReason === 'assumed_lost';
   }
+
+  /** True once the API rejected a heartbeat for good, so the worker cannot keep the lease. */
+  get rejected(): boolean {
+    return this.#endReason === 'heartbeat_rejected';
+  }
 }
 
 /** The server's view of the lease carried by a 412 heartbeat response, or empty if absent. */
@@ -700,7 +708,7 @@ function serverLeaseState(e: unknown): Record<string, unknown> {
 
 /**
  * Keep the work-item lease alive while a session is being served. Runs until
- * `lease` ends, and ends it itself when the control plane reports the work is
+ * `lease` ends, and ends it itself when the API reports the work is
  * `stopping`/`stopped` or no longer extends the lease, when a heartbeat is
  * rejected (a 412 means the lease already belongs to someone else), or when no
  * heartbeat has succeeded for longer than the lease ttl (the lease is assumed
@@ -742,11 +750,11 @@ async function heartbeatLoop(
       }
       if (resp.state === 'stopping' || resp.state === 'stopped') {
         logger.info('heartbeat signals shutdown', { work_id: work.id, state: resp.state });
-        lease.finish('control_plane_stop');
+        lease.finish('heartbeat_stop');
       }
       if (!resp.lease_extended) {
         logger.warn('lease not extended, shutting down', { work_id: work.id });
-        lease.finish('control_plane_stop');
+        lease.finish('heartbeat_stop');
       }
     } catch (e) {
       // An abort throws to unwind the caller (the `heartbeatLoop(...).catch`

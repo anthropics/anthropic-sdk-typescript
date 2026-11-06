@@ -28,6 +28,7 @@ describe('resource workspaces', () => {
       display_color: '#6C5BB9',
       external_key_id: 'ekey_01SDCCSbTxrXDpWc1phhtcfK',
       tags: { env: 'prod', team: 'platform' },
+      user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
     });
   });
 
@@ -71,7 +72,9 @@ describe('resource workspaces', () => {
         {
           after_id: 'after_id',
           before_id: 'before_id',
+          ids: ['string'],
           include_archived: true,
+          include_default: true,
           limit: 1,
         },
         { path: '/_stainless_unknown_path' },

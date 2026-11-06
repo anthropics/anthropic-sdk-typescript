@@ -1,9 +1,59 @@
 import { APIResource } from '../../core/resource';
 import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The email address already belongs to a user in the organization. The message
+ * names the user.
+ */
+export class AlreadyMemberError extends BadRequestError {
+  declare readonly errorCode: 'already_member';
+  declare readonly details: AlreadyMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'AlreadyMemberError';
+}
+
+/**
+ * The email address's domain is not one of the verified domains of the
+ * organization's parent organization.
+ */
+export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestError {
+  declare readonly errorCode: 'cannot_invite_emails_with_unverified_domains';
+  declare readonly details: CannotInviteEmailsWithUnverifiedDomainsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotInviteEmailsWithUnverifiedDomainsError';
+}
+
+/**
+ * The organization restricts invites to an allowed list of email domains, and the
+ * list is empty or does not include the email address's domain.
+ */
+export class EmailDomainNotAllowedError extends BadRequestError {
+  declare readonly errorCode: 'email_domain_not_allowed';
+  declare readonly details: EmailDomainNotAllowedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'EmailDomainNotAllowedError';
+}
+
+/**
+ * A pending invite already exists for the email address. The message names the
+ * invite.
+ */
+export class InviteAlreadyExistsError extends BadRequestError {
+  declare readonly errorCode: 'invite_already_exists';
+  declare readonly details: InviteAlreadyExistsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'InviteAlreadyExistsError';
+}
 
 export class Invites extends APIResource {
   /**
@@ -13,6 +63,14 @@ export class Invites extends APIResource {
    * automatically consumes a seat from the lowest tier with availability; there is
    * no seat-tier parameter. When no seat is free the request fails with a 400 error
    * rather than purchasing a seat.
+   *
+   * @throws {AlreadyMemberError}
+   * @throws {CannotInviteEmailsWithUnverifiedDomainsError}
+   * @throws {EmailDomainNotAllowedError}
+   * @throws {InviteAlreadyExistsError}
+   * @throws {OrgMemberLimitExceededError}
+   * @throws {RBACGroupGrantsOwnerAccessError}
+   * @throws {RBACGroupOwnerAccessUnconfirmedError}
    *
    * @example
    * ```ts
@@ -24,7 +82,14 @@ export class Invites extends APIResource {
    * ```
    */
   create(body: InviteCreateParams, options?: RequestOptions): APIPromise<OrganizationInvite> {
-    return this._client.post('/v1/organizations/invites', { body, ...options });
+    return this._client.post('/v1/organizations/invites', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.create', options, {
+        route: '/v1/organizations/invites',
+        createdIDAttribute: 'anthropic.organization.invite.id',
+      }),
+    });
   }
 
   /**
@@ -37,7 +102,13 @@ export class Invites extends APIResource {
    * ```
    */
   retrieve(inviteID: string, options?: RequestOptions): APIPromise<OrganizationInvite> {
-    return this._client.get(path`/v1/organizations/invites/${inviteID}`, options);
+    return this._client.get(path`/v1/organizations/invites/${inviteID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.retrieve', options, {
+        route: '/v1/organizations/invites/{invite_id}',
+        attributes: { 'anthropic.organization.invite.id': inviteID },
+      }),
+    });
   }
 
   /**
@@ -58,6 +129,10 @@ export class Invites extends APIResource {
     return this._client.getAPIList('/v1/organizations/invites', Page<OrganizationInvite>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.list', options, {
+        route: '/v1/organizations/invites',
+        queryParams: ['after_id', 'before_id', 'email', 'limit', 'roles', 'statuses'],
+      }),
     });
   }
 
@@ -72,11 +147,49 @@ export class Invites extends APIResource {
    * ```
    */
   delete(inviteID: string, options?: RequestOptions): APIPromise<InviteDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/invites/${inviteID}`, options);
+    return this._client.delete(path`/v1/organizations/invites/${inviteID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.delete', options, {
+        route: '/v1/organizations/invites/{invite_id}',
+        attributes: { 'anthropic.organization.invite.id': inviteID },
+      }),
+    });
   }
 }
 
 export type OrganizationInvitesPage = Page<OrganizationInvite>;
+
+/**
+ * The email address already belongs to a user in the organization. The message
+ * names the user.
+ */
+export interface AlreadyMemberErrorDetails {
+  error_code: 'already_member';
+}
+
+/**
+ * The email address's domain is not one of the verified domains of the
+ * organization's parent organization.
+ */
+export interface CannotInviteEmailsWithUnverifiedDomainsErrorDetails {
+  error_code: 'cannot_invite_emails_with_unverified_domains';
+}
+
+/**
+ * The organization restricts invites to an allowed list of email domains, and the
+ * list is empty or does not include the email address's domain.
+ */
+export interface EmailDomainNotAllowedErrorDetails {
+  error_code: 'email_domain_not_allowed';
+}
+
+/**
+ * A pending invite already exists for the email address. The message names the
+ * invite.
+ */
+export interface InviteAlreadyExistsErrorDetails {
+  error_code: 'invite_already_exists';
+}
 
 export interface OrganizationInvite {
   /**
@@ -154,7 +267,8 @@ export interface InviteCreateParams {
    * The accepted values depend on the organization type. Console and API
    * organizations accept `user`, `developer`, `billing`, and `claude_code_user`;
    * `admin` cannot be assigned through the API. Claude Enterprise organizations
-   * accept `user` and `managed`.
+   * accept `user` and `managed`; inviting with the `managed` role requires the
+   * `write:rbac_groups` scope in addition to `write:members`.
    */
   role: 'billing' | 'claude_code_user' | 'developer' | 'managed' | 'user';
 
@@ -191,8 +305,21 @@ export interface InviteListParams extends PageParams {
   statuses?: Array<'accepted' | 'expired' | 'pending'>;
 }
 
+Invites.AlreadyMemberError = AlreadyMemberError;
+Invites.CannotInviteEmailsWithUnverifiedDomainsError = CannotInviteEmailsWithUnverifiedDomainsError;
+Invites.EmailDomainNotAllowedError = EmailDomainNotAllowedError;
+Invites.InviteAlreadyExistsError = InviteAlreadyExistsError;
+
 export declare namespace Invites {
   export {
+    AlreadyMemberError as AlreadyMemberError,
+    CannotInviteEmailsWithUnverifiedDomainsError as CannotInviteEmailsWithUnverifiedDomainsError,
+    EmailDomainNotAllowedError as EmailDomainNotAllowedError,
+    InviteAlreadyExistsError as InviteAlreadyExistsError,
+    type AlreadyMemberErrorDetails as AlreadyMemberErrorDetails,
+    type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
+    type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,
+    type InviteAlreadyExistsErrorDetails as InviteAlreadyExistsErrorDetails,
     type OrganizationInvite as OrganizationInvite,
     type InviteDeleteResponse as InviteDeleteResponse,
     type OrganizationInvitesPage as OrganizationInvitesPage,

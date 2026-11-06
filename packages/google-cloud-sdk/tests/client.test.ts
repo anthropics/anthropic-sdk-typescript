@@ -33,6 +33,8 @@ const getRequestHeaders = (): Headers => {
   return options.headers as Headers;
 };
 
+const requestedURLs = (): string[] => mockFetch.mock.calls.map(([url]) => url);
+
 describe('AnthropicGoogleCloud', () => {
   const originalEnv = process.env;
 
@@ -74,7 +76,7 @@ describe('AnthropicGoogleCloud', () => {
       });
 
       expect(client.baseURL).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke',
       );
     });
 
@@ -86,7 +88,7 @@ describe('AnthropicGoogleCloud', () => {
 
       expect(client.location).toBe('global');
       expect(client.baseURL).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/my-project/locations/global/workspaces/wrkspc_test/invoke',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/global/workspaces/wrkspc_test/invoke',
       );
     });
 
@@ -98,6 +100,92 @@ describe('AnthropicGoogleCloud', () => {
 
       expect(client.baseURL).toBe('https://my-gateway.example.com');
     });
+
+    const options = {
+      project: 'my-project',
+      location: 'us-central1',
+      workspaceId: 'wrkspc_test',
+      bearerTokenProvider: async () => 'my-google-token',
+      maxRetries: 0,
+    };
+
+    test.each([
+      { project: 'my-project', location: 'global' },
+      { project: 'example.com:my-project', location: 'us-central1' },
+    ])('project $project and location $location are sent as they are', async ({ project, location }) => {
+      const client = new AnthropicGoogleCloud({
+        ...options,
+        project,
+        location,
+        workspaceId: 'wrkspc_01AbCdEf',
+      });
+
+      await makeRequest(client);
+      await client.beta.organization.workspaces.list();
+
+      const locationURL = `https://claude.googleapis.com/v1/projects/${project}/locations/${location}`;
+      expect(requestedURLs()).toEqual([
+        `${locationURL}/workspaces/wrkspc_01AbCdEf/invoke/v1/messages`,
+        `${locationURL}/claudeOrganization/invoke/v1/organizations/workspaces`,
+      ]);
+    });
+
+    test.each([
+      { name: 'project', override: { project: 'a/b' }, sent: 'projects/a%2Fb/locations/us-central1' },
+      { name: 'location', override: { location: 'a/b' }, sent: 'projects/my-project/locations/a%2Fb' },
+    ])('a "/" in the $name is sent as %2F', async ({ override, sent }) => {
+      const client = new AnthropicGoogleCloud({ ...options, ...override });
+
+      await makeRequest(client);
+      await client.beta.organization.workspaces.list();
+
+      const locationURL = `https://claude.googleapis.com/v1/${sent}`;
+      expect(requestedURLs()).toEqual([
+        `${locationURL}/workspaces/wrkspc_test/invoke/v1/messages`,
+        `${locationURL}/claudeOrganization/invoke/v1/organizations/workspaces`,
+      ]);
+    });
+
+    test('a "/" in the workspace ID is sent as %2F', async () => {
+      const client = new AnthropicGoogleCloud({ ...options, workspaceId: 'a/b' });
+
+      await makeRequest(client);
+
+      expect(requestedURLs()).toEqual([
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/a%2Fb/invoke/v1/messages',
+      ]);
+    });
+
+    test.each(
+      ['.', '..'].flatMap((value) => [
+        { name: 'project', value, override: { project: value } },
+        { name: 'project with no workspace ID', value, override: { project: value, workspaceId: undefined } },
+        { name: 'location', value, override: { location: value } },
+        { name: 'workspace ID', value, override: { workspaceId: value } },
+      ]),
+    )('a $name of $value throws from the constructor', ({ value, override }) => {
+      expect(() => new AnthropicGoogleCloud({ ...options, ...override })).toThrow(
+        `Value "${value}" can't be safely passed as a path parameter`,
+      );
+    });
+
+    test.each([
+      { name: 'resolved project', resolved: '..', override: {} },
+      { name: 'location', resolved: 'adc-project', override: { location: '..' } },
+      { name: 'workspace ID', resolved: 'adc-project', override: { workspaceId: '..' } },
+    ])(
+      'when the project is resolved lazily, a $name of ".." rejects ready and the first request',
+      async ({ resolved, override }) => {
+        const getProjectIdSpy: MockInstance = vi.spyOn(GoogleAuth.prototype, 'getProjectId');
+        getProjectIdSpy.mockResolvedValue(resolved);
+        const client = new AnthropicGoogleCloud({ ...options, project: undefined, ...override });
+
+        const message = 'Value ".." can\'t be safely passed as a path parameter';
+        await expect(client.ready).rejects.toThrow(message);
+        await expect(makeRequest(client)).rejects.toThrow(message);
+        expect(mockFetch).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('environment resolution', () => {
@@ -171,9 +259,9 @@ describe('AnthropicGoogleCloud', () => {
       process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID'] = '';
       process.env['GOOGLE_CLOUD_PROJECT'] = '';
 
-      expect(() => new AnthropicGoogleCloud({ project: 'my-project', location: 'us-central1' })).toThrow(
-        'No workspace ID found',
-      );
+      expect(
+        new AnthropicGoogleCloud({ project: 'my-project', location: 'us-central1' }).workspaceId,
+      ).toBeUndefined();
 
       const client = new AnthropicGoogleCloud({
         project: 'my-project',
@@ -194,24 +282,14 @@ describe('AnthropicGoogleCloud', () => {
       ).toThrow('No project was given');
     });
 
-    test('throws when workspaceId is missing and skipAuth is not set', () => {
-      expect(() => new AnthropicGoogleCloud({ project: 'my-project', location: 'us-central1' })).toThrow(
-        'No workspace ID found',
-      );
-    });
+    test.each([
+      ['a derived URL', { project: 'my-project' }],
+      ['a derived URL and skipAuth', { project: 'my-project', skipAuth: true }],
+      ['an explicit baseURL', { baseURL: 'https://gw.example.com' }],
+    ])('does not require a workspace ID to construct with %s', (_, options) => {
+      const client = new AnthropicGoogleCloud(options);
 
-    test('throws when skipAuth derivation has no workspaceId', () => {
-      // The workspace ID is part of the derived base URL, so skipAuth alone no
-      // longer waives it — only an explicit baseURL does.
-      let error: Error | undefined;
-      try {
-        new AnthropicGoogleCloud({ project: 'my-project', skipAuth: true });
-      } catch (e) {
-        error = e as Error;
-      }
-      expect(error?.message).toContain('No workspace ID found');
-      expect(error?.message).toContain('workspaceId');
-      expect(error?.message).toContain('ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID');
+      expect(client.workspaceId).toBeUndefined();
     });
 
     test('throws when both authClient and googleAuth are given', () => {
@@ -278,7 +356,7 @@ describe('AnthropicGoogleCloud', () => {
       expect(client.project).toBe('adc-project');
       const [url] = mockFetch.mock.calls[0]!;
       expect(url).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/adc-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/messages',
+        'https://claude.googleapis.com/v1/projects/adc-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/messages',
       );
       expect(getRequestHeaders().get('authorization')).toBe('Bearer adc-token');
     });
@@ -441,7 +519,7 @@ describe('AnthropicGoogleCloud', () => {
       resolveProject('adc-project');
       const { url, req } = await pending;
       expect(url).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/adc-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/messages',
+        'https://claude.googleapis.com/v1/projects/adc-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/messages',
       );
       expect(url).not.toContain('api.anthropic.com');
       expect((req.headers as Headers).get('authorization')).toBe('Bearer my-google-token');
@@ -567,7 +645,7 @@ describe('AnthropicGoogleCloud', () => {
       expect(clone.workspaceId).toBe('wrkspc_b');
       expect(clone.project).toBe('my-project');
       expect(clone.baseURL).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/my-project/locations/us-central1/workspaces/wrkspc_b/invoke',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_b/invoke',
       );
     });
 
@@ -581,7 +659,7 @@ describe('AnthropicGoogleCloud', () => {
       const clone = client.withOptions({ location: 'europe-west4' });
       expect(clone.location).toBe('europe-west4');
       expect(clone.baseURL).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/my-project/locations/europe-west4/workspaces/wrkspc_a/invoke',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/workspaces/wrkspc_a/invoke',
       );
     });
 
@@ -615,6 +693,358 @@ describe('AnthropicGoogleCloud', () => {
     });
   });
 
+  describe('organization routes', () => {
+    const ORGANIZATION_BASE_URL =
+      'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/claudeOrganization/invoke';
+
+    test('go to the organization base, with auth attached as usual', async () => {
+      const client = new AnthropicGoogleCloud({
+        project: 'my-project',
+        location: 'us-central1',
+        workspaceId: 'wrkspc_test',
+        bearerTokenProvider: async () => 'my-google-token',
+        maxRetries: 0,
+      });
+
+      await client.beta.organization.workspaces.list();
+
+      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBe('Bearer my-google-token');
+      expect(headers.get('anthropic-workspace-id')).toBeNull();
+    });
+
+    const PROFILES_URL = `${ORGANIZATION_BASE_URL}/v1/user_profiles`;
+
+    const userProfileCases: Array<
+      [string, (client: AnthropicGoogleCloud) => PromiseLike<unknown>, string, string]
+    > = [
+      ['create', (client) => client.userProfiles.create({}), 'POST', PROFILES_URL],
+      [
+        'retrieve',
+        (client) => client.userProfiles.retrieve('uprof_fake'),
+        'GET',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      [
+        'update',
+        (client) => client.userProfiles.update('uprof_fake', { metadata: { key: 'value' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      ['list', (client) => client.userProfiles.list(), 'GET', PROFILES_URL],
+      [
+        'list with a query',
+        (client) => client.userProfiles.list({ limit: 1 }),
+        'GET',
+        `${PROFILES_URL}?limit=1`,
+      ],
+      [
+        'delete',
+        (client) => client.userProfiles.delete('uprof_fake'),
+        'DELETE',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      ['beta list', (client) => client.beta.userProfiles.list(), 'GET', PROFILES_URL],
+      [
+        'beta retrieve',
+        (client) => client.beta.userProfiles.retrieve('uprof_fake'),
+        'GET',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      [
+        'actionURLs create',
+        (client) =>
+          client.userProfiles.actionURLs.create('uprof_fake', { action: { type: 'enroll_end_user' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/action_urls`,
+      ],
+      [
+        'beta actionURLs create',
+        (client) =>
+          client.beta.userProfiles.actionURLs.create('uprof_fake', { action: { type: 'enroll_end_user' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/action_urls`,
+      ],
+      [
+        'beta createEnrollmentURL',
+        (client) => client.beta.userProfiles.createEnrollmentURL('uprof_fake'),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/enrollment_url`,
+      ],
+    ];
+
+    describe.each([
+      ['with a workspace ID', 'wrkspc_test'],
+      ['without a workspace ID', undefined],
+    ])('user profile routes %s', (_, workspaceId) => {
+      test.each(userProfileCases)('%s goes to the organization base', async (_name, send, method, url) => {
+        const client = new AnthropicGoogleCloud({
+          project: 'my-project',
+          location: 'us-central1',
+          workspaceId,
+          bearerTokenProvider: async () => 'my-google-token',
+          maxRetries: 0,
+        });
+
+        await send(client);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+        expect(requestURL).toBe(url);
+        expect(requestInit.method.toUpperCase()).toBe(method);
+        const headers = getRequestHeaders();
+        expect(headers.get('authorization')).toBe('Bearer my-google-token');
+        expect(headers.get('anthropic-workspace-id')).toBeNull();
+      });
+    });
+
+    test('a path that only starts like a user profile route keeps the workspace base', async () => {
+      const client = new AnthropicGoogleCloud({
+        project: 'my-project',
+        location: 'us-central1',
+        workspaceId: 'wrkspc_test',
+        bearerTokenProvider: async () => 'my-google-token',
+        maxRetries: 0,
+      });
+
+      await client.get('/v1/user_profiles_export');
+
+      expect(requestedURLs()).toEqual([
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/user_profiles_export',
+      ]);
+    });
+
+    test('every other route keeps the workspace base', async () => {
+      const client = new AnthropicGoogleCloud({
+        project: 'my-project',
+        location: 'us-central1',
+        workspaceId: 'wrkspc_test',
+        bearerTokenProvider: async () => 'my-google-token',
+        maxRetries: 0,
+      });
+
+      await client.organization.retrieve();
+      await makeRequest(client);
+      await client.models.retrieve('claude-haiku-4-5');
+
+      expect(requestedURLs()).toEqual([
+        `${ORGANIZATION_BASE_URL}/v1/organizations/me`,
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/messages',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/models/claude-haiku-4-5',
+      ]);
+    });
+
+    test.each([
+      ['with auth', { bearerTokenProvider: async () => 'my-google-token' }],
+      ['with skipAuth', { skipAuth: true }],
+    ])('need no workspace ID (%s)', async (_, options) => {
+      const client = new AnthropicGoogleCloud({
+        project: 'my-project',
+        location: 'us-central1',
+        maxRetries: 0,
+        ...options,
+      });
+
+      await client.beta.organization.workspaces.list();
+
+      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
+    });
+
+    test.each([
+      ['with auth', { bearerTokenProvider: async () => 'my-google-token' }],
+      ['with skipAuth', { skipAuth: true }],
+    ])(
+      'a workspace route without a workspace ID fails before the request is sent (%s)',
+      async (_, options) => {
+        const client = new AnthropicGoogleCloud({
+          project: 'my-project',
+          location: 'us-central1',
+          maxRetries: 0,
+          ...options,
+        });
+
+        const error = await makeRequest(client).catch((e) => e);
+
+        expect(error).toBeInstanceOf(AnthropicGoogleCloud.AnthropicError);
+        expect(error.message).toContain('No workspace ID found');
+        expect(error.message).toContain('workspaceId');
+        expect(error.message).toContain('ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID');
+        expect(mockFetch).not.toHaveBeenCalled();
+      },
+    );
+
+    test.each([
+      ['the constructor option', () => new AnthropicGoogleCloud({ baseURL: 'https://gw.example.com' })],
+      [
+        'ANTHROPIC_GOOGLE_CLOUD_BASE_URL',
+        () => {
+          process.env['ANTHROPIC_GOOGLE_CLOUD_BASE_URL'] = 'https://gw.example.com';
+          return new AnthropicGoogleCloud({ project: 'my-project', workspaceId: 'wrkspc_test' });
+        },
+      ],
+      [
+        'a later assignment',
+        () => {
+          const client = new AnthropicGoogleCloud({ project: 'my-project', workspaceId: 'wrkspc_test' });
+          client.baseURL = 'https://gw.example.com';
+          return client;
+        },
+      ],
+    ])('an explicit baseURL from %s takes every route', async (_, makeClient) => {
+      const client = makeClient();
+
+      await client.beta.organization.workspaces.list();
+      await client.userProfiles.list();
+      await makeRequest(client);
+
+      expect(requestedURLs()).toEqual([
+        'https://gw.example.com/v1/organizations/workspaces',
+        'https://gw.example.com/v1/user_profiles',
+        'https://gw.example.com/v1/messages',
+      ]);
+    });
+
+    describe('lazy project resolution', () => {
+      let getProjectIdSpy: MockInstance;
+
+      beforeEach(() => {
+        getProjectIdSpy = vi.spyOn(GoogleAuth.prototype, 'getProjectId');
+      });
+
+      test.each([
+        ['with a workspace ID', 'wrkspc_test'],
+        ['without a workspace ID', undefined],
+      ])(
+        'back-fills the project when the first request is an organization route (%s)',
+        async (_, workspaceId) => {
+          getProjectIdSpy.mockResolvedValue('my-project');
+
+          const client = new AnthropicGoogleCloud({ location: 'us-central1', workspaceId, maxRetries: 0 });
+
+          await client.beta.organization.workspaces.list();
+
+          expect(client.project).toBe('my-project');
+          expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
+          expect(getRequestHeaders().get('authorization')).toBe('Bearer adc-token');
+        },
+      );
+
+      test('an organization route rejects with a clear error when no project is resolvable', async () => {
+        getProjectIdSpy.mockRejectedValue(new Error('no project'));
+
+        const client = new AnthropicGoogleCloud({ location: 'us-central1', maxRetries: 0 });
+
+        await expect(client.beta.organization.workspaces.list()).rejects.toThrow(
+          'No project was given and it could not be resolved from Google credentials.',
+        );
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+
+      test.each([
+        ['lands', () => getProjectIdSpy.mockResolvedValue('my-project')],
+        ['fails', () => getProjectIdSpy.mockRejectedValue(new Error('no project'))],
+      ])('a baseURL assigned before resolution %s takes every route', async (_, mockResolution) => {
+        mockResolution();
+
+        const client = new AnthropicGoogleCloud({
+          location: 'us-central1',
+          workspaceId: 'wrkspc_test',
+          maxRetries: 0,
+        });
+        client.baseURL = 'https://gw.example.com';
+        await client.ready.catch(() => {});
+
+        await client.beta.organization.workspaces.list();
+        await makeRequest(client);
+
+        expect(requestedURLs()).toEqual([
+          'https://gw.example.com/v1/organizations/workspaces',
+          'https://gw.example.com/v1/messages',
+        ]);
+      });
+    });
+
+    describe('withOptions', () => {
+      test('clones of a derived client keep routing', async () => {
+        const client = new AnthropicGoogleCloud({
+          project: 'my-project',
+          location: 'us-central1',
+          workspaceId: 'wrkspc_test',
+          bearerTokenProvider: async () => 'my-google-token',
+          maxRetries: 0,
+        });
+
+        const clone = client.withOptions({ location: 'europe-west4' });
+        await clone.beta.organization.workspaces.list();
+        await makeRequest(clone);
+
+        expect(requestedURLs()).toEqual([
+          'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/claudeOrganization/invoke/v1/organizations/workspaces',
+          'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/workspaces/wrkspc_test/invoke/v1/messages',
+        ]);
+        expect(getRequestHeaders().get('authorization')).toBe('Bearer my-google-token');
+      });
+
+      test('clones of a derived client with no workspace ID keep routing', async () => {
+        const client = new AnthropicGoogleCloud({
+          project: 'my-project',
+          location: 'us-central1',
+          bearerTokenProvider: async () => 'my-google-token',
+          maxRetries: 0,
+        });
+
+        const clone = client.withOptions({ timeout: 1234 });
+        await clone.beta.organization.workspaces.list();
+
+        expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
+        await expect(makeRequest(clone)).rejects.toThrow('No workspace ID found');
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+      });
+
+      test.each([
+        [
+          'an explicit',
+          (options: { workspaceId?: string }) =>
+            new AnthropicGoogleCloud({
+              baseURL: 'https://gw.example.com',
+              bearerTokenProvider: async () => 'my-google-token',
+              maxRetries: 0,
+              ...options,
+            }),
+        ],
+        [
+          'an assigned',
+          (options: { workspaceId?: string }) => {
+            const client = new AnthropicGoogleCloud({
+              project: 'my-project',
+              bearerTokenProvider: async () => 'my-google-token',
+              maxRetries: 0,
+              ...options,
+            });
+            client.baseURL = 'https://gw.example.com';
+            return client;
+          },
+        ],
+      ])('clones of a client with %s baseURL keep it for every route', async (_, makeClient) => {
+        for (const options of [{ workspaceId: 'wrkspc_test' }, {}]) {
+          mockFetch.mockClear();
+
+          const clone = makeClient(options).withOptions({ timeout: 1234 });
+          expect(clone.baseURL).toBe('https://gw.example.com');
+
+          await clone.beta.organization.workspaces.list();
+          await makeRequest(clone);
+
+          expect(requestedURLs()).toEqual([
+            'https://gw.example.com/v1/organizations/workspaces',
+            'https://gw.example.com/v1/messages',
+          ]);
+        }
+      });
+    });
+  });
+
   describe('auth headers', () => {
     test('sends a bearer token from bearerTokenProvider and no workspace header', async () => {
       const bearerTokenProvider = vi.fn().mockResolvedValue('my-google-token');
@@ -634,7 +1064,7 @@ describe('AnthropicGoogleCloud', () => {
 
       const [url] = mockFetch.mock.calls[0]!;
       expect(url).toBe(
-        'https://claude.googleapis.com/v1alpha/projects/my-project/locations/us-central1/workspaces/wrkspc_abc/invoke/v1/messages',
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_abc/invoke/v1/messages',
       );
 
       const headers = getRequestHeaders();
@@ -792,7 +1222,7 @@ describe('AnthropicGoogleCloud', () => {
   });
 
   describe('no env-credential leak', () => {
-    test('does not send x-api-key even when ANTHROPIC_API_KEY is set', async () => {
+    test('does not send the API key even when ANTHROPIC_API_KEY is set', async () => {
       process.env['ANTHROPIC_API_KEY'] = 'sk-ant-should-not-leak';
 
       const client = new AnthropicGoogleCloud({
@@ -909,14 +1339,13 @@ describe('AnthropicGoogleCloud', () => {
       ['config', { authentication: { type: 'user_oauth' } }],
       ['profile', 'default'],
     ])('rejects the base `%s` option at runtime', (key, value) => {
-      expect(
-        () =>
-          new AnthropicGoogleCloud({
-            baseURL: 'https://gw.example.com',
-            workspaceId: 'wrkspc_test',
-            [key]: value,
-          } as any),
-      ).toThrow(`The \`${key}\` option is not supported`);
+      const options = { baseURL: 'https://gw.example.com', workspaceId: 'wrkspc_test' };
+      for (const build of [
+        () => new AnthropicGoogleCloud({ ...options, [key]: value } as any),
+        () => new AnthropicGoogleCloud(options).withOptions({ [key]: value } as any),
+      ]) {
+        expect(build).toThrow(`The \`${key}\` option is not supported by AnthropicGoogleCloud`);
+      }
     });
   });
 
@@ -960,17 +1389,6 @@ describe('AnthropicGoogleCloud', () => {
   });
 
   describe('surface', () => {
-    test('drops the deprecated completions resource', () => {
-      const client = new AnthropicGoogleCloud({
-        baseURL: 'https://gw.example.com',
-        workspaceId: 'wrkspc_test',
-      });
-
-      expect(() => client.completions).toThrow(
-        'The deprecated text Completions API is not available on Claude Platform on Google Cloud',
-      );
-    });
-
     test('keeps messages, models, beta, and batches', () => {
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',

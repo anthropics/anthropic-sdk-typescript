@@ -1,5 +1,385 @@
 # Changelog
 
+## [1.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.5.0...sdk-v1.6.0) (2026-11-05)
+
+### Features
+
+* **api:** add error code for ramp limit errors
+* **api:** add error codes for External Key validation failures
+* **api:** add support for signing organization members out everywhere
+
+
+### Bug Fixes
+
+* **client:** set the name of each error to its class name
+* **client:** set the name of WorkloadIdentityError
+
+
+### Chores
+
+* **docs:** describe the type and message of API errors
+* **internal:** generate the OpenTelemetry span attribute tables
+* **internal:** tell contributors when a runtime type check belongs
+
+
+### Documentation
+
+* add the rules the SDKs share to CLAUDE.md
+* **client:** describe the type, message, code and details of API errors
+* **client:** list each method's errors without their descriptions
+
+## [1.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.5.0) (2026-11-04)
+
+### Features
+
+* **api:** add error details types and new error type values
+* **api:** add ids filter to list workspaces
+* **client:** add error classes for HTTP statuses and API error codes, and apiMessage, errorCode and details on APIError
+
+
+### Bug Fixes
+
+* **api:** capitalize CMEK in error details type names
+* **api:** move some error details types to the resource they describe
+* **client:** reject path parameters like ";x", ".;x" and "..;x"
+* **tools:** keep the memory tool from renaming or deleting the /memories directory
+
+
+### Performance Improvements
+
+* **streaming:** decode server-sent events once per chunk
+
+
+### Chores
+
+* **api:** update example values for pattern-constrained string fields
+* **docs:** clarify plugin reach values
+* **docs:** clarify plugin version description and plugin reach
+* **docs:** clarify plugin version description length
+* **docs:** clarify some API field descriptions
+* **docs:** clarify three error descriptions
+* **docs:** clarify which blocks to send back around a fallback block
+* **docs:** correct Claude Tag direct message notes in usage reports
+* **docs:** reword Dream and RBAC role permission descriptions
+* **docs:** update the telemetry destination headers description
+* **docs:** use the Claude Platform name in analytics filter docs
+* **internal:** accept changelog entry files in the changelog check
+* **internal:** ignore changelog entry files
+* **internal:** simplify how error classes read the response body
+
+
+### Documentation
+
+* **api:** show each field's own description for `speed`
+* clean up escapes and code spans in doc comments
+* fix examples that leave out a required params argument
+
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-11-02)
+
+### Features
+
+* **api:** add GA methods for analytics, spend limits and RBAC
+* **api:** add named beta types for unified metrics and RBAC delete responses
+* **api:** add shared analytics order and increase request actor types
+* **api:** add tool_use_limit_reached_error and compaction_limit_reached_error session error types
+* **api:** add types for analytics group_by and spend limit period filters
+* **api:** add user_profile_id to External Keys and Workspaces
+
+
+### Bug Fixes
+
+* **api:** make spend_limit nullable in the spend limit increase request approve response
+* **api:** require always-sent analytics fields and drop the unused project product field
+
+
+### Chores
+
+* **ci:** install only the headless Chromium shell in the browser ecosystem tests
+* **ci:** remove unused build upload steps
+* **docs:** clarify the Slack channel id description
+* **docs:** clarify what disabling the Compliance API stops
+* **docs:** clarify what the capability_access_all role action grants
+* **docs:** link Dreams model fields to the supported models section
+* **docs:** update example user ID in Admin API examples
+* **internal:** add a section for each repository's own review rules
+* **internal:** plainer wording in worker comments
+* **internal:** type-check the published declarations of every subpackage
+
+### Documentation
+
+* add a description to the AnthropicBeta type
+* **examples:** keep the message threads example valid on Sonnet 5.5
+* **examples:** use current model IDs
+* **readme:** point to the docs site for documentation
+
+## [1.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.3.0) (2026-10-23)
+
+### Features
+
+* **api:** add Claude Tag endpoints for Claude Enterprise organizations
+
+
+### Bug Fixes
+
+* **client:** link the long-request error messages to the SDK documentation
+
+
+### Chores
+
+* **client:** stop sending query params hardcoded in endpoint paths
+* **docs:** improve the descriptions of the code execution tool and its encrypted results
+* **docs:** reword work queue, skill and external key descriptions
+* **docs:** update descriptions of the per-user usage and cost reports
+* **internal:** carry endpoint path query params to the request layer
+* **internal:** check the repository by owner and public name in workflows
+* **internal:** read the beta route qualifier instead of the beta=true query
+* **internal:** remove preview build upload from CI
+* **internal:** stop expecting the beta query param in tests
+
+
+### Documentation
+
+* update the README and the example request
+
+## [1.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.1.0...sdk-v1.2.0) (2026-10-23)
+
+### Features
+
+* **api:** add support for message threads
+* **api:** add usage and cost reports by dimension, mark older reports legacy
+
+
+### Bug Fixes
+
+* **tools:** copy the messages a tool runner is created with again
+* **tools:** restore what the tool runner does after setMessagesParams() or pushMessages() in the loop body
+
+
+### Chores
+
+* **docs:** clarify plugin content scan and validation descriptions
+* **docs:** clarify plugin served_version_pinned and updated_at
+* **docs:** fix usage and cost report examples and ending_at docs
+* **docs:** rate limit model lists vary by organization and workspace
+* **internal:** rename the version manifest to .version-manifest.json
+* **tests:** fix a retry count header test that could never fail
+
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.0.0...sdk-v1.1.0) (2026-10-21)
+
+### Features
+
+* **api:** add enforcement status, actions and filter to user profiles
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.137.0...sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add a workspace_id filter and the usage_tier scope type to list spend limits
+* **api:** add support for new API version 2026-10-21
+
+
+### Chores
+
+* **ci:** check the changelog of each package a pull request changes
+* **internal:** specify which changelog a pull request updates
+
+
+### Documentation
+
+* **api:** remove outdated system role note from messages description
+
+## [0.137.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.136.0...sdk-v0.137.0) (2026-10-20)
+
+### Features
+
+* **api:** add org webhook endpoints and user profile enforcement events
+
+
+### Chores
+
+* **ci:** run the changelog check on a standard runner
+* **tests:** make credential tests independent of the caller's environment
+
+## [0.136.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.135.0...sdk-v0.136.0) (2026-10-20)
+
+### Features
+
+* **api:** add data_refreshed_at and has_more to analytics report pages
+* **api:** add workspace rate-limit updates to the Admin API
+* **api:** make User Profiles generally available
+* **client:** yield server-sent events with unrecognized event names
+* **tools:** accept every tool definition field in the tool helpers
+
+
+### Bug Fixes
+
+* **client:** treat x-amz-security-token as a sensitive header
+* **tools:** keep $ sequences literal in memory tool str_replace
+
+
+### Chores
+
+* **ci:** skip the changelog check on draft pull requests
+* **docs:** add credential expiry descriptions to the Managed Agents API reference
+* **docs:** add Messages API request descriptions
+* **docs:** correct plugin manifest_version and reach descriptions
+* **docs:** improve Managed Agents memory store descriptions
+* **docs:** improve Managed Agents vault and credential descriptions
+* **internal:** bump playwright-core in the browser ecosystem tests
+* **tests:** cover OpenTelemetry failures, propagation and environment variables
+
+## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-15)
+
+### Features
+
+* **api:** add between_tools to thinking types in model capabilities
+* **api:** add the speed parameter and usage.speed to Messages
+* **api:** return a Console organization's usage-tier spend cap as a read-only spend limit
+
+
+### Bug Fixes
+
+* **client:** close streams dropped without being read to the end
+* **client:** keep an unread JSONL response open while it is held
+
+
+### Chores
+
+* **ci:** speed up breaking change detection
+* **docs:** describe headers on Managed Agents and telemetry endpoints
+
+
+### Documentation
+
+* **api:** note that some models need a beta header to use speed
+
+## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **api:** add organization_type_not_supported error to spend limit lists
+* **api:** add telemetry destination test endpoint
+* **api:** add telemetry destinations to the Admin API
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Bug Fixes
+
+* **api:** rename telemetry destination test response model
+* **client:** close an unread stream that was dropped while tracing is on
+* **client:** don't follow redirects on token requests
+* **client:** treat proxy-authorization as a sensitive header
+
+
+### Bug Fixes
+
+* **streaming:** tolerate unknown event types in MessageStream and BetaMessageStream
+* **streaming:** stop throwing "Unexpected event order" for an event before message_start
+* **streaming:** yield events that arrive before message_start when iterating MessageStream and BetaMessageStream
+
+
+### Chores
+
+* **docs:** correct prefill, thinking, fallback and model descriptions
+* **docs:** document the scope required to assign the managed role
+* **docs:** update model examples
+* include the license files in the published packages
+* **internal:** narrow the tripwire test rule in the contributor guides
+* **internal:** remove `@internal` tag from a type that public types reference
+* **internal:** remove file-level `@internal` tags from toolset modules
+* **internal:** strip `@internal` declarations from published types
+* **internal:** type-check the built declarations in lint
+
+
+### Documentation
+
+* **api:** clarify when custom tool results can be sent
+* **api:** say is_enabled is always true for user spend limits
+* move more shared rules into the shared part of CLAUDE.md
+* show examples of streaming-only methods iterating the stream
+
+## [0.133.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.1...sdk-v0.133.0) (2026-10-09)
+
+### Features
+
+* **api:** add types for the Chat and Cowork unified analytics metrics
+* **api:** add workflows, multiagent configuration and thread status filtering to Managed Agents
+
+
+### Chores
+
+* **internal:** remove the next branch rule from CLAUDE.md
+
+## [0.132.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.0...sdk-v0.132.1) (2026-10-08)
+
+### Bug Fixes
+
+* **client:** throw before sending a request with an empty path parameter
+
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+* **ci:** publish every package from the publish workflow
+* **docs:** note that listing Claude Console spend limits is in early access
+
+
+### Documentation
+
+* split CLAUDE.md into shared, TypeScript, and repository rules
+
+## 0.132.0 (2026-10-07)
+
+Full Changelog: [sdk-v0.131.0...sdk-v0.132.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.131.0...sdk-v0.132.0)
+
+### Features
+
+* **api:** add claude-haiku-5-5 and typed computer and browser toolset tool calls ([1fd8261](https://github.com/anthropics/anthropic-sdk-typescript/commit/1fd826175b5742df1dc9fd69db708be1434fdc15))
+* **api:** add disabled to thinking types in model capabilities ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **api:** add display_name to RBAC roles and deprecate name ([7735ac3](https://github.com/anthropics/anthropic-sdk-typescript/commit/7735ac3d2823c6d74377269772a5ae2b1ed939dc))
+* **api:** add include_default parameter to list workspaces ([c4019df](https://github.com/anthropics/anthropic-sdk-typescript/commit/c4019df3ad38e1ce985c1d8177c815ae36528d61))
+* **api:** add lifecycle stage fields and filter to /v1/models ([fe8a762](https://github.com/anthropics/anthropic-sdk-typescript/commit/fe8a762e0cdbc01aa2b4161865f44cdab70f502c))
+* **api:** add line to model objects ([018aed4](https://github.com/anthropics/anthropic-sdk-typescript/commit/018aed463f7125ef7c8ee6eec2fd3610be585cc4))
+* **api:** add url_sources to the Managed Agents web_fetch tool config ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **api:** add web search and code execution support to model capabilities ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+
+
+### Bug Fixes
+
+* **api:** send the beta header by default when listing spend limits ([8f58ca4](https://github.com/anthropics/anthropic-sdk-typescript/commit/8f58ca41ae4097e82fe0efccfae94e0b7c5719b1))
+* **client:** throw when a JSONL stream is iterated twice ([a34266c](https://github.com/anthropics/anthropic-sdk-typescript/commit/a34266cf1ed3483eae7d44d275f761ab29d79748))
+* **tools:** keep a local edit made after a memory upload whose response was lost ([#893](https://github.com/anthropics/anthropic-sdk-typescript/issues/893)) ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+
+
+### Chores
+
+* **api:** mark the Text Completions API as deprecated ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **docs:** correct example groups in rate limit list description ([f0e6394](https://github.com/anthropics/anthropic-sdk-typescript/commit/f0e63949cf58aeb877a9d695af519f29245522ef))
+* **docs:** correct when usage and cost report data becomes final ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **docs:** describe a federation rule's target by its type ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **docs:** fix example IDs in sessions, agents and vault credentials ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **docs:** update Managed Agents multiagent and thread descriptions ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **docs:** update the activity summaries endpoint description ([24f13f2](https://github.com/anthropics/anthropic-sdk-typescript/commit/24f13f20aa606415f0906ce3d3331dcb80fc2247))
+* **docs:** update the description of the Model line field ([e3bfc76](https://github.com/anthropics/anthropic-sdk-typescript/commit/e3bfc76831144a52d6b2dfa7153ae98bd2f849c9))
+* **internal:** add REVIEW.md with review instructions ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+* **internal:** refactor deprecated models ([5927033](https://github.com/anthropics/anthropic-sdk-typescript/commit/59270330d1a1d68e469b06ece5e0819263e17877))
+* **tests:** run tests skipped for a query param bug that is now fixed ([4c74721](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c74721d93ea751758fb5eac987ea6541e8c64fa))
+* **tests:** run tests that an older mock server could not serve ([8100a49](https://github.com/anthropics/anthropic-sdk-typescript/commit/8100a490769086b56775f3e4f8f1bff9ea678a02))
+* **tests:** run the skipped MCP resource upload test ([#888](https://github.com/anthropics/anthropic-sdk-typescript/issues/888)) ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+
+
+### Documentation
+
+* **api:** state the agent tools limit as 256 ([7d2a9ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/7d2a9ef98f39602eaf8cef12ad3f9dfc20c7c839))
+* **examples:** show initial_events when creating a Managed Agents session ([2b75b49](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b75b497792ab23c7cac350829354a0027a93246))
+
 ## 0.131.0 (2026-09-30)
 
 Full Changelog: [sdk-v0.130.0...sdk-v0.131.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.130.0...sdk-v0.131.0)

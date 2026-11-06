@@ -1,4 +1,5 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
+import { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
 import {
   Message,
   MessageDeltaUsage,
@@ -110,6 +111,8 @@ const EXPECTED_TOOL_USE_EVENT_TYPES = [
   'message_delta',
   'message_stop',
 ];
+
+const UNKNOWN_EVENT = { type: 'future_event', usage: { output_tokens: 1 } };
 
 function assertBasicResponse(events: MessageStreamEvent[], message: Message) {
   expect(events.map((e) => e.type)).toEqual(EXPECTED_BASIC_EVENT_TYPES);
@@ -236,6 +239,49 @@ describe('MessageStream class', () => {
 
     assertBasicResponse(events, finalMessage);
     expect(finalText).toBe('Hello there!');
+  });
+
+  it('passes unknown events through with the current snapshot', async () => {
+    const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
+    const lines = [...early, messageStart, UNKNOWN_EVENT, ...rest, UNKNOWN_EVENT].map((event) =>
+      JSON.stringify(event),
+    );
+
+    const stream = MessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    const events: MessageStreamEvent[] = [];
+    const snapshotIDs: string[] = [];
+    stream.on('streamEvent', (event, snapshot) => {
+      events.push(event);
+      snapshotIDs.push(snapshot?.id);
+    });
+    const afterMessageStart: MessageStreamEvent[] = [];
+    const loopEnded = new Promise<void>((resolve) =>
+      stream.once('streamEvent', async () => {
+        for await (const event of stream) {
+          afterMessageStart.push(event);
+        }
+        resolve();
+      }),
+    );
+    const iterated: MessageStreamEvent[] = [];
+    for await (const event of MessageStream.fromReadableStream(stream.toReadableStream())) {
+      iterated.push(event);
+    }
+
+    expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    expect(iterated.slice(0, early.length)).toEqual(early);
+    expect(iterated.slice(early.length).map((e) => e.type)).toEqual(events.map((e) => e.type));
+    await loopEnded;
+    expect(afterMessageStart).toEqual(events.slice(1));
+    expect(snapshotIDs).toEqual(events.map(() => EXPECTED_BASIC_MESSAGE.id));
+    expect(events.map((e) => e.type)).toEqual([
+      'message_start',
+      UNKNOWN_EVENT.type,
+      ...EXPECTED_BASIC_EVENT_TYPES.slice(1),
+      UNKNOWN_EVENT.type,
+    ]);
   });
 
   it('handles tool use response fixture', async () => {

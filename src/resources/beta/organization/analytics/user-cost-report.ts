@@ -1,19 +1,29 @@
 import { APIResource } from '../../../../core/resource';
 import * as AnalyticsAPI from './analytics';
-import { BetaAnalyticsCostUsersItemsPageCursor } from './analytics';
-import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
+import { BetaAnalyticsCostUsersItemsReportPageCursor } from './analytics';
+import { PagePromise, ReportPageCursor, type ReportPageCursorParams } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class UserCostReport extends APIResource {
   /**
-   * Get per-user cost in USD across a date range.
+   * [Legacy] Get per-user cost in USD across a date range.
    *
-   * Returns one row per user, ranked by spend. Use this to see which users account
-   * for the most cost. Only cost attributable to a seat user is included; for
-   * organization-wide totals including direct API-key and automation traffic, use
-   * the bucketed `/v1/organizations/analytics/cost_report` endpoint. Available to
+   * Returns cost per user, ranked by spend; `group_by[]` or `bucket_width` splits a
+   * user across several rows. Use this to see which users account for the most cost.
+   * Only cost attributed to a user account is included, so cost with no user
+   * account, such as Code Review usage and Claude Tag usage in Slack channels, is
+   * left out. Claude Tag one-to-one direct messages are included, with product
+   * `claude-tag`, only for members who have connected a Claude account. Available to
    * organizations on a Claude Enterprise plan. Requires an API key with the
    * `read:analytics` scope.
+   *
+   * This endpoint is one of the legacy Claude Enterprise usage and cost reports. For
+   * new integrations, use
+   * [`GET /v1/organizations/analytics/cost`](/docs/en/api/beta/organization/analytics/cost/list)
+   * in the Usage and Cost Analytics API instead. To move an existing integration,
+   * see
+   * [Migrate from the Claude Enterprise usage and cost reports](/docs/en/manage-claude/usage-cost-analytics-api#migrate-from-enterprise-analytics-reports).
    *
    * @example
    * ```ts
@@ -28,16 +38,49 @@ export class UserCostReport extends APIResource {
   list(
     query: UserCostReportListParams,
     options?: RequestOptions,
-  ): PagePromise<BetaAnalyticsCostUsersItemsPageCursor, AnalyticsAPI.BetaAnalyticsCostUsersItem> {
+  ): PagePromise<BetaAnalyticsCostUsersItemsReportPageCursor, AnalyticsAPI.BetaAnalyticsCostUsersItem> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/user_cost_report?beta=true',
-      PageCursor<AnalyticsAPI.BetaAnalyticsCostUsersItem>,
-      { query, ...options },
+      '/v1/organizations/analytics/user_cost_report',
+      ReportPageCursor<AnalyticsAPI.BetaAnalyticsCostUsersItem>,
+      {
+        query,
+        ...options,
+        __qualifiers: { beta: 'true' },
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.analytics.user_cost_report.list',
+          options,
+          {
+            route: '/v1/organizations/analytics/user_cost_report',
+            queryParams: [
+              'bucket_width',
+              'claude_tag_categories',
+              'claude_tag_user_ids',
+              'context_windows',
+              'ending_at',
+              'exclude_deleted_users',
+              'group_by',
+              'inference_geos',
+              'limit',
+              'models',
+              'order',
+              'order_by',
+              'page',
+              'products',
+              'rbac_group_ids',
+              'slack_channel_ids',
+              'speeds',
+              'starting_at',
+              'user_ids',
+            ],
+          },
+        ),
+      },
     );
   }
 }
 
-export interface UserCostReportListParams extends PageCursorParams {
+export interface UserCostReportListParams extends ReportPageCursorParams {
   /**
    * Start of range, inclusive. RFC 3339 tz-aware. Must be within the last 365 days
    * and no earlier than 2026-01-01T00:00:00Z.
@@ -56,10 +99,8 @@ export interface UserCostReportListParams extends PageCursorParams {
 
   /**
    * Filter to Claude Tag (Claude in Slack) usage in specific spend categories. Usage
-   * with no category never matches. `dm` usage is reported under the user's product
-   * rather than `claude-tag`, so combining this filter with `products[]=claude-tag`
-   * excludes it. Use `group_by[]=claude_tag_category` to break out per-category
-   * values.
+   * with no category never matches. Use `group_by[]=claude_tag_category` to break
+   * out per-category values.
    */
   claude_tag_categories?: Array<AnalyticsAPI.BetaAnalyticsClaudeTagCategory> | null;
 
@@ -122,6 +163,14 @@ export interface UserCostReportListParams extends PageCursorParams {
   inference_geos?: Array<AnalyticsAPI.BetaAnalyticsInferenceGeoFilter> | null;
 
   /**
+   * Number of rows per page (1-1000, default 20). One row per actor unless
+   * `group_by[]` or `bucket_width` splits an actor across rows;
+   * `cost_type`/`token_type` fan-out rows (cost endpoint only) are the exception —
+   * they do not count toward this limit, so `data` can exceed it.
+   */
+  limit?: number;
+
+  /**
    * Models to include. Defaults to all models. Use `group_by[]=model` to break out
    * per-model values.
    */
@@ -172,4 +221,4 @@ export declare namespace UserCostReport {
   export { type UserCostReportListParams as UserCostReportListParams };
 }
 
-export { type BetaAnalyticsCostUsersItemsPageCursor };
+export { type BetaAnalyticsCostUsersItemsReportPageCursor };

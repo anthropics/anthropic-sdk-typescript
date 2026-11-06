@@ -1,9 +1,23 @@
 import { APIResource } from '../../core/resource';
 import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The user is the organization's only member. Add another member before removing
+ * this one.
+ */
+export class CannotRemoveLastMemberError extends BadRequestError {
+  declare readonly errorCode: 'cannot_remove_last_member';
+  declare readonly details: CannotRemoveLastMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotRemoveLastMemberError';
+}
 
 export class Users extends APIResource {
   /**
@@ -16,7 +30,13 @@ export class Users extends APIResource {
    * ```
    */
   retrieve(userID: string, options?: RequestOptions): APIPromise<OrganizationUser> {
-    return this._client.get(path`/v1/organizations/users/${userID}`, options);
+    return this._client.get(path`/v1/organizations/users/${userID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.retrieve', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 
   /**
@@ -31,7 +51,14 @@ export class Users extends APIResource {
    * ```
    */
   update(userID: string, body: UserUpdateParams, options?: RequestOptions): APIPromise<OrganizationUser> {
-    return this._client.post(path`/v1/organizations/users/${userID}`, { body, ...options });
+    return this._client.post(path`/v1/organizations/users/${userID}`, {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.update', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 
   /**
@@ -49,11 +76,21 @@ export class Users extends APIResource {
     query: UserListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<OrganizationUsersPage, OrganizationUser> {
-    return this._client.getAPIList('/v1/organizations/users', Page<OrganizationUser>, { query, ...options });
+    return this._client.getAPIList('/v1/organizations/users', Page<OrganizationUser>, {
+      query,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.list', options, {
+        route: '/v1/organizations/users',
+        queryParams: ['after_id', 'before_id', 'email', 'limit', 'roles'],
+      }),
+    });
   }
 
   /**
    * Remove a member from the organization.
+   *
+   * @throws {CannotRemoveLastMemberError}
+   * @throws {ConcurrentMembershipChangeError}
    *
    * @example
    * ```ts
@@ -63,11 +100,25 @@ export class Users extends APIResource {
    * ```
    */
   remove(userID: string, options?: RequestOptions): APIPromise<UserRemoveResponse> {
-    return this._client.delete(path`/v1/organizations/users/${userID}`, options);
+    return this._client.delete(path`/v1/organizations/users/${userID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.remove', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 }
 
 export type OrganizationUsersPage = Page<OrganizationUser>;
+
+/**
+ * The user is the organization's only member. Add another member before removing
+ * this one.
+ */
+export interface CannotRemoveLastMemberErrorDetails {
+  error_code: 'cannot_remove_last_member';
+}
 
 export interface OrganizationUser {
   /**
@@ -124,7 +175,8 @@ export interface UserUpdateParams {
    * The accepted values depend on the organization type. Console and API
    * organizations accept `user`, `developer`, `billing`, and `claude_code_user`;
    * `admin` cannot be assigned through the API. Claude Enterprise organizations
-   * accept `user` and `managed`.
+   * accept `user` and `managed`; changing a User's role to `managed` requires the
+   * `write:rbac_groups` scope in addition to `write:members`.
    */
   role: 'billing' | 'claude_code_user' | 'developer' | 'managed' | 'user';
 }
@@ -147,8 +199,12 @@ export interface UserListParams extends PageParams {
   roles?: Array<string>;
 }
 
+Users.CannotRemoveLastMemberError = CannotRemoveLastMemberError;
+
 export declare namespace Users {
   export {
+    CannotRemoveLastMemberError as CannotRemoveLastMemberError,
+    type CannotRemoveLastMemberErrorDetails as CannotRemoveLastMemberErrorDetails,
     type OrganizationUser as OrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type OrganizationUsersPage as OrganizationUsersPage,
