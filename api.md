@@ -2420,6 +2420,7 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionOpenedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionResolvedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileProgramStatusUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCredentialArchivedEventData</a></code>

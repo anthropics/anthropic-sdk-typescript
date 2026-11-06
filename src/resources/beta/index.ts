@@ -967,6 +967,7 @@ export {
   type BetaWebhookSessionUpdatedEventData,
   type BetaWebhookUserProfileEnforcementActionOpenedEventData,
   type BetaWebhookUserProfileEnforcementActionResolvedEventData,
+  type BetaWebhookUserProfileProgramStatusUpdatedEventData,
   type BetaWebhookVaultArchivedEventData,
   type BetaWebhookVaultCreatedEventData,
   type BetaWebhookVaultCredentialArchivedEventData,
