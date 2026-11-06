@@ -308,7 +308,9 @@ export interface BetaNewOrganizationWebhookEndpoint {
    * The event types delivered to the endpoint.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -369,7 +371,9 @@ export interface BetaOrganizationWebhookEndpoint {
    * The event types delivered to the endpoint.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -414,7 +418,9 @@ export interface WebhookCreateParams {
    * Body param: The event types to deliver to the endpoint. Must list at least one.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -458,7 +464,9 @@ export interface WebhookUpdateParams {
    * an empty list leaves it unchanged.
    */
   enabled_events?: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
