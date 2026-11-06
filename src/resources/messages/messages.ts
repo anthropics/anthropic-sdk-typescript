@@ -5934,8 +5934,7 @@ export type ThreadUnsupportedFeatureName =
   | 'fallbacks'
   | 'hipaa'
   | 'inference_hooks'
-  | 'thinking'
-  | 'zdr';
+  | 'thinking';
 
 /**
  * The request combines `thread` with a request field or an organization setting

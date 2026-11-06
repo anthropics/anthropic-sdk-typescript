@@ -2528,10 +2528,8 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/organization/organization.ts">BetaBillingFrozenErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganizationRole</a></code>
-- <code><a href="./src/resources/beta/organization/organization.ts">BetaBillingFrozenError</a></code>
 
 Methods:
 

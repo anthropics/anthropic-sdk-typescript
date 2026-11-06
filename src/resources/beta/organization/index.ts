@@ -105,13 +105,6 @@ export {
   type BetaAnalyticsCostUsersItemsReportPageCursor,
 } from './analytics/index';
 export {
-  BetaBillingFrozenError,
-  Organization,
-  type BetaBillingFrozenErrorDetails,
-  type BetaOrganization,
-  type BetaOrganizationRole,
-} from './organization';
-export {
   BetaCannotSignOutPrimaryOwnerError,
   BetaCannotSignOutSelfError,
   BetaCannotSignOutManagedMemberError,
@@ -254,6 +247,7 @@ export {
   type InviteListParams,
   type BetaOrganizationInvitesPage,
 } from './invites';
+export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization';
 export {
   PluginMarketplaces,
   type BetaPluginMarketplace,

@@ -626,13 +626,6 @@ export {
   type BetaToolResultContentBlockParam,
 } from './messages/index';
 export {
-  BetaBillingFrozenError,
-  Organization,
-  type BetaBillingFrozenErrorDetails,
-  type BetaOrganization,
-  type BetaOrganizationRole,
-} from './organization/index';
-export {
   BetaEnvironmentArchivedError,
   BetaInvalidConfigTypeChangeError,
   BetaInvalidMetadataError,
@@ -823,6 +816,7 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
+export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization/index';
 export {
   Sessions,
   type BetaManagedAgentsAdvisorParams,

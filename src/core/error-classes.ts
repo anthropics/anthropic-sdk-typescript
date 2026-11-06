@@ -67,7 +67,6 @@ import {
   BetaInvalidMetadataError,
 } from '../resources/beta/environments/environments';
 import { BetaHeartbeatPreconditionFailedError } from '../resources/beta/environments/work';
-import { BetaBillingFrozenError } from '../resources/beta/organization/organization';
 import {
   BetaCannotSignOutManagedMemberError,
   BetaCannotSignOutMembershipAdminError,
@@ -157,7 +156,6 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 workspace_member_limit_exceeded', WorkspaceMemberLimitExceededError],
   ['400 workspace_policy_violation', WorkspacePolicyViolationError],
   ['403 api_key_scope_missing', BetaAPIKeyScopeMissingError],
-  ['403 billing_frozen', BetaBillingFrozenError],
   ['403 cannot_sign_out_managed_member', BetaCannotSignOutManagedMemberError],
   ['403 cannot_sign_out_membership_admin', BetaCannotSignOutMembershipAdminError],
   ['403 cannot_sign_out_owner', BetaCannotSignOutOwnerError],

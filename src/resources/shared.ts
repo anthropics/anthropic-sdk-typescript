@@ -10,7 +10,6 @@ import * as SkillsAPI from './skills/skills';
 import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
-import * as BetaOrganizationAPI from './beta/organization/organization';
 import * as OrganizationUsersAPI from './beta/organization/users';
 import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
@@ -340,7 +339,6 @@ export type ErrorDetails =
   | OrganizationUsersAPI.BetaCannotSignOutMembershipAdminErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutOwnerErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutPrivilegedMemberErrorDetails
-  | BetaOrganizationAPI.BetaBillingFrozenErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
   | BetaAPI.BetaUnsupportedCharsetErrorDetails
   | PluginsAPI.BetaPluginNameTakenErrorDetails

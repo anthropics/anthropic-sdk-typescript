@@ -848,13 +848,7 @@ import {
   BetaMCPToolDefaultConfig,
 } from './messages/messages';
 import * as OrganizationAPI from './organization/organization';
-import {
-  BetaBillingFrozenError,
-  BetaBillingFrozenErrorDetails,
-  BetaOrganization,
-  BetaOrganizationRole,
-  Organization,
-} from './organization/organization';
+import { BetaOrganization, BetaOrganizationRole, Organization } from './organization/organization';
 import * as SessionsAPI from './sessions/sessions';
 import {
   BetaManagedAgentsAdvisorParams,
@@ -1268,7 +1262,6 @@ Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
 Beta.Organization = Organization;
-Beta.BetaBillingFrozenError = BetaBillingFrozenError;
 
 export declare namespace Beta {
   export {
@@ -2248,8 +2241,6 @@ export declare namespace Beta {
 
   export {
     Organization as Organization,
-    BetaBillingFrozenError as BetaBillingFrozenError,
-    type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,
   };
