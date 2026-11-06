@@ -883,7 +883,8 @@ export interface ClientOptions {
   /**
    * Set the logger.
    *
-   * Defaults to globalThis.console.
+   * Defaults to globalThis.console, which writes 'debug' and 'info' lines to stdout in Node.js.
+   * Pass `new console.Console(process.stderr)` to send every line to stderr.
    */
   logger?: Logger | undefined;
 }
