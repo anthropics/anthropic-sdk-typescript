@@ -39,6 +39,15 @@ export function accumulateManagedAgentsEvent(
   switch (event.type) {
     case 'event_start': {
       if (event.event.type === 'agent.message') {
+        // A replayed start for an ID whose message has already been completed must not
+        // wipe the authoritative buffered content with an empty preview.
+        if (
+          accumulated !== undefined &&
+          accumulated.id === event.event.id &&
+          accumulated.processed_at !== ''
+        ) {
+          return accumulated;
+        }
         return { id: event.event.id, type: 'agent.message', content: [], processed_at: '' };
       }
 
