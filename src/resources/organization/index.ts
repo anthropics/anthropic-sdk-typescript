@@ -95,6 +95,8 @@ export {
 } from './compliance-settings';
 export {
   ExternalKeyInWorkspacePolicyError,
+  ExternalKeyValidationFailedError,
+  ExternalKeyValidationTimedOutError,
   ExternalKeyChangedError,
   ExternalKeys,
   type AWSExternalKeyConfig,
@@ -105,6 +107,8 @@ export {
   type ExternalKeyChangedErrorDetails,
   type ExternalKeyInWorkspacePolicyErrorDetails,
   type ExternalKeyUnattachedAttachment,
+  type ExternalKeyValidationFailedErrorDetails,
+  type ExternalKeyValidationTimedOutErrorDetails,
   type GCPExternalKeyConfig,
   type ExternalKeyDeleteResponse,
   type ExternalKeyValidateResponse,

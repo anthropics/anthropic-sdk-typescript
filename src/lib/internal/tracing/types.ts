@@ -5,7 +5,6 @@ import type {
   BetaMessage,
   BetaRawMessageStreamEvent,
   BetaToolResultBlockParam,
-  BetaUsage,
   MessageCreateParamsBase as BetaMessageCreateParamsBase,
 } from '../../../resources/beta/messages/messages';
 import type { BetaManagedAgentsUserCustomToolResultEventParams } from '../../../resources/beta/sessions/events';
@@ -16,7 +15,6 @@ import type {
   MessageCreateParamsBase,
   RawMessageStreamEvent,
   ToolResultBlockParam,
-  Usage,
 } from '../../../resources/messages/messages';
 
 // The Messages types that the spans record: the stable and beta forms share a span name.
@@ -33,22 +31,6 @@ export type AnyToolResultContent =
     >;
 export type AnyContentBlock = ContentBlock | ContentBlockParam | BetaContentBlock | BetaContentBlockParam;
 export type AnyResultBlockContent = Extract<AnyContentBlock, { tool_use_id: string }>['content'];
-
-// What the spans record of a Message and of its usage. The events of a streamed Message update
-// these as they arrive.
-export type RecordedMessage = Pick<AnyMessage, 'id' | 'model' | 'stop_reason'>;
-export type RecordedUsage = Pick<
-  Usage | BetaUsage,
-  | 'input_tokens'
-  | 'output_tokens'
-  | 'cache_creation'
-  | 'cache_creation_input_tokens'
-  | 'cache_read_input_tokens'
-  | 'output_tokens_details'
-  | 'service_tier'
-> &
-  // Only the beta usage has the iterations.
-  Partial<Pick<BetaUsage, 'iterations'>>;
 
 /** The call span of a `messages.create` API call that a stream helper reads. */
 export interface MessagesCreateSpan extends ApiCallSpan {

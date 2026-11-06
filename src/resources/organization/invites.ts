@@ -14,6 +14,9 @@ import { path } from '../../internal/utils/path';
 export class AlreadyMemberError extends BadRequestError {
   declare readonly errorCode: 'already_member';
   declare readonly details: AlreadyMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'AlreadyMemberError';
 }
 
 /**
@@ -23,6 +26,9 @@ export class AlreadyMemberError extends BadRequestError {
 export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestError {
   declare readonly errorCode: 'cannot_invite_emails_with_unverified_domains';
   declare readonly details: CannotInviteEmailsWithUnverifiedDomainsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotInviteEmailsWithUnverifiedDomainsError';
 }
 
 /**
@@ -32,6 +38,9 @@ export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestErro
 export class EmailDomainNotAllowedError extends BadRequestError {
   declare readonly errorCode: 'email_domain_not_allowed';
   declare readonly details: EmailDomainNotAllowedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'EmailDomainNotAllowedError';
 }
 
 /**
@@ -41,6 +50,9 @@ export class EmailDomainNotAllowedError extends BadRequestError {
 export class InviteAlreadyExistsError extends BadRequestError {
   declare readonly errorCode: 'invite_already_exists';
   declare readonly details: InviteAlreadyExistsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'InviteAlreadyExistsError';
 }
 
 export class Invites extends APIResource {
@@ -52,23 +64,13 @@ export class Invites extends APIResource {
    * no seat-tier parameter. When no seat is free the request fails with a 400 error
    * rather than purchasing a seat.
    *
-   * @throws {AlreadyMemberError} The email address already belongs to a user in the organization. The message
-   * names the user.
-   * @throws {CannotInviteEmailsWithUnverifiedDomainsError} The email address's domain is not one of the verified domains of the
-   * organization's parent organization.
-   * @throws {EmailDomainNotAllowedError} The organization restricts invites to an allowed list of email domains, and the
-   * list is empty or does not include the email address's domain.
-   * @throws {InviteAlreadyExistsError} A pending invite already exists for the email address. The message names the
-   * invite.
-   * @throws {OrgMemberLimitExceededError} The organization has reached the member limit that Anthropic set for it. Pending
-   * invites count toward the limit.
-   * @throws {RBACGroupGrantsOwnerAccessError} A role attached to an RBAC Group in the request grants owner access, so this API
-   * does not add members to that group (directly or through an invite), remove its
-   * members, or delete it. Make the change in the organization's admin settings in
-   * Claude.
-   * @throws {RBACGroupOwnerAccessUnconfirmedError} The API could not finish checking whether an RBAC Group in the request grants
-   * owner access, so it made no change. Retrying the same request will not help.
-   * Make the change in the organization's admin settings in Claude.
+   * @throws {AlreadyMemberError}
+   * @throws {CannotInviteEmailsWithUnverifiedDomainsError}
+   * @throws {EmailDomainNotAllowedError}
+   * @throws {InviteAlreadyExistsError}
+   * @throws {OrgMemberLimitExceededError}
+   * @throws {RBACGroupGrantsOwnerAccessError}
+   * @throws {RBACGroupOwnerAccessUnconfirmedError}
    *
    * @example
    * ```ts

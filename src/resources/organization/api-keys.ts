@@ -12,6 +12,9 @@ import { path } from '../../internal/utils/path';
 export class OrgAPIKeyLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'org_api_key_limit_exceeded';
   declare readonly details: OrgAPIKeyLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrgAPIKeyLimitExceededError';
 }
 
 /**
@@ -20,6 +23,9 @@ export class OrgAPIKeyLimitExceededError extends BadRequestError {
 export class WorkspaceAPIKeyLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'workspace_api_key_limit_exceeded';
   declare readonly details: WorkspaceAPIKeyLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceAPIKeyLimitExceededError';
 }
 
 export class APIKeys extends APIResource {
@@ -46,8 +52,8 @@ export class APIKeys extends APIResource {
   /**
    * Update API Key
    *
-   * @throws {OrgAPIKeyLimitExceededError} The organization has reached its limit of active API keys.
-   * @throws {WorkspaceAPIKeyLimitExceededError} The workspace has reached its limit of active API keys.
+   * @throws {OrgAPIKeyLimitExceededError}
+   * @throws {WorkspaceAPIKeyLimitExceededError}
    *
    * @example
    * ```ts

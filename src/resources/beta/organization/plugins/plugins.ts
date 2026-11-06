@@ -39,6 +39,9 @@ import { path } from '../../../../internal/utils/path';
 export class BetaScanFailedError extends BadRequestError {
   declare readonly errorCode: 'scan_failed';
   declare readonly details: BetaScanFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanFailedError';
 }
 
 /**
@@ -48,6 +51,9 @@ export class BetaScanFailedError extends BadRequestError {
 export class BetaPluginNameTakenError extends ConflictError {
   declare readonly errorCode: 'plugin_name_taken';
   declare readonly details: BetaPluginNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaPluginNameTakenError';
 }
 
 /**
@@ -57,6 +63,9 @@ export class BetaPluginNameTakenError extends ConflictError {
 export class BetaScanPendingError extends ConflictError {
   declare readonly errorCode: 'scan_pending';
   declare readonly details: BetaScanPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanPendingError';
 }
 
 /**
@@ -66,6 +75,9 @@ export class BetaScanPendingError extends ConflictError {
 export class BetaSkillNameTakenError extends ConflictError {
   declare readonly errorCode: 'skill_name_taken';
   declare readonly details: BetaSkillNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSkillNameTakenError';
 }
 
 /**
@@ -75,6 +87,9 @@ export class BetaSkillNameTakenError extends ConflictError {
 export class BetaRegistrationPendingError extends ServiceUnavailableError {
   declare readonly errorCode: 'registration_pending';
   declare readonly details: BetaRegistrationPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRegistrationPendingError';
 }
 
 export class Plugins extends APIResource {
@@ -121,18 +136,12 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
-   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
-   * workspace's customer-managed encryption key. The key itself may be healthy.
-   * @throws {BetaUnsupportedCharsetError} The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
-   * or US-ASCII. Send the request with no charset, or with one of these.
-   * @throws {BetaPluginNameTakenError} The marketplace already holds this name. `plugin_id` is the Plugin that holds
-   * it, and can be absent.
-   * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
-   * is that name.
-   * @throws {BetaRegistrationPendingError} The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
-   * and `plugin_version_id` identify what was stored.
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaUnsupportedCharsetError}
+   * @throws {BetaPluginNameTakenError}
+   * @throws {BetaSkillNameTakenError}
+   * @throws {BetaRegistrationPendingError}
    *
    * @example
    * ```ts
@@ -245,16 +254,11 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
-   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
-   * workspace's customer-managed encryption key. The key itself may be healthy.
-   * @throws {BetaScanFailedError} The version in `plugin_version_id` did not pass its content scan, so it cannot
-   * be served.
-   * @throws {BetaScanPendingError} The content scan of the version in `plugin_version_id` is still running. Retry
-   * once the scan finishes.
-   * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
-   * is that name.
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaScanFailedError}
+   * @throws {BetaScanPendingError}
+   * @throws {BetaSkillNameTakenError}
    *
    * @example
    * ```ts
@@ -368,8 +372,7 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
+   * @throws {CMEKKeyDisabledError}
    *
    * @example
    * ```ts

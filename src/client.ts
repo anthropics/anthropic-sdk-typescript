@@ -38,7 +38,7 @@ import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
-import { setAnthropicSpanAttributes, takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
+import { takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -112,6 +112,7 @@ import {
   EnforcedSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
+  RampLimitExceededError,
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
@@ -129,6 +130,8 @@ import {
   BetaInvalidRequestError,
   BetaMonetaryAmount,
   BetaNotFoundError,
+  BetaOrganizationNotEnrolledInBetaError,
+  BetaOrganizationNotEnrolledInBetaErrorDetails,
   BetaOverloadedError,
   BetaPermissionError,
   BetaRateLimitError,
@@ -1588,7 +1591,6 @@ export class BaseAnthropic {
       );
     } catch (error) {
       const result: ApiCallResult = { status: 'error', options, error };
-      setAnthropicSpanAttributes(this, span, result);
       guardTracing(this, () => endApiCallSpan(span, result));
       throw error;
     }
@@ -2245,6 +2247,7 @@ Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
+Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
 Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
 Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
@@ -2256,6 +2259,7 @@ Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
 Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
 Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
+Anthropic.RampLimitExceededError = RampLimitExceededError;
 Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
 Anthropic.CMEKKeyUnreachableError = CMEKKeyUnreachableError;
 
@@ -2846,6 +2850,7 @@ export declare namespace Anthropic {
 
   export {
     Beta as Beta,
+    BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
@@ -2858,6 +2863,7 @@ export declare namespace Anthropic {
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
+    type BetaOrganizationNotEnrolledInBetaErrorDetails as BetaOrganizationNotEnrolledInBetaErrorDetails,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
@@ -2875,6 +2881,7 @@ export declare namespace Anthropic {
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
     RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
     EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
+    RampLimitExceededError as RampLimitExceededError,
     CMEKContextUnavailableError as CMEKContextUnavailableError,
     CMEKKeyUnreachableError as CMEKKeyUnreachableError,
   };
@@ -2900,6 +2907,7 @@ export declare namespace Anthropic {
   export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
   export type OverloadedError = API.OverloadedError;
   export type PermissionError = API.PermissionError;
+  export type RampLimitExceededErrorDetails = API.RampLimitExceededErrorDetails;
   export type RateLimitError = API.RateLimitError;
   export type RequestBodyEncodingInvalidErrorDetails = API.RequestBodyEncodingInvalidErrorDetails;
   export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;

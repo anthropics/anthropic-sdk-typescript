@@ -30,6 +30,9 @@ import { path } from '../../../../internal/utils/path';
 export class BetaSpendLimitsAdminAPIWritesNotEnabledError extends PermissionDeniedError {
   declare readonly errorCode: 'spend_limits_admin_api_writes_not_enabled';
   declare readonly details: BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSpendLimitsAdminAPIWritesNotEnabledError';
 }
 
 export class SpendLimits extends APIResource {
@@ -41,8 +44,7 @@ export class SpendLimits extends APIResource {
   /**
    * Retrieve a spend limit by ID.
    *
-   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
-   * credential.
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
    * ```ts
@@ -73,8 +75,7 @@ export class SpendLimits extends APIResource {
    * `rbac_group`, `organization_service`, `user`; within a type they come in a fixed
    * order that is not creation order.
    *
-   * @throws {OrganizationTypeNotSupportedError} The endpoint does not support the organization's type. Each endpoint's
-   * description says which organization types it supports.
+   * @throws {OrganizationTypeNotSupportedError}
    *
    * @example
    * ```ts
@@ -114,10 +115,8 @@ export class SpendLimits extends APIResource {
    * `usage_tier` limit. Deleting organization and workspace limits through the API
    * is in an early access preview.
    *
-   * @throws {BetaBillingFrozenError} Anthropic has temporarily disabled billing changes for the user account the
-   * credential belongs to. Contact support.
-   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
-   * credential.
+   * @throws {BetaBillingFrozenError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
    * ```ts
@@ -148,10 +147,8 @@ export class SpendLimits extends APIResource {
    * monthly and always carry an amount. Setting those limits is in an early access
    * preview. To request access, contact your Anthropic account team.
    *
-   * @throws {BetaBillingFrozenError} Anthropic has temporarily disabled billing changes for the user account the
-   * credential belongs to. Contact support.
-   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
-   * credential.
+   * @throws {BetaBillingFrozenError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
    * ```ts

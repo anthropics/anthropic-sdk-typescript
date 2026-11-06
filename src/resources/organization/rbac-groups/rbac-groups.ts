@@ -25,6 +25,9 @@ import { path } from '../../../internal/utils/path';
 export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
   declare readonly errorCode: 'rbac_group_grants_owner_access';
   declare readonly details: RBACGroupGrantsOwnerAccessErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RBACGroupGrantsOwnerAccessError';
 }
 
 /**
@@ -35,6 +38,9 @@ export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
 export class RBACGroupOwnerAccessUnconfirmedError extends BadRequestError {
   declare readonly errorCode: 'rbac_group_owner_access_unconfirmed';
   declare readonly details: RBACGroupOwnerAccessUnconfirmedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RBACGroupOwnerAccessUnconfirmedError';
 }
 
 export class RBACGroups extends APIResource {
@@ -149,13 +155,8 @@ export class RBACGroups extends APIResource {
    *
    * The RBAC Groups API is available to Claude Enterprise organizations only.
    *
-   * @throws {RBACGroupGrantsOwnerAccessError} A role attached to an RBAC Group in the request grants owner access, so this API
-   * does not add members to that group (directly or through an invite), remove its
-   * members, or delete it. Make the change in the organization's admin settings in
-   * Claude.
-   * @throws {RBACGroupOwnerAccessUnconfirmedError} The API could not finish checking whether an RBAC Group in the request grants
-   * owner access, so it made no change. Retrying the same request will not help.
-   * Make the change in the organization's admin settings in Claude.
+   * @throws {RBACGroupGrantsOwnerAccessError}
+   * @throws {RBACGroupOwnerAccessUnconfirmedError}
    *
    * @example
    * ```ts

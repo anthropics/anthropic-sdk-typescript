@@ -22,6 +22,9 @@ import { path } from '../../internal/utils/path';
 export class UserProfileNotFoundError extends BadRequestError {
   declare readonly errorCode: 'user_profile_not_found';
   declare readonly details: UserProfileNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileNotFoundError';
 }
 
 export class UserProfiles extends APIResource {

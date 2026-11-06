@@ -31,8 +31,8 @@ export class APIKeys extends APIResource {
   /**
    * Update API Key
    *
-   * @throws {OrgAPIKeyLimitExceededError} The organization has reached its limit of active API keys.
-   * @throws {WorkspaceAPIKeyLimitExceededError} The workspace has reached its limit of active API keys.
+   * @throws {OrgAPIKeyLimitExceededError}
+   * @throws {WorkspaceAPIKeyLimitExceededError}
    *
    * @example
    * ```ts

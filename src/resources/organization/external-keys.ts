@@ -13,6 +13,33 @@ import { path } from '../../internal/utils/path';
 export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
   declare readonly errorCode: 'external_key_in_workspace_policy';
   declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyInWorkspacePolicyError';
+}
+
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export class ExternalKeyValidationFailedError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_failed';
+  declare readonly details: ExternalKeyValidationFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationFailedError';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export class ExternalKeyValidationTimedOutError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_timed_out';
+  declare readonly details: ExternalKeyValidationTimedOutErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationTimedOutError';
 }
 
 /**
@@ -22,15 +49,16 @@ export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
 export class ExternalKeyChangedError extends ConflictError {
   declare readonly errorCode: 'external_key_changed';
   declare readonly details: ExternalKeyChangedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyChangedError';
 }
 
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
    *
-   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
-   * is no longer active. The request either names this user profile by ID, or names
-   * a resource, such as an External Key, that is bound to it.
+   * @throws {UserProfileNotFoundError}
    *
    * @example
    * ```ts
@@ -83,8 +111,7 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
-   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
-   * Workspace Policy lists it as an allowed key.
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts
@@ -143,8 +170,7 @@ export class ExternalKeys extends APIResource {
    *
    * The request is rejected if any workspace still references this config.
    *
-   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
-   * Workspace Policy lists it as an allowed key.
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts
@@ -342,6 +368,22 @@ export interface ExternalKeyUnattachedAttachment {
   type: 'unattached';
 }
 
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export interface ExternalKeyValidationFailedErrorDetails {
+  error_code: 'external_key_validation_failed';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export interface ExternalKeyValidationTimedOutErrorDetails {
+  error_code: 'external_key_validation_timed_out';
+}
+
 export interface GCPExternalKeyConfig {
   /**
    * Full resource name of the Cloud KMS key.
@@ -426,11 +468,15 @@ export interface ExternalKeyUpdateParams {
 export interface ExternalKeyListParams extends PageCursorParams {}
 
 ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+ExternalKeys.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
 ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
 
 export declare namespace ExternalKeys {
   export {
     ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
     ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
@@ -440,6 +486,8 @@ export declare namespace ExternalKeys {
     type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,

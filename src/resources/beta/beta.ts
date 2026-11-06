@@ -963,12 +963,27 @@ import {
 import { BadRequestError } from '../../core/error';
 
 /**
+ * The beta that the endpoint requires is not enabled for the organization. The
+ * message names the beta value.
+ */
+export class BetaOrganizationNotEnrolledInBetaError extends BadRequestError {
+  declare readonly errorCode: 'organization_not_enrolled_in_beta';
+  declare readonly details: BetaOrganizationNotEnrolledInBetaErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaOrganizationNotEnrolledInBetaError';
+}
+
+/**
  * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
  * or US-ASCII. Send the request with no charset, or with one of these.
  */
 export class BetaUnsupportedCharsetError extends BadRequestError {
   declare readonly errorCode: 'unsupported_charset';
   declare readonly details: BetaUnsupportedCharsetErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaUnsupportedCharsetError';
 }
 
 export class Beta extends APIResource {
@@ -1050,25 +1065,47 @@ export type AnthropicBeta =
   | 'spend-limit-reads-2026-09-26'
   | 'telemetry-destinations-2026-08-11'
   | 'webhooks-2026-10-07'
+  | 'admin-user-sign-out-2026-10-08'
   | 'message-threads-2026-08-12'
   | 'analytics-usage-cost-2026-08-24'
   | 'experimental-claude-tag-2026-10-21';
 
 export interface BetaAPIError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'api_error';
 }
 
 export interface BetaAuthenticationError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'authentication_error';
 }
 
 export interface BetaBillingError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'billing_error';
 }
 
@@ -1094,14 +1131,28 @@ export interface BetaErrorResponse {
 }
 
 export interface BetaGatewayTimeoutError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'timeout_error';
 }
 
 export interface BetaInvalidRequestError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'invalid_request_error';
 }
 
@@ -1125,26 +1176,62 @@ export interface BetaMonetaryAmount {
 }
 
 export interface BetaNotFoundError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'not_found_error';
 }
 
+/**
+ * The beta that the endpoint requires is not enabled for the organization. The
+ * message names the beta value.
+ */
+export interface BetaOrganizationNotEnrolledInBetaErrorDetails {
+  error_code: 'organization_not_enrolled_in_beta';
+}
+
 export interface BetaOverloadedError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'overloaded_error';
 }
 
 export interface BetaPermissionError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'permission_error';
 }
 
 export interface BetaRateLimitError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'rate_limit_error';
 }
 
@@ -1156,6 +1243,7 @@ export interface BetaUnsupportedCharsetErrorDetails {
   error_code: 'unsupported_charset';
 }
 
+Beta.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
 Beta.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Beta.Models = Models;
 Beta.Messages = Messages;
@@ -1183,6 +1271,7 @@ Beta.BetaBillingFrozenError = BetaBillingFrozenError;
 
 export declare namespace Beta {
   export {
+    BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
@@ -1195,6 +1284,7 @@ export declare namespace Beta {
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
+    type BetaOrganizationNotEnrolledInBetaErrorDetails as BetaOrganizationNotEnrolledInBetaErrorDetails,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,

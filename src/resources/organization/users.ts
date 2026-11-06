@@ -14,6 +14,9 @@ import { path } from '../../internal/utils/path';
 export class CannotRemoveLastMemberError extends BadRequestError {
   declare readonly errorCode: 'cannot_remove_last_member';
   declare readonly details: CannotRemoveLastMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotRemoveLastMemberError';
 }
 
 export class Users extends APIResource {
@@ -86,10 +89,8 @@ export class Users extends APIResource {
   /**
    * Remove a member from the organization.
    *
-   * @throws {CannotRemoveLastMemberError} The user is the organization's only member. Add another member before removing
-   * this one.
-   * @throws {ConcurrentMembershipChangeError} Another change to the organization's members is in progress. Retry the request
-   * once it completes.
+   * @throws {CannotRemoveLastMemberError}
+   * @throws {ConcurrentMembershipChangeError}
    *
    * @example
    * ```ts

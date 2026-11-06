@@ -1,8 +1,32 @@
-import { propagation, type Span, type TextMapPropagator, type TracerProvider } from '@opentelemetry/api';
+import { isDeepStrictEqual } from 'node:util';
+import {
+  propagation,
+  SpanStatusCode,
+  type AttributeValue,
+  type Span,
+  type TextMapPropagator,
+  type TracerProvider,
+} from '@opentelemetry/api';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
-import { BasicTracerProvider, type Sampler, type SpanProcessor } from '@opentelemetry/sdk-trace-base';
+import {
+  BasicTracerProvider,
+  type ReadableSpan,
+  type Sampler,
+  type SpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
 import Anthropic, { type OpenTelemetryOptions } from '@anthropic-ai/sdk';
-import { makeClient, json, sse, MESSAGE, PARAMS, STREAM_EVENTS, setUpTracing } from './utils';
+import {
+  exporter,
+  makeClient,
+  json,
+  sse,
+  openSpans,
+  MESSAGE,
+  PARAMS,
+  SESSION_EVENT,
+  STREAM_EVENTS,
+  setUpTracing,
+} from './utils';
 
 setUpTracing();
 
@@ -30,6 +54,38 @@ function providerOfSpansFailingIn(method: keyof Span): TracerProvider {
       });
     },
   };
+}
+
+/**
+ * A tracer provider that the application wrote, whose spans throw on the attribute `refused`, and
+ * those of its spans that ended.
+ */
+function providerOfSpansRefusing(refused: string): {
+  tracerProvider: TracerProvider;
+  ended: ReadableSpan[];
+} {
+  const ended: ReadableSpan[] = [];
+  const provider = new BasicTracerProvider({
+    spanProcessors: [processor({ onEnd: (span) => void ended.push(span) })],
+  });
+  const tracerProvider: TracerProvider = {
+    getTracer: (name, version) => {
+      const tracer = provider.getTracer(name, version);
+      return Object.assign(Object.create(tracer), {
+        startSpan: (...args: Parameters<typeof tracer.startSpan>) => {
+          const span = tracer.startSpan(...args);
+          return Object.assign(Object.create(span), {
+            setAttribute(this: Span, key: string, value: AttributeValue) {
+              return key === refused ?
+                  failing('span.setAttribute')()
+                : span.setAttribute.call(this, key, value);
+            },
+          });
+        },
+      });
+    },
+  };
+  return { tracerProvider, ended };
 }
 
 /**
@@ -106,9 +162,29 @@ const CALLS: Record<string, (options: ClientOptions) => Promise<unknown>> = {
     }
     return { events, requests: requests.length };
   },
+  'beta.messages.create with stream: true': async (options) => {
+    const { client, requests } = makeClient([sse(STREAM_EVENTS)], options);
+    const events = [];
+    for await (const event of await client.beta.messages.create({ ...PARAMS, stream: true })) {
+      events.push(event);
+    }
+    return { events, requests: requests.length };
+  },
   'messages.stream': async (options) => {
     const { client, requests } = makeClient([sse(STREAM_EVENTS)], options);
     return { message: await client.messages.stream(PARAMS).finalMessage(), requests: requests.length };
+  },
+  'beta.messages.stream': async (options) => {
+    const { client, requests } = makeClient([sse(STREAM_EVENTS)], options);
+    return { message: await client.beta.messages.stream(PARAMS).finalMessage(), requests: requests.length };
+  },
+  'beta.sessions.events.stream': async (options) => {
+    const { client, requests } = makeClient([sse([SESSION_EVENT])], options);
+    const events = [];
+    for await (const event of await client.beta.sessions.events.stream('sesn_1')) {
+      events.push(event);
+    }
+    return { events, requests: requests.length };
   },
   'every page of models.list': async (options) => {
     const { client, requests } = makeClient([modelsPage('a', true), modelsPage('b', false)], options);
@@ -136,6 +212,12 @@ const CALLS: Record<string, (options: ClientOptions) => Promise<unknown>> = {
       isBadRequest: error instanceof Anthropic.BadRequestError,
       requests: requests.length,
     };
+  },
+  'a call whose response is not JSON': async (options) => {
+    const notJSON = () => new Response('{', { headers: { 'content-type': 'application/json' } });
+    const { client, requests } = makeClient([notJSON], options);
+    const error = await client.messages.create(PARAMS).catch((error) => error);
+    return { ...seen(error), requests: requests.length };
   },
   'a call that the API answers with 500 after every retry': async (options) => {
     const handlers = [1, 2, 3].map(() => errorResponse(500, 'api_error'));
@@ -248,6 +330,36 @@ describe('OpenTelemetry spans', () => {
       );
     });
 
+    test.each([
+      ['messages.create', 'anthropic.request.id', SpanStatusCode.OK],
+      ['messages.create', 'gen_ai.response.id', SpanStatusCode.OK],
+      ['messages.create with stream: true', 'anthropic.request.id', SpanStatusCode.OK],
+      ['messages.stream', 'anthropic.request.id', SpanStatusCode.OK],
+      ['messages.countTokens', 'anthropic.message.count_tokens.input_tokens', SpanStatusCode.OK],
+      ['a call that the API answers with 400', 'anthropic.request.id', SpanStatusCode.ERROR],
+      // The status comes after this attribute.
+      ['messages.create', 'http.response.status_code', SpanStatusCode.UNSET],
+    ])('the span of %s ends when it throws on %s', async (call, refused, status) => {
+      const { tracerProvider, ended } = providerOfSpansRefusing(refused);
+
+      await CALLS[call]!({ logLevel: 'off', openTelemetry: { tracerProvider } });
+
+      expect(ended.map((span) => span.status.code)).toEqual([status]);
+    });
+
+    test('an attribute of the response that the span throws on costs that attribute alone', async () => {
+      const { tracerProvider, ended } = providerOfSpansRefusing('gen_ai.response.id');
+
+      await CALLS['messages.create']!({ logLevel: 'off', openTelemetry: { tracerProvider } });
+
+      expect(ended[0]!.attributes).toMatchObject({
+        'anthropic.request.id': 'req_1',
+        'gen_ai.response.model': 'model-served',
+        'anthropic.message.stop_reason': 'end_turn',
+      });
+      expect(ended[0]!.attributes).not.toHaveProperty('gen_ai.response.id');
+    });
+
     test('a request without the trace context of a propagator that throws still has its span', async () => {
       propagation.disable();
       propagation.setGlobalPropagator(
@@ -266,6 +378,82 @@ describe('OpenTelemetry spans', () => {
 
       expect(requests[0]!.headers.has('traceparent')).toBe(false);
       expect(ended).toEqual(['anthropic.messages.create']);
+    });
+  });
+
+  describe('a header of the response that throws when the span reads it', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test.each([
+      'messages.create',
+      'messages.create with stream: true',
+      'messages.stream',
+      'every page of models.list',
+      'a call that the API answers with 400',
+    ])('%s is as it is without tracing, and its spans end', async (call) => {
+      const withoutTracing = await CALLS[call]!({ logLevel: 'off', openTelemetry: false });
+      const get = Headers.prototype.get;
+      // Only the span reads this header.
+      const read = vi.spyOn(Headers.prototype, 'get').mockImplementation(function (this: Headers, name) {
+        return name === 'anthropic-organization-id' ? failing('fetch')() : get.call(this, name);
+      });
+
+      const outcome = await CALLS[call]!({ logLevel: 'off' });
+
+      expect(read).toHaveBeenCalledWith('anthropic-organization-id');
+      expect(outcome).toEqual(withoutTracing);
+      expect([...openSpans.values()]).toEqual([]);
+    });
+  });
+
+  describe('the headers of the response, which throw when the span reads them', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const headers = Object.getOwnPropertyDescriptor(Response.prototype, 'headers')!.get!;
+
+    /** What the application and the spans have of `call` when read number `unreadable` of a response's headers throws. */
+    const run = async (call: string, unreadable?: number) => {
+      exporter.reset();
+      openSpans.clear();
+      let reads = 0;
+      vi.spyOn(Response.prototype, 'headers', 'get').mockImplementation(function (this: Response) {
+        return ++reads === unreadable ? failing('fetch')() : headers.call(this);
+      });
+      const outcome = await CALLS[call]!({ logLevel: 'off' }).catch(seen);
+      const spans = exporter.getFinishedSpans().map(({ name, status, attributes }) => {
+        // What the headers give, and what no two runs have alike.
+        const { 'anthropic.request.id': _, 'gen_ai.response.time_to_first_chunk': __, ...rest } = attributes;
+        return { name, status, attributes: rest };
+      });
+      return { outcome, spans, open: [...openSpans.values()], reads };
+    };
+
+    test.each([
+      ['messages.create', 1],
+      ['a call whose response is not JSON', 1],
+      ['messages.create with stream: true', 1],
+      ['beta.messages.create with stream: true', 1],
+      ['messages.stream', 1],
+      ['beta.messages.stream', 1],
+      ['beta.sessions.events.stream', 1],
+      ['every page of models.list', 2],
+    ])('the spans of %s lack only what the headers give', async (call, responses) => {
+      const { outcome, spans, reads } = await run(call);
+
+      const unnoticed = [];
+      for (let unreadable = 1; unreadable <= reads; unreadable++) {
+        const faulty = await run(call, unreadable);
+        // The application sees every read but the span's fail.
+        if (isDeepStrictEqual(faulty.outcome, outcome)) {
+          unnoticed.push({ spans: faulty.spans, open: faulty.open });
+        }
+      }
+
+      expect(unnoticed).toEqual(Array(responses).fill({ spans, open: [] }));
     });
   });
 });

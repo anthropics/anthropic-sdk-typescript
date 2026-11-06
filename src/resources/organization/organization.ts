@@ -45,6 +45,10 @@ import {
   ExternalKeyUnattachedAttachment,
   ExternalKeyUpdateParams,
   ExternalKeyValidateResponse,
+  ExternalKeyValidationFailedError,
+  ExternalKeyValidationFailedErrorDetails,
+  ExternalKeyValidationTimedOutError,
+  ExternalKeyValidationTimedOutErrorDetails,
   ExternalKeys,
   ExternalKeysPageCursor,
   GCPExternalKeyConfig,
@@ -222,6 +226,9 @@ import { startApiCallSpan } from '../../internal/tracing';
 export class OrgMemberLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'org_member_limit_exceeded';
   declare readonly details: OrgMemberLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrgMemberLimitExceededError';
 }
 
 /**
@@ -231,6 +238,9 @@ export class OrgMemberLimitExceededError extends BadRequestError {
 export class ConcurrentMembershipChangeError extends ConflictError {
   declare readonly errorCode: 'concurrent_membership_change';
   declare readonly details: ConcurrentMembershipChangeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ConcurrentMembershipChangeError';
 }
 
 export class Organization extends APIResource {
@@ -323,6 +333,8 @@ Organization.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
 Organization.WorkspaceAPIKeyLimitExceededError = WorkspaceAPIKeyLimitExceededError;
 Organization.ExternalKeys = ExternalKeys;
 Organization.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+Organization.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+Organization.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
 Organization.ExternalKeyChangedError = ExternalKeyChangedError;
 Organization.Federation = Federation;
 Organization.Invites = Invites;
@@ -376,6 +388,8 @@ export declare namespace Organization {
   export {
     ExternalKeys as ExternalKeys,
     ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
     ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
@@ -385,6 +399,8 @@ export declare namespace Organization {
     type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,

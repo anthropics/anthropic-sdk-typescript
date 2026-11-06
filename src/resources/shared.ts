@@ -11,6 +11,7 @@ import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
 import * as BetaOrganizationAPI from './beta/organization/organization';
+import * as OrganizationUsersAPI from './beta/organization/users';
 import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
 import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
@@ -30,6 +31,9 @@ import {
 export class ClaudeCodeKeyCreatorNotMemberError extends BadRequestError {
   declare readonly errorCode: 'claude_code_key_creator_not_member';
   declare readonly details: ClaudeCodeKeyCreatorNotMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ClaudeCodeKeyCreatorNotMemberError';
 }
 
 /**
@@ -39,6 +43,9 @@ export class ClaudeCodeKeyCreatorNotMemberError extends BadRequestError {
 export class ClaudeCodeVersionTooOldError extends BadRequestError {
   declare readonly errorCode: 'claude_code_version_too_old';
   declare readonly details: ClaudeCodeVersionTooOldErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ClaudeCodeVersionTooOldError';
 }
 
 /**
@@ -48,6 +55,9 @@ export class ClaudeCodeVersionTooOldError extends BadRequestError {
 export class CMEKKeyDisabledError extends BadRequestError {
   declare readonly errorCode: 'cmek_key_disabled';
   declare readonly details: CMEKKeyDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyDisabledError';
 }
 
 /**
@@ -57,6 +67,9 @@ export class CMEKKeyDisabledError extends BadRequestError {
 export class CMEKKeyNetworkBlockedError extends BadRequestError {
   declare readonly errorCode: 'cmek_key_network_blocked';
   declare readonly details: CMEKKeyNetworkBlockedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyNetworkBlockedError';
 }
 
 /**
@@ -67,6 +80,9 @@ export class CMEKKeyNetworkBlockedError extends BadRequestError {
 export class OrganizationOnHoldError extends BadRequestError {
   declare readonly errorCode: 'organization_on_hold';
   declare readonly details: OrganizationOnHoldErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrganizationOnHoldError';
 }
 
 /**
@@ -76,6 +92,9 @@ export class OrganizationOnHoldError extends BadRequestError {
 export class OrganizationTypeNotSupportedError extends BadRequestError {
   declare readonly errorCode: 'organization_type_not_supported';
   declare readonly details: OrganizationTypeNotSupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrganizationTypeNotSupportedError';
 }
 
 /**
@@ -84,6 +103,9 @@ export class OrganizationTypeNotSupportedError extends BadRequestError {
 export class RequestBodyEncodingInvalidError extends BadRequestError {
   declare readonly errorCode: 'request_body_encoding_invalid';
   declare readonly details: RequestBodyEncodingInvalidErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyEncodingInvalidError';
 }
 
 /**
@@ -92,6 +114,9 @@ export class RequestBodyEncodingInvalidError extends BadRequestError {
 export class RequestBodyEncodingUnsupportedError extends BadRequestError {
   declare readonly errorCode: 'request_body_encoding_unsupported';
   declare readonly details: RequestBodyEncodingUnsupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
 }
 
 /**
@@ -100,6 +125,9 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError {
   declare readonly errorCode: 'request_body_too_large_after_decoding';
   declare readonly details: RequestBodyTooLargeAfterDecodingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyTooLargeAfterDecodingError';
 }
 
 /**
@@ -108,6 +136,21 @@ export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError 
 export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
   declare readonly errorCode: 'enforced_spend_limit_reached';
   declare readonly details: EnforcedSpendLimitReachedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'EnforcedSpendLimitReachedError';
+}
+
+/**
+ * The request would exceed a ramp limit, which caps how fast usage can grow. Retry
+ * after the time in the `retry-after` header.
+ */
+export class RampLimitExceededError extends ErrorsRateLimitError {
+  declare readonly errorCode: 'ramp_limit_exceeded';
+  declare readonly details: RampLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RampLimitExceededError';
 }
 
 /**
@@ -117,6 +160,9 @@ export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
 export class CMEKContextUnavailableError extends ServiceUnavailableError {
   declare readonly errorCode: 'cmek_context_unavailable';
   declare readonly details: CMEKContextUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKContextUnavailableError';
 }
 
 /**
@@ -127,23 +173,47 @@ export class CMEKContextUnavailableError extends ServiceUnavailableError {
 export class CMEKKeyUnreachableError extends ServiceUnavailableError {
   declare readonly errorCode: 'cmek_key_unreachable';
   declare readonly details: CMEKKeyUnreachableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyUnreachableError';
 }
 
 export interface APIErrorObject {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'api_error';
 }
 
 export interface AuthenticationError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'authentication_error';
 }
 
 export interface BillingError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'billing_error';
 }
 
@@ -230,6 +300,7 @@ export type ErrorDetails =
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
   | EnforcedSpendLimitReachedErrorDetails
+  | RampLimitExceededErrorDetails
   | CMEKKeyUnreachableErrorDetails
   | MessagesAPI.CompactionUnavailableErrorDetails
   | FilesAPI.StorageQuotaExceededErrorDetails
@@ -249,6 +320,8 @@ export type ErrorDetails =
   | RBACGroupsAPI.RBACGroupOwnerAccessUnconfirmedErrorDetails
   | UsersAPI.CannotRemoveLastMemberErrorDetails
   | OrganizationAPI.ConcurrentMembershipChangeErrorDetails
+  | ExternalKeysAPI.ExternalKeyValidationFailedErrorDetails
+  | ExternalKeysAPI.ExternalKeyValidationTimedOutErrorDetails
   | WorkspacesAPI.KeyProfileMismatchErrorDetails
   | WorkspacesAPI.WorkspacePolicyViolationErrorDetails
   | ExternalKeysAPI.ExternalKeyChangedErrorDetails
@@ -260,6 +333,13 @@ export type ErrorDetails =
   | EnvironmentsAPI.BetaEnvironmentUpdateDisabledErrorDetails
   | WorkAPI.BetaHeartbeatPreconditionFailedErrorDetails
   | EnvironmentsAPI.BetaInvalidMetadataErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutPrimaryOwnerErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutSelfErrorDetails
+  | BetaAPI.BetaOrganizationNotEnrolledInBetaErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutManagedMemberErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutMembershipAdminErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutOwnerErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutPrivilegedMemberErrorDetails
   | BetaOrganizationAPI.BetaBillingFrozenErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
   | BetaAPI.BetaUnsupportedCharsetErrorDetails
@@ -311,20 +391,41 @@ export type ErrorType =
   | 'conflict_error';
 
 export interface GatewayTimeoutError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'timeout_error';
 }
 
 export interface InvalidRequestError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'invalid_request_error';
 }
 
 export interface NotFoundError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'not_found_error';
 }
 
@@ -348,20 +449,49 @@ export interface OrganizationTypeNotSupportedErrorDetails {
 }
 
 export interface OverloadedError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'overloaded_error';
 }
 
 export interface PermissionError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'permission_error';
 }
 
+/**
+ * The request would exceed a ramp limit, which caps how fast usage can grow. Retry
+ * after the time in the `retry-after` header.
+ */
+export interface RampLimitExceededErrorDetails {
+  error_code: 'ramp_limit_exceeded';
+}
+
 export interface RateLimitError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'rate_limit_error';
 }
 
