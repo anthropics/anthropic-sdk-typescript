@@ -852,6 +852,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       reject: (error: unknown) => void;
     }[] = [];
     let done = false;
+    // The failure that ended the stream, kept so a read that starts after buffered
+    // events are drained still sees it instead of a silent `{ done: true }`.
+    let failure: { error: unknown } | undefined;
 
     this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
@@ -872,6 +875,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     this.on('abort', (err) => {
       done = true;
+      failure = { error: err };
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -880,6 +884,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     this.on('error', (err) => {
       done = true;
+      failure = { error: err };
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -890,6 +895,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       next: async (): Promise<IteratorResult<BetaMessageStreamEvent>> => {
         if (!pushQueue.length) {
           if (done) {
+            if (failure) throw failure.error;
             return { value: undefined, done: true };
           }
           return new Promise<BetaMessageStreamEvent | undefined>((resolve, reject) =>
