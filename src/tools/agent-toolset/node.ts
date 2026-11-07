@@ -732,7 +732,13 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
               'The edit tool loads the whole file and cannot modify a file this large.',
           );
         }
-        data = await fs.readFile(abs, 'utf8');
+        const bytes = await fs.readFile(abs);
+        try {
+          // Keep an existing BOM, but never replace invalid bytes during an edit.
+          data = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+        } catch {
+          throw new ToolError(`edit: ${file_path} is not valid UTF-8`);
+        }
       } catch (e) {
         if (e instanceof ToolError) throw e;
         throw new ToolError(`edit: ${fsErrorMessage(e, file_path)}`);

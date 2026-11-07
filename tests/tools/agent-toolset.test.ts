@@ -496,6 +496,25 @@ describe('fs tools (read/write/edit)', () => {
     expect(fs.readFileSync(path.join(dir, 'crlf.txt'))).toEqual(Buffer.from('line1\r\nLINE2\r\nline3\r\n'));
   });
 
+  test.each([
+    Buffer.from('caf\u00e9 OLD', 'latin1'),
+    Buffer.concat([Buffer.from('OLD '), Buffer.from([0xe2, 0x82])]),
+  ])('edit refuses invalid UTF-8 without changing the file (%p)', async (original) => {
+    const file = path.join(dir, 'non-utf8.txt');
+    fs.writeFileSync(file, original);
+    await expect(
+      betaEditTool(env).run({ file_path: 'non-utf8.txt', old_string: 'OLD', new_string: 'NEW' }),
+    ).rejects.toThrow('edit: non-utf8.txt is not valid UTF-8');
+    expect(fs.readFileSync(file)).toEqual(original);
+  });
+
+  test('edit preserves a UTF-8 BOM, Unicode, and a literal replacement character', async () => {
+    const file = path.join(dir, 'unicode.txt');
+    fs.writeFileSync(file, '\ufeffzażółć \ufffd OLD');
+    await betaEditTool(env).run({ file_path: 'unicode.txt', old_string: 'OLD', new_string: 'NEW' });
+    expect(fs.readFileSync(file)).toEqual(Buffer.from('\ufeffzażółć \ufffd NEW'));
+  });
+
   test('read refuses a file over the size cap so a huge file cannot OOM the runner', async () => {
     fs.writeFileSync(path.join(dir, 'big.txt'), Buffer.alloc(257 * 1024, 'a'));
     const err = await Promise.resolve(betaReadTool(env).run({ file_path: 'big.txt' })).catch(
