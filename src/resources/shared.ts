@@ -10,7 +10,6 @@ import * as SkillsAPI from './skills/skills';
 import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
-import * as BetaOrganizationAPI from './beta/organization/organization';
 import * as OrganizationUsersAPI from './beta/organization/users';
 import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
@@ -20,6 +19,7 @@ import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
 import {
   BadRequestError,
   ContentTooLargeError,
+  PermissionDeniedError,
   RateLimitError as ErrorsRateLimitError,
   ServiceUnavailableError,
 } from '../core/error';
@@ -117,6 +117,19 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
+}
+
+/**
+ * The request came from a Claude sandbox with restricted network access, which is
+ * not allowed to make this change. Send it from outside the sandbox, or from a
+ * sandbox with unrestricted network access.
+ */
+export class SandboxEgressRestrictedError extends PermissionDeniedError {
+  declare readonly errorCode: 'sandbox_egress_restricted';
+  declare readonly details: SandboxEgressRestrictedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'SandboxEgressRestrictedError';
 }
 
 /**
@@ -309,6 +322,7 @@ export type ErrorDetails =
   | CMEKContextUnavailableErrorDetails
   | APIKeysAPI.OrgAPIKeyLimitExceededErrorDetails
   | APIKeysAPI.WorkspaceAPIKeyLimitExceededErrorDetails
+  | SandboxEgressRestrictedErrorDetails
   | UserProfilesAPI.UserProfileNotFoundErrorDetails
   | ExternalKeysAPI.ExternalKeyInWorkspacePolicyErrorDetails
   | InvitesAPI.AlreadyMemberErrorDetails
@@ -340,7 +354,6 @@ export type ErrorDetails =
   | OrganizationUsersAPI.BetaCannotSignOutMembershipAdminErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutOwnerErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutPrivilegedMemberErrorDetails
-  | BetaOrganizationAPI.BetaBillingFrozenErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
   | BetaAPI.BetaUnsupportedCharsetErrorDetails
   | PluginsAPI.BetaPluginNameTakenErrorDetails
@@ -514,4 +527,13 @@ export interface RequestBodyEncodingUnsupportedErrorDetails {
  */
 export interface RequestBodyTooLargeAfterDecodingErrorDetails {
   error_code: 'request_body_too_large_after_decoding';
+}
+
+/**
+ * The request came from a Claude sandbox with restricted network access, which is
+ * not allowed to make this change. Send it from outside the sandbox, or from a
+ * sandbox with unrestricted network access.
+ */
+export interface SandboxEgressRestrictedErrorDetails {
+  error_code: 'sandbox_egress_restricted';
 }

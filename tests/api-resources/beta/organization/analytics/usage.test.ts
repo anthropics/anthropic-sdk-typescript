@@ -40,6 +40,7 @@ describe('resource usage', () => {
       models: ['string'],
       order: 'asc',
       order_by: 'output_tokens',
+      organization_ids: ['12345678-1234-5678-1234-567812345678'],
       page: 'page',
       products: ['chat'],
       rbac_group_ids: ['rbac_group_012rppKaSVsmTo6NqRDXQXNF'],

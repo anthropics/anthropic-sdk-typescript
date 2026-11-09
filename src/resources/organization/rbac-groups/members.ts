@@ -50,6 +50,7 @@ export class Members extends APIResource {
    *
    * @throws {RBACGroupGrantsOwnerAccessError}
    * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -82,6 +83,7 @@ export class Members extends APIResource {
    *
    * @throws {RBACGroupGrantsOwnerAccessError}
    * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

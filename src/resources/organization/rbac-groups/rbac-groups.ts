@@ -52,6 +52,8 @@ export class RBACGroups extends APIResource {
    *
    * The RBAC Groups API is available to Claude Enterprise organizations only.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const rbacGroup =
@@ -100,6 +102,8 @@ export class RBACGroups extends APIResource {
    * tenant uses SCIM provisioning.
    *
    * The RBAC Groups API is available to Claude Enterprise organizations only.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -157,6 +161,7 @@ export class RBACGroups extends APIResource {
    *
    * @throws {RBACGroupGrantsOwnerAccessError}
    * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

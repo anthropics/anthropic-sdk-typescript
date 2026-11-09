@@ -42,6 +42,8 @@ export class Users extends APIResource {
   /**
    * Update a member's organization role.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const organizationUser =
@@ -90,6 +92,7 @@ export class Users extends APIResource {
    * Remove a member from the organization.
    *
    * @throws {CannotRemoveLastMemberError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {ConcurrentMembershipChangeError}
    *
    * @example

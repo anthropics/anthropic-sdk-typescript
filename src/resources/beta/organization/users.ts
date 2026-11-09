@@ -33,8 +33,8 @@ export class BetaCannotSignOutSelfError extends BadRequestError {
 }
 
 /**
- * On a public-sector deployment, only an API key or token that belongs to a person
- * with owner permissions can sign out a member with the `managed` role.
+ * The member has the `managed` role, and this API key or token cannot sign them
+ * out. The error message says which keys and tokens can.
  */
 export class BetaCannotSignOutManagedMemberError extends PermissionDeniedError {
   declare readonly errorCode: 'cannot_sign_out_managed_member';
@@ -105,6 +105,8 @@ export class Users extends APIResource {
   /**
    * Update a member's organization role.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaOrganizationUser =
@@ -155,6 +157,7 @@ export class Users extends APIResource {
    * Remove a member from the organization.
    *
    * @throws {CannotRemoveLastMemberError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {ConcurrentMembershipChangeError}
    *
    * @example
@@ -197,10 +200,10 @@ export class Users extends APIResource {
    *
    * Every request must include the beta header
    * `anthropic-beta: admin-user-sign-out-2026-10-08`. A request without it returns
-   * `400`. Sign-out is in beta. Anthropic turns it on for each organization and has
-   * turned it on for every Claude Enterprise organization; until yours is on,
-   * requests also return `400`. In a Claude Enterprise organization, an API key
-   * needs the `write:members` scope; a key without it gets `403`.
+   * `400`. Sign-out is in beta for Claude Enterprise organizations. In an
+   * organization where it is not enabled, a request returns `400` with `error_code`
+   * `organization_not_enrolled_in_beta`. In a Claude Enterprise organization, an API
+   * key needs the `write:members` scope; a key without it gets `403`.
    *
    * @throws {BetaCannotSignOutPrimaryOwnerError}
    * @throws {BetaCannotSignOutSelfError}
@@ -209,6 +212,7 @@ export class Users extends APIResource {
    * @throws {BetaCannotSignOutMembershipAdminError}
    * @throws {BetaCannotSignOutOwnerError}
    * @throws {BetaCannotSignOutPrivilegedMemberError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -240,8 +244,8 @@ export class Users extends APIResource {
 export type BetaOrganizationUsersPage = Page<BetaOrganizationUser>;
 
 /**
- * On a public-sector deployment, only an API key or token that belongs to a person
- * with owner permissions can sign out a member with the `managed` role.
+ * The member has the `managed` role, and this API key or token cannot sign them
+ * out. The error message says which keys and tokens can.
  */
 export interface BetaCannotSignOutManagedMemberErrorDetails {
   error_code: 'cannot_sign_out_managed_member';

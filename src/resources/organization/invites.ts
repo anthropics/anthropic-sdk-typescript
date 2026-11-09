@@ -71,6 +71,7 @@ export class Invites extends APIResource {
    * @throws {OrgMemberLimitExceededError}
    * @throws {RBACGroupGrantsOwnerAccessError}
    * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -138,6 +139,8 @@ export class Invites extends APIResource {
 
   /**
    * Delete a pending invite.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

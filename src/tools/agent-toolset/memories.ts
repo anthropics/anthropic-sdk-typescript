@@ -108,11 +108,13 @@ type MarkerScan = {
 export class SessionMemoryError extends AnthropicError {
   constructor(message: string, cause?: unknown) {
     super(message);
-    this.name = 'SessionMemoryError';
     // in some environments the 'cause' property is already declared
     // @ts-ignore
     if (cause !== undefined) this.cause = cause;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'SessionMemoryError';
 }
 
 /** One attached store: its {@link FileStore} on disk plus the sync baseline. */

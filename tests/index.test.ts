@@ -126,6 +126,24 @@ describe('instantiate client', () => {
       });
     });
 
+    test.each([
+      ['JSON', '{"error":{"message":"bad"}}', { error: { message: 'bad' } }],
+      ['not JSON', 'bad gateway', 'bad gateway'],
+    ])('debug logs include the body of a failed response that is %s', async (_, responseBody, loggedBody) => {
+      const debugMock = vi.fn();
+      const client = new Anthropic({
+        logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+        logLevel: 'debug',
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => new Response(responseBody, { status: 400 }),
+      });
+
+      await expect(client.get('/foo')).rejects.toThrow();
+
+      const failed = debugMock.mock.calls.find(([message]) => message.includes('response error'));
+      expect(failed?.[1]).toMatchObject({ body: loggedBody });
+    });
+
     test('default logLevel is warn', async () => {
       const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
       expect(client.logLevel).toBe('warn');

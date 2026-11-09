@@ -39,6 +39,8 @@ export class Rules extends APIResource {
    * only manage rules whose `oauth_scope` is `workspace:developer` or
    * `workspace:inference`; other scopes require a Console session.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaFederationRule =
@@ -130,6 +132,8 @@ export class Rules extends APIResource {
    * `workspace:developer` or `workspace:inference`; other scopes require a Console
    * session.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaFederationRule =
@@ -213,6 +217,8 @@ export class Rules extends APIResource {
    * already minted before archive remain valid until they expire. OAuth callers may
    * only manage rules whose `oauth_scope` is `workspace:developer` or
    * `workspace:inference`; other scopes require a Console session.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

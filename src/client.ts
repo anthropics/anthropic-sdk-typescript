@@ -116,6 +116,7 @@ import {
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
+  SandboxEgressRestrictedError,
 } from './resources/shared';
 import {
   AnthropicBeta,
@@ -883,7 +884,8 @@ export interface ClientOptions {
   /**
    * Set the logger.
    *
-   * Defaults to globalThis.console.
+   * Defaults to globalThis.console, which writes 'debug' and 'info' lines to stdout in Node.js.
+   * Pass `new console.Console(process.stderr)` to send every line to stderr.
    */
   logger?: Logger | undefined;
 }
@@ -1756,7 +1758,7 @@ export class BaseAnthropic {
         url: response.url,
         status: response.status,
         headers: response.headers,
-        message: errMessage,
+        body: errJSON ?? errText,
         durationMs: Date.now() - startTime,
       });
 
@@ -2257,6 +2259,7 @@ Anthropic.OrganizationOnHoldError = OrganizationOnHoldError;
 Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
 Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
 Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
 Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
 Anthropic.RampLimitExceededError = RampLimitExceededError;
@@ -2879,6 +2882,7 @@ export declare namespace Anthropic {
     OrganizationTypeNotSupportedError as OrganizationTypeNotSupportedError,
     RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    SandboxEgressRestrictedError as SandboxEgressRestrictedError,
     RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
     EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
     RampLimitExceededError as RampLimitExceededError,
@@ -2912,4 +2916,5 @@ export declare namespace Anthropic {
   export type RequestBodyEncodingInvalidErrorDetails = API.RequestBodyEncodingInvalidErrorDetails;
   export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;
   export type RequestBodyTooLargeAfterDecodingErrorDetails = API.RequestBodyTooLargeAfterDecodingErrorDetails;
+  export type SandboxEgressRestrictedErrorDetails = API.SandboxEgressRestrictedErrorDetails;
 }

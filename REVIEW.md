@@ -41,3 +41,27 @@
 The generator writes the rest of this file. Rules for reviewing this
 repository's hand-written code go in this section, and a change anywhere else in
 the file belongs in the generator.
+
+### Report these as Important, as well as functional bugs
+
+- A local copy of `promiseWithResolvers` from `src/internal/utils/promise.ts` or
+  of the `Simplify` type from `src/lib/internal/types.ts`
+- A new SDK-defined toolset failure thrown as a plain `ToolError` or
+  `ToolsetUsageError`, or built by a helper function instead of its own class.
+  Each failure has a subclass in `src/lib/internal/toolsets/errors.ts`
+- A branch on one toolset family, or an option only one family reads, in
+  `src/lib/internal/toolsets/core.ts`. That belongs in the family's own class or
+  options type
+- A multi-word value in a hand-written string literal union that is not
+  `snake_case`, other than `x-stainless-helper` tags, unions of method names and
+  names an outside standard sets
+- A non-null `!` on `Map.get()` in `src/` or `packages/*/src/`. Handle the
+  missing key instead
+- A public `AbortSignal` parameter or option that is not named `signal`
+- `constructor.name` of an SDK class in a header, log or error, because bundlers
+  rename classes
+
+### Don't report these
+
+- A plain cast of a middleware's `ctx.options.body` to its generated type, with
+  no runtime check

@@ -10,6 +10,7 @@ export class ExternalKeys extends APIResource {
    * Create an external key config owned by the caller's organization.
    *
    * @throws {UserProfileNotFoundError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -65,6 +66,7 @@ export class ExternalKeys extends APIResource {
    * requires the original key identity to decrypt.
    *
    * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -126,6 +128,7 @@ export class ExternalKeys extends APIResource {
    * The request is rejected if any workspace still references this config.
    *
    * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -153,6 +156,8 @@ export class ExternalKeys extends APIResource {
    * and waits up to 30 seconds for the result. The response status is `success` if
    * the roundtrip succeeded, or `failure` with an error message if it failed or
    * timed out.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

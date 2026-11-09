@@ -20,6 +20,10 @@ function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function isPrimitive(value: unknown): boolean {
+  return value === null || typeof value !== 'object';
+}
+
 export function transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const workingCopy = deepClone(jsonSchema);
   return _transformJSONSchema(workingCopy);
@@ -45,7 +49,18 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     return strictSchema;
   }
 
-  const type = pop(jsonSchema, 'type');
+  const enumValues = jsonSchema['enum'];
+  if (Array.isArray(enumValues) && enumValues.length > 0 && enumValues.every(isPrimitive)) {
+    strictSchema['enum'] = pop(jsonSchema, 'enum');
+  }
+
+  if (jsonSchema['const'] !== undefined && isPrimitive(jsonSchema['const'])) {
+    strictSchema['const'] = pop(jsonSchema, 'const');
+  }
+
+  const hasLiterals = 'enum' in strictSchema || 'const' in strictSchema;
+  const declaredType = pop(jsonSchema, 'type');
+  const type = hasLiterals ? undefined : declaredType;
   const anyOf = pop(jsonSchema, 'anyOf');
   const oneOf = pop(jsonSchema, 'oneOf');
   const allOf = pop(jsonSchema, 'allOf');
@@ -56,9 +71,9 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['anyOf'] = oneOf.map((variant) => _transformJSONSchema(variant as JSONSchema));
   } else if (Array.isArray(allOf)) {
     strictSchema['allOf'] = allOf.map((entry) => _transformJSONSchema(entry as JSONSchema));
-  } else {
+  } else if (!hasLiterals) {
     if (type === undefined) {
-      throw new Error('JSON schema must have a type defined if anyOf/oneOf/allOf are not used');
+      throw new Error('JSON schema must have a type defined if anyOf/oneOf/allOf/enum/const are not used');
     }
     strictSchema['type'] = type;
   }

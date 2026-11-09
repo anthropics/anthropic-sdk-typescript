@@ -63,6 +63,7 @@ export class Cost extends APIResource {
             'models',
             'order',
             'order_by',
+            'organization_ids',
             'page',
             'products',
             'rbac_group_ids',
@@ -179,6 +180,12 @@ export interface BetaAnalyticsCostGroup {
   model: string | null;
 
   /**
+   * UUID of the child organization the usage belongs to, on a parent organization's
+   * report across its children. Null unless `organization_id` is in `group_by[]`.
+   */
+  organization_id: string | null;
+
+  /**
    * Product surface that produced the usage or cost. Null unless product is in
    * `group_by[]`; it can also be null on grouped rows whose usage cannot be
    * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
@@ -265,6 +272,7 @@ export type BetaAnalyticsCostGroupBy =
   | 'environment_id'
   | 'inference_geo'
   | 'model'
+  | 'organization_id'
   | 'product'
   | 'rbac_group_id'
   | 'service_tier'
@@ -472,6 +480,15 @@ export interface CostListParams extends ReportPageCursorParams {
    * `amount`. Defaults to `amount`.
    */
   order_by?: BetaAnalyticsCostOrderBy;
+
+  /**
+   * Query param: Filter a parent organization's report to specific child
+   * organizations, by organization UUID or `org_` ID; an ID that is not one of its
+   * child organizations matches nothing. Requires an API key created at the parent
+   * organization level. Use `group_by[]=organization_id` to break out
+   * per-organization values.
+   */
+  organization_ids?: Array<string> | null;
 
   /**
    * Query param: Product surfaces to include. Defaults to all products.
