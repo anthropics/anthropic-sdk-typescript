@@ -3253,6 +3253,11 @@ Types:
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyChannelOnly</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyRestrict</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyMode</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeAlwaysAwake</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeAutomatic</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeMentionOnly</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeThread</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSources</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettings</a></code>
