@@ -1012,6 +1012,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-fable-5-2'
   | 'claude-haiku-5-5'
   | 'claude-sonnet-5-5'
   | 'claude-opus-5-5'
