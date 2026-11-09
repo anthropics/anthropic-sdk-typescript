@@ -269,9 +269,9 @@ export class AnthropicVertex extends BaseAnthropic {
         const specifier = stream ? 'streamRawPredict' : 'rawPredict';
 
         const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
-        url.pathname =
-          prefix +
-          path`/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
+        const modelPath = path`/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
+        // A server that drops ";" and the rest of a segment would drop the method name.
+        url.pathname = prefix + modelPath.replace(/[^/]*$/, (segment) => segment.replace(/;/g, '%3B'));
         // The canonical `?beta=true` marker has no meaning on Vertex.
         url.searchParams.delete('beta');
       }
