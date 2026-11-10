@@ -952,6 +952,7 @@ Types:
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeTagMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorActivity</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
@@ -2808,6 +2809,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagCategory</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedMetrics</a></code>

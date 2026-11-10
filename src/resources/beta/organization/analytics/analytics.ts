@@ -523,6 +523,29 @@ export interface BetaAnalyticsClaudeCodeMetrics {
 export type BetaAnalyticsClaudeTagCategory = 'dm' | 'engaged' | 'monitoring' | 'proactive' | 'scheduled';
 
 /**
+ * Claude Tag activity metrics for a single linked user on a given day.
+ */
+export interface BetaAnalyticsClaudeTagMetrics {
+  /**
+   * 1 on a day the user was active in Claude Tag in Slack, otherwise 0. Summed over
+   * the window in date-range mode, so it is the number of active days; on grouped
+   * rows, the total of each member's active days. Null when Claude Tag data cannot
+   * be read for the request. Otherwise, 0 on a row filtered by project, and null on
+   * any other row when no covered day was measured.
+   */
+  active_day_count: number | null;
+
+  /**
+   * Number of the user's Slack messages that made them active: @-mentions, direct
+   * messages, group direct message asks, and thread posts Claude answered. Other
+   * messages are not counted. Null when Claude Tag data cannot be read for the
+   * request. Otherwise, 0 on a row filtered by project, and null on any other row
+   * when no covered day was measured.
+   */
+  active_message_count: number | null;
+}
+
+/**
  * Per-connector activity data for a given day.
  */
 export interface BetaAnalyticsConnectorActivity {
@@ -1915,6 +1938,39 @@ export interface BetaAnalyticsSingleDayActivitySummary {
   claude_design_weekly_active_user_count?: number | null;
 
   /**
+   * Number of Slack users active in Claude Tag on the requested day. Counts distinct
+   * Slack users, including users who have not linked a Claude account, so it can
+   * exceed `daily_active_user_count` and `assigned_seat_count`. Null on a day with
+   * no measured value, when Claude Tag data cannot be read for the request, and when
+   * the response is scoped to an RBAC group, because an unlinked user belongs to no
+   * group. Omitted from the response on deployments that do not offer Claude Tag
+   * reporting.
+   */
+  claude_tag_daily_active_user_count?: number | null;
+
+  /**
+   * Number of Slack users active in Claude Tag in the 28-day rolling window. Counts
+   * distinct Slack users, including users who have not linked a Claude account, so
+   * it can exceed `daily_active_user_count` and `assigned_seat_count`. Null on a day
+   * with no measured value, when Claude Tag data cannot be read for the request, and
+   * when the response is scoped to an RBAC group, because an unlinked user belongs
+   * to no group. Omitted from the response on deployments that do not offer Claude
+   * Tag reporting.
+   */
+  claude_tag_monthly_active_user_count?: number | null;
+
+  /**
+   * Number of Slack users active in Claude Tag in the 7-day rolling window. Counts
+   * distinct Slack users, including users who have not linked a Claude account, so
+   * it can exceed `daily_active_user_count` and `assigned_seat_count`. Null on a day
+   * with no measured value, when Claude Tag data cannot be read for the request, and
+   * when the response is scoped to an RBAC group, because an unlinked user belongs
+   * to no group. Omitted from the response on deployments that do not offer Claude
+   * Tag reporting.
+   */
+  claude_tag_weekly_active_user_count?: number | null;
+
+  /**
    * Number of users with Claude in Office activity on the requested day. Omitted
    * from the response while the per-product breakdown is not enabled for this
    * organization.
@@ -2747,6 +2803,14 @@ export interface BetaAnalyticsUserActivity {
   chat_cowork_unified_metrics?: BetaAnalyticsChatCoworkUnifiedMetrics | null;
 
   /**
+   * Claude Tag activity in Slack by a user who has linked a Claude account. Activity
+   * by Slack users who have not linked an account appears only in the `/summaries`
+   * Claude Tag counts, so these rows do not add up to those counts. Omitted from the
+   * response on deployments that do not offer Claude Tag reporting.
+   */
+  claude_tag_metrics?: BetaAnalyticsClaudeTagMetrics | null;
+
+  /**
    * Most recent UTC day (YYYY-MM-DD) on which the user had any counted activity,
    * within the requested window: equal to the requested `date` in single-day mode,
    * and to the latest active day from `starting_date` (inclusive) to `ending_date`
@@ -2846,6 +2910,7 @@ export declare namespace Analytics {
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
     type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
     type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
+    type BetaAnalyticsClaudeTagMetrics as BetaAnalyticsClaudeTagMetrics,
     type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
     type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
     type BetaAnalyticsConnectorChatCoworkUnifiedMetrics as BetaAnalyticsConnectorChatCoworkUnifiedMetrics,

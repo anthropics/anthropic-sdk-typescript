@@ -11,6 +11,7 @@ export {
   type BetaAnalyticsChatMetrics,
   type BetaAnalyticsClaudeCodeMetrics,
   type BetaAnalyticsClaudeTagCategory,
+  type BetaAnalyticsClaudeTagMetrics,
   type BetaAnalyticsConnectorActivity,
   type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
   type BetaAnalyticsConnectorChatCoworkUnifiedMetrics,
