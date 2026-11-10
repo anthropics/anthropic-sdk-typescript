@@ -5,17 +5,25 @@ type Token = {
   unterminated?: boolean;
 };
 
-const tokenize = (input: string): Token[] => {
+// Completes truncated JSON (drops a partial trailing token, closes open brackets) for
+// JSON.parse. Input that contains anything other than truncated JSON — an unknown word
+// or character outside a string, a mismatched or unopened closing bracket — is handed
+// to JSON.parse unchanged so that it still throws rather than being repaired.
+
+const LITERALS = ['true', 'false', 'null'];
+
+const isWhitespace = (char: string | undefined): boolean =>
+    char === ' ' || char === '\t' || char === '\n' || char === '\r',
+  // a literal cut off by the end of the text, e.g. `nul`
+  isTruncatedLiteral = (word: string, rest: string): boolean =>
+    LITERALS.some((literal) => literal !== word && literal.startsWith(word)) && [...rest].every(isWhitespace),
+  // null when the input holds anything other than JSON tokens and whitespace outside its strings
+  tokenize = (input: string): Token[] | null => {
     let current = 0;
     let tokens: Token[] = [];
 
     while (current < input.length) {
       let char = input[current];
-
-      if (char === '\\') {
-        current++;
-        continue;
-      }
 
       if (char === '{') {
         tokens.push({
@@ -112,8 +120,7 @@ const tokenize = (input: string): Token[] => {
         continue;
       }
 
-      let WHITESPACE = /\s/;
-      if (char && WHITESPACE.test(char)) {
+      if (isWhitespace(char)) {
         current++;
         continue;
       }
@@ -162,20 +169,18 @@ const tokenize = (input: string): Token[] => {
           char = input[++current];
         }
 
-        if (value == 'true' || value == 'false' || value === 'null') {
+        if (LITERALS.includes(value)) {
           tokens.push({
             type: 'name',
             value,
           });
-        } else {
-          // unknown token, e.g. `nul` which isn't quite `null`
-          current++;
-          continue;
+        } else if (!isTruncatedLiteral(value, input.slice(current))) {
+          return null;
         }
         continue;
       }
 
-      current++;
+      return null;
     }
 
     return tokens;
@@ -236,25 +241,22 @@ const tokenize = (input: string): Token[] => {
 
     return tokens.slice(0, length);
   },
-  unstrip = (tokens: Token[]): Token[] => {
+  // null when a closer does not match the innermost open bracket
+  unstrip = (tokens: Token[]): Token[] | null => {
     let tail: string[] = [];
 
-    tokens.map((token) => {
-      if (token.type === 'brace') {
-        if (token.value === '{') {
-          tail.push('}');
-        } else {
-          tail.splice(tail.lastIndexOf('}'), 1);
-        }
+    for (const token of tokens) {
+      if (token.type !== 'brace' && token.type !== 'paren') {
+        continue;
       }
-      if (token.type === 'paren') {
-        if (token.value === '[') {
-          tail.push(']');
-        } else {
-          tail.splice(tail.lastIndexOf(']'), 1);
-        }
+      if (token.value === '{') {
+        tail.push('}');
+      } else if (token.value === '[') {
+        tail.push(']');
+      } else if (tail.pop() !== token.value) {
+        return null;
       }
-    });
+    }
 
     if (tail.length > 0) {
       tail.reverse().map((item) => {
@@ -274,10 +276,16 @@ const tokenize = (input: string): Token[] => {
 
     return tokens;
   },
+  isScalar = (token: Token | undefined): boolean =>
+    token?.type === 'string' || token?.type === 'number' || token?.type === 'name',
   generate = (tokens: Token[]): string => {
     let output = '';
 
-    tokens.map((token) => {
+    tokens.map((token, index) => {
+      // keep adjacent scalars apart so malformed input like `12 3` still fails the strict parse
+      if (isScalar(tokens[index - 1]) && isScalar(token)) {
+        output += ' ';
+      }
       switch (token.type) {
         case 'string':
           output += '"' + token.value + '"';
@@ -290,6 +298,10 @@ const tokenize = (input: string): Token[] => {
 
     return output;
   },
-  partialParse = (input: string): unknown => JSON.parse(generate(unstrip(strip(tokenize(input)))));
+  partialParse = (input: string): unknown => {
+    const tokens = tokenize(input);
+    const completed = tokens && unstrip(strip(tokens));
+    return JSON.parse(completed ? generate(completed) : input);
+  };
 
 export { partialParse };
