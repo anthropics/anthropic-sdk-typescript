@@ -321,7 +321,9 @@ export interface BetaClaudeTagSettingsCreate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
@@ -367,7 +369,9 @@ export interface BetaClaudeTagSettingsUpdate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
