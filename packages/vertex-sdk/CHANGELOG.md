@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.2...vertex-sdk-v1.1.3) (2026-11-10)
+
+### Bug Fixes
+
+* **vertex:** send a `;` in the model as `%3B`
+* **vertex:** throw an `AnthropicError` for a project ID, region or model such as `;x`, `.;x` or `..;x`
+
 ## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.1...vertex-sdk-v1.1.2) (2026-11-02)
 
 ### Bug Fixes
