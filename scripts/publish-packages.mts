@@ -90,6 +90,8 @@ function main() {
     const packagePath = path.join(rootDir, relPackagePath);
     console.log(`Publishing in directory: ${packagePath}`);
 
+    process.env['ROOT_PACKAGE_BUILT'] = relPackagePath === '.' ? 'true' : '';
+
     console.log(`$ bash ${publishScriptPath}`);
     execSync(`bash ${publishScriptPath}`, { cwd: packagePath, encoding: 'utf8', stdio: 'inherit' });
   }
