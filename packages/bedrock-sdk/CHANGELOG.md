@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v1.1.1...bedrock-sdk-v1.1.2) (2026-11-10)
+
+### Bug Fixes
+
+* **bedrock:** throw an `AnthropicError` for a model such as `;x`, `.;x` or `..;x`
+
 ## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v1.1.0...bedrock-sdk-v1.1.1) (2026-10-26)
 
 ### Chores
