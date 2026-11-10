@@ -26,7 +26,10 @@ if [[ "$(npm view "$PACKAGE_NAME@$VERSION" version 2>/dev/null || true)" == "$VE
   exit 0
 fi
 
-pnpm build
+# scripts/publish-packages.mts sets this only for the root package, which it has already built
+if [[ -z ${ROOT_PACKAGE_BUILT:-} ]]; then
+  pnpm build
+fi
 cd dist
 
 # Get latest version from npm

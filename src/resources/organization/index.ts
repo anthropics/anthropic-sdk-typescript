@@ -23,6 +23,7 @@ export {
   type AnalyticsChatCoworkUnifiedSessionsMetrics,
   type AnalyticsChatMetrics,
   type AnalyticsClaudeCodeMetrics,
+  type AnalyticsClaudeTagMetrics,
   type AnalyticsConnectorActivity,
   type AnalyticsConnectorChatCoworkUnifiedChatMetrics,
   type AnalyticsConnectorChatCoworkUnifiedMetrics,

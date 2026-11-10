@@ -166,6 +166,48 @@ export interface BetaClaudeTagGuestPolicyRestrict {
 }
 
 /**
+ * How Claude takes part in a Slack channel. A channel alone stores one. More types
+ * can be added.
+ */
+export type BetaClaudeTagReplyMode =
+  | BetaClaudeTagReplyModeAutomatic
+  | BetaClaudeTagReplyModeMentionOnly
+  | BetaClaudeTagReplyModeAlwaysAwake
+  | BetaClaudeTagReplyModeThread;
+
+/**
+ * Like `automatic`, but Claude never pauses on its own. Available where it is
+ * enabled for the channel.
+ */
+export interface BetaClaudeTagReplyModeAlwaysAwake {
+  type: 'always_awake';
+}
+
+/**
+ * Claude reads along and joins in when it can help, and pauses on its own in quiet
+ * or busy channels.
+ */
+export interface BetaClaudeTagReplyModeAutomatic {
+  type: 'automatic';
+}
+
+/**
+ * Claude replies only when it is @-mentioned.
+ */
+export interface BetaClaudeTagReplyModeMentionOnly {
+  type: 'mention_only';
+}
+
+/**
+ * Every new top-level message in the channel gets its own reply from Claude, in a
+ * thread under it. Available where it is enabled for the channel, and only once
+ * Claude has been used in the channel.
+ */
+export interface BetaClaudeTagReplyModeThread {
+  type: 'thread';
+}
+
+/**
  * The settings level a value comes from. More types can be added.
  */
 export type BetaClaudeTagSettingSource =
@@ -209,13 +251,20 @@ export interface BetaClaudeTagSettingSources {
    * The settings level `model` comes from.
    */
   model: BetaClaudeTagSettingSource | null;
+
+  /**
+   * The settings level `reply_mode` comes from: the channel when it stores one. With
+   * `include_inherited=true` and no stored mode it is `default`.
+   */
+  reply_mode: BetaClaudeTagSettingSource | null;
 }
 
 /**
  * Claude Tag settings. Without `include_inherited`, a setting that is null is not
  * set on the settings level and is inherited. With it, `enabled` and
- * `guest_policy` are never null, and `instructions`, `model` and `environment_id`
- * are null when no settings level sets them.
+ * `guest_policy` are never null, `instructions`, `model` and `environment_id` are
+ * null when no settings level sets them, and `reply_mode` is null unless the
+ * channel itself stores one.
  */
 export interface BetaClaudeTagSettings {
   /**
@@ -248,6 +297,15 @@ export interface BetaClaudeTagSettings {
    * product's default model.
    */
   model: string | null;
+
+  /**
+   * How Claude takes part in the channel. Only a channel stores one, and no settings
+   * level passes one on, so it is always null on a workspace. Null on a channel
+   * means the channel stores none yet: Claude then follows the reply mode chosen in
+   * Slack, if one was, else `automatic`. A stored reply mode can be changed but
+   * never cleared.
+   */
+  reply_mode: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -263,7 +321,9 @@ export interface BetaClaudeTagSettingsCreate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
@@ -283,6 +343,17 @@ export interface BetaClaudeTagSettingsCreate {
    * that the organization is entitled to for Claude Tag. Null clears it.
    */
   model?: string | null;
+
+  /**
+   * How Claude takes part in the channel: `automatic`, `mention_only`,
+   * `always_awake` or `thread`. Only a channel takes one: an update of a workspace
+   * that sends a value is refused, and one that sends null changes nothing. Null
+   * never clears it: sent to a channel that stores none it changes nothing, and sent
+   * to a channel that stores one it is refused, because a stored reply mode can be
+   * changed but never cleared; a caller that wants Claude's default behavior sends
+   * `automatic`.
+   */
+  reply_mode?: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -298,7 +369,9 @@ export interface BetaClaudeTagSettingsUpdate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
@@ -318,6 +391,17 @@ export interface BetaClaudeTagSettingsUpdate {
    * that the organization is entitled to for Claude Tag. Null clears it.
    */
   model?: string | null;
+
+  /**
+   * How Claude takes part in the channel: `automatic`, `mention_only`,
+   * `always_awake` or `thread`. Only a channel takes one: an update of a workspace
+   * that sends a value is refused, and one that sends null changes nothing. Null
+   * never clears it: sent to a channel that stores none it changes nothing, and sent
+   * to a channel that stores one it is refused, because a stored reply mode can be
+   * changed but never cleared; a caller that wants Claude's default behavior sends
+   * `automatic`.
+   */
+  reply_mode?: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -502,6 +586,11 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
     type BetaClaudeTagGuestPolicyChannelOnly as BetaClaudeTagGuestPolicyChannelOnly,
     type BetaClaudeTagGuestPolicyRestrict as BetaClaudeTagGuestPolicyRestrict,
+    type BetaClaudeTagReplyMode as BetaClaudeTagReplyMode,
+    type BetaClaudeTagReplyModeAlwaysAwake as BetaClaudeTagReplyModeAlwaysAwake,
+    type BetaClaudeTagReplyModeAutomatic as BetaClaudeTagReplyModeAutomatic,
+    type BetaClaudeTagReplyModeMentionOnly as BetaClaudeTagReplyModeMentionOnly,
+    type BetaClaudeTagReplyModeThread as BetaClaudeTagReplyModeThread,
     type BetaClaudeTagSettingSource as BetaClaudeTagSettingSource,
     type BetaClaudeTagSettingSources as BetaClaudeTagSettingSources,
     type BetaClaudeTagSettings as BetaClaudeTagSettings,

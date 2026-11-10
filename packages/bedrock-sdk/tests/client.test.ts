@@ -120,6 +120,41 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     // Verify the exact URL matches what we expect
     expect(fetchUrl).toBe(expectedUrl);
   });
+
+  const createWithModel = (model: string, stream: boolean) =>
+    new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+    }).messages.create({
+      model,
+      stream,
+      max_tokens: 1024,
+      messages: [{ content: 'Test message', role: 'user' }],
+    });
+
+  test.each([
+    { stream: false, sent: 'a;b/invoke' },
+    { stream: true, sent: 'a;b/invoke-with-response-stream' },
+  ])('model a;b with stream $stream is sent as $sent', async ({ stream, sent }) => {
+    await createWithModel('a;b', stream);
+
+    expect(mockFetch.mock.calls.map(([wireUrl]) => wireUrl)).toEqual([`http://localhost:4010/model/${sent}`]);
+  });
+
+  test.each(
+    ['', '.', '..', ';x', '.;x', '..;x'].flatMap((model) => [
+      { model, stream: false },
+      { model, stream: true },
+    ]),
+  )('model $model with stream $stream throws before any request is sent', async ({ model, stream }) => {
+    await expect(createWithModel(model, stream)).rejects.toThrow(
+      `Value "${model}" can't be safely passed as a path parameter`,
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });
 
 describe('Bedrock bearer token authentication', () => {

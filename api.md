@@ -952,6 +952,7 @@ Types:
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeTagMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorActivity</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
 - <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
@@ -2808,6 +2809,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagCategory</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
@@ -3253,6 +3255,11 @@ Types:
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyChannelOnly</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyRestrict</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyMode</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeAlwaysAwake</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeAutomatic</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeMentionOnly</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagReplyModeThread</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSources</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettings</a></code>

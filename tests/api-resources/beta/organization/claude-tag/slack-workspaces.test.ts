@@ -55,6 +55,7 @@ describe('resource slackWorkspaces', () => {
           guest_policy: { type: 'allow' },
           instructions: 'instructions',
           model: 'x',
+          reply_mode: { type: 'automatic' },
         },
         betas: ['message-batches-2024-09-24'],
       },
