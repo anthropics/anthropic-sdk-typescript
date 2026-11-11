@@ -846,12 +846,17 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   }
 
   [Symbol.asyncIterator](): AsyncIterator<BetaMessageStreamEvent> {
+    // A stream that has already ended will never emit again, and `end`,
+    // `error` and `abort` have all fired by now, so listeners registered
+    // below would never run and `next()` would wait forever. Start this
+    // iterator done instead; iterating a live stream more than once keeps
+    // working, because its listeners are still to come.
+    let done = this.#ended || this.#errored || this.#aborted;
     const pushQueue: BetaMessageStreamEvent[] = [];
     const readQueue: {
       resolve: (chunk: BetaMessageStreamEvent | undefined) => void;
       reject: (error: unknown) => void;
     }[] = [];
-    let done = false;
 
     this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
