@@ -1712,6 +1712,48 @@ describe('ToolRunner', () => {
       await expectDone(iterator);
     });
 
+    it.each([false, true])(
+      'preserves the current tool-use turn after updating non-message params (stream=%s)',
+      async (stream) => {
+        let runCount = 0;
+        const trackedWeatherTool: BetaRunnableTool<{ location: string }> = {
+          ...weatherTool,
+          run: async ({ location }) => {
+            runCount++;
+            return `Sunny in ${location}`;
+          },
+        };
+        const setup =
+          stream ?
+            setupTest({ max_tokens: 100, tools: [trackedWeatherTool], stream: true, thread: false })
+          : setupTest({ max_tokens: 100, tools: [trackedWeatherTool], thread: false });
+        const iterator: AsyncIterator<any> = setup.runner[Symbol.asyncIterator]();
+        const bodies: Array<Record<string, unknown>> = [];
+        const drain = async (item: unknown) => {
+          if (item && typeof item === 'object' && 'finalMessage' in item) {
+            await (item as BetaMessageStream).finalMessage();
+          }
+        };
+
+        reply(setup.handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), stream);
+        await expectEvent(iterator, drain);
+
+        setup.runner.setMessagesParams((params) => ({ ...params, max_tokens: 200 }));
+
+        reply(setup.handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        await expectEvent(iterator, drain);
+        await expectDone(iterator);
+
+        expect(runCount).toBe(1);
+        expect(bodies[1]?.['max_tokens']).toBe(200);
+        expect(bodies[1]?.['messages']).toMatchObject([
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: [getWeatherToolUse('SF')] },
+          { role: 'user', content: [getWeatherToolResult('SF')] },
+        ]);
+      },
+    );
+
     it('allows you to update append custom tool_use blocks', async () => {
       const { runner, handleAssistantMessage } = setupTest({
         messages: [{ role: 'user', content: 'Get weather' }],
