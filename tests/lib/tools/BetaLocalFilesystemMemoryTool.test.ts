@@ -606,6 +606,24 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       ).rejects.toThrow('Path would escape /memories directory via symlink');
     });
 
+    it('should list symlinks only when they stay inside /memories', async () => {
+      const memoriesPath = path.join(tempDir, 'memories');
+      await fs.mkdir(path.join(memoriesPath, 'sub'));
+      await fs.writeFile(path.join(memoriesPath, 'sub', 'notes.txt'), 'hello', 'utf-8');
+      await fs.symlink(path.join('sub', 'notes.txt'), path.join(memoriesPath, 'inside_file'), 'file');
+      await fs.symlink(outsideDir, path.join(memoriesPath, 'outside_dir'), 'dir');
+      await fs.symlink(path.join(outsideDir, 'secret.txt'), path.join(memoriesPath, 'outside_file'), 'file');
+      await fs.symlink(outsideDir, path.join(memoriesPath, 'sub', 'nested_outside_dir'), 'dir');
+
+      const result = await tool.view({ command: 'view', path: '/memories' });
+
+      const listed = result
+        .split('\n')
+        .slice(2)
+        .map((line) => line.split('\t')[1]);
+      expect(listed).toEqual(['/memories/inside_file', '/memories/sub/', '/memories/sub/notes.txt']);
+    });
+
     it('should reject creating files through symlink pointing outside', async () => {
       const memoriesPath = path.join(tempDir, 'memories');
       const symlinkPath = path.join(memoriesPath, 'bad_link');

@@ -187,6 +187,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
           const itemRelativePath = relativePath ? `${relativePath}/${item}` : item;
           let itemStat;
           try {
+            await validateNoSymlinkEscape(itemPath, this.memoryRoot);
             itemStat = await fs.stat(itemPath);
           } catch {
             continue;
