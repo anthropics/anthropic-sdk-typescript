@@ -8,7 +8,7 @@
 import { child_process, fs as fssync, path, stream, util } from '../../internal/node';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { DIR_CREATE_MODE, errnoCode } from './fs-util';
+import { DIR_CREATE_MODE, errnoCode, findExecutable } from './fs-util';
 import type { AgentToolContext } from './node';
 
 const fs = fssync.promises;
@@ -187,23 +187,19 @@ export async function assertOnlyPlainEntries(dir: string): Promise<void> {
 }
 
 /**
- * Run an archive CLI (`unzip` for zip archives, `tar` for everything else),
- * returning its stdout. Both binaries must be on `PATH`; a missing one would
- * otherwise surface as an opaque `ENOENT` spawn failure, so it is turned into a
- * clear, specific error naming the missing command.
+ * Run `unzip` or `tar` and return its stdout. Windows looks for a program in the
+ * current directory first, so it runs by absolute path and in its own directory,
+ * which is also where a helper it starts, such as `gzip`, is then looked up.
  */
 async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<string> {
-  try {
-    const { stdout } = await execFileAsync(cmd, args);
-    return stdout;
-  } catch (e) {
-    if (errnoCode(e) === 'ENOENT') {
-      throw new AnthropicError(
-        `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
-      );
-    }
-    throw e;
+  const file = await findExecutable(process.platform === 'win32' ? `${cmd}.exe` : cmd);
+  if (!file) {
+    throw new AnthropicError(
+      `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
+    );
   }
+  const { stdout } = await execFileAsync(file, args, { cwd: path.dirname(file) });
+  return stdout;
 }
 
 /**
@@ -256,6 +252,7 @@ function archiveTopDir(names: string[]): string {
  * done uniformly by staging + promote rather than per-tool flags).
  */
 export async function extractSkillArchive(resp: Response, dest: string): Promise<void> {
+  dest = path.resolve(dest);
   const tmp = path.join(dest, `.skill-archive-${process.pid}-${Date.now()}`);
   if (!resp.body) {
     throw new AnthropicError('skill download response had no body');

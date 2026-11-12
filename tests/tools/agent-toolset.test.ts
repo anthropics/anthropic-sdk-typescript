@@ -874,6 +874,46 @@ describe('search tools (glob/grep)', () => {
     }
   });
 
+  describePosix('the rg that grep runs', () => {
+    let host: string;
+    const originalEnv = process.env;
+    const originalCwd = process.cwd();
+
+    function writeRg(where: string, script: string): string {
+      fs.mkdirSync(path.join(host, where), { recursive: true });
+      fs.writeFileSync(path.join(host, where, 'rg'), `#!/bin/sh\n${script}\n`, { mode: 0o755 });
+      return path.join(host, where);
+    }
+
+    beforeEach(() => {
+      host = fs.realpathSync(tmpdir());
+      process.env = { ...originalEnv };
+      writeRg('cwd/bin', 'echo planted');
+      process.chdir(writeRg('cwd', 'echo planted'));
+    });
+    afterEach(() => {
+      process.chdir(originalCwd);
+      process.env = originalEnv;
+      fs.rmSync(host, { recursive: true, force: true });
+    });
+
+    test.each(['.', '', 'bin', '../cwd'])('does not come from the PATH entry %j', async (entry) => {
+      process.env['PATH'] = entry;
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+
+      const system = writeRg('system', 'echo "$0"');
+      process.env['PATH'] = [entry, system].join(path.delimiter);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+
+    test('is not a directory called rg', async () => {
+      fs.mkdirSync(path.join(host, 'dir', 'rg'), { recursive: true });
+      const system = writeRg('system', 'echo "$0"');
+      process.env['PATH'] = [path.join(host, 'dir'), system].join(path.delimiter);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+  });
+
   test('grep finds a line and reports file:lineno:content (works with or without rg on PATH)', async () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);

@@ -206,6 +206,60 @@ describe('extractSkillArchive', () => {
     });
   }
 
+  testPosix.each([
+    ['zip', 'unzip'],
+    ['targz', 'tar'],
+  ] as const)(
+    '%s: does not run %s or gzip from the current directory or the destination',
+    async (kind, cmd) => {
+      const buf = pack(kind, { 'pdf/SKILL.md': '# PDF' });
+      const real = execFileSync('sh', ['-c', `command -v ${cmd}`], { encoding: 'utf8' }).trim();
+      const writeScript = (where: string, name: string, script: string) => {
+        fs.mkdirSync(path.join(work, where), { recursive: true });
+        fs.writeFileSync(path.join(work, where, name), `#!/bin/sh\n${script}\n`, { mode: 0o755 });
+      };
+      for (const where of ['cwd', path.relative(work, dest)]) {
+        writeScript(where, cmd, `: > '${work}/planted-ran'; exit 1`);
+        writeScript(where, 'gzip', `: > '${work}/planted-ran'; exit 1`);
+      }
+      writeScript('system', cmd, `pwd > '${work}/ran-in'; exec '${real}' "$@"`);
+      const originalEnv = process.env;
+      const originalCwd = process.cwd();
+      process.chdir(path.join(work, 'cwd'));
+      try {
+        process.env = { ...originalEnv, PATH: ['.', ''].join(path.delimiter) };
+        await expect(extractInto(buf, dest)).rejects.toThrow(
+          `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
+        );
+        process.env = {
+          ...originalEnv,
+          PATH: ['.', '', path.join(work, 'system'), originalEnv['PATH']].join(path.delimiter),
+        };
+        await extractInto(buf, dest);
+      } finally {
+        process.chdir(originalCwd);
+        process.env = originalEnv;
+      }
+      expect(fs.readFileSync(path.join(dest, 'SKILL.md'), 'utf8')).toBe('# PDF');
+      expect(fs.existsSync(path.join(work, 'planted-ran'))).toBe(false);
+      expect(fs.readFileSync(path.join(work, 'ran-in'), 'utf8').trim()).toBe(
+        fs.realpathSync(path.join(work, 'system')),
+      );
+    },
+  );
+
+  test.each(['zip', 'targz'] as const)('%s: extracts into a relative destination', async (kind) => {
+    const buf = pack(kind, { 'pdf/SKILL.md': '# PDF' });
+    const originalCwd = process.cwd();
+    process.chdir(work);
+    try {
+      await extractInto(buf, 'relative');
+    } finally {
+      process.chdir(originalCwd);
+    }
+    expect(fs.readFileSync(path.join(work, 'relative', 'SKILL.md'), 'utf8')).toBe('# PDF');
+  });
+
   test('refuses a zip-slip member', async () => {
     const src = fs.mkdtempSync(path.join(os.tmpdir(), 'evil-'));
     const archive = path.join(work, 'evil.zip');

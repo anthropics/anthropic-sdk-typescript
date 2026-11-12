@@ -48,6 +48,7 @@ import {
   confineToRoot,
   containingRoot,
   DIR_CREATE_MODE,
+  findExecutable,
   fsErrorMessage,
   isWithin,
 } from './fs-util';
@@ -864,7 +865,7 @@ export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!pattern) throw new ToolError('grep: pattern is required');
       let searchPath = path.resolve(ctx.workdir);
       if (p) searchPath = await resolvePath(ctx, p);
-      const rg = await findRg();
+      const rg = await findExecutable('rg');
       return rg ?
           runRipgrep(rg, pattern, searchPath, context?.signal)
         : runWalkGrep(pattern, searchPath, context?.signal);
@@ -1004,18 +1005,4 @@ async function walk(
     return true;
   }
   await inner(rel, 0);
-}
-
-async function findRg(): Promise<string | null> {
-  const dirs = (process.env['PATH'] ?? '').split(path.delimiter);
-  for (const d of dirs) {
-    const candidate = path.join(d, 'rg');
-    try {
-      await fs.access(candidate, fssync.constants.X_OK);
-      return candidate;
-    } catch {
-      // not here
-    }
-  }
-  return null;
 }

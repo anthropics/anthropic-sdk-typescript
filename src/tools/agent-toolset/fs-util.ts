@@ -7,6 +7,7 @@
 
 import type { FileHandle } from 'node:fs/promises';
 import { crypto, fs as nodefs, path } from '../../internal/node';
+import { readEnv } from '../../internal/utils/env';
 import { ToolError } from '../../lib/tools/ToolError';
 
 const fs = nodefs.promises;
@@ -201,4 +202,23 @@ export function fsErrorMessage(err: unknown, file: string): string {
     default:
       return `${file}: ${code !== undefined ? `i/o error (${code})` : 'i/o error'}`;
   }
+}
+
+/**
+ * The first executable file called `name` in a `PATH` entry, or `null`. An entry that is
+ * relative to the current directory or, on Windows, to the current drive (`\bin`) is skipped.
+ * @internal
+ */
+export async function findExecutable(name: string): Promise<string | null> {
+  for (const dir of (readEnv('PATH') ?? '').split(path.delimiter)) {
+    if (!path.isAbsolute(dir) || path.resolve(dir) !== path.join(dir, '.')) continue;
+    const candidate = path.join(dir, name);
+    try {
+      await fs.access(candidate, nodefs.constants.X_OK);
+      if ((await fs.stat(candidate)).isFile()) return candidate;
+    } catch {
+      // not here
+    }
+  }
+  return null;
 }
