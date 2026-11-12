@@ -250,6 +250,35 @@ describe('extractSkillArchive', () => {
     },
   );
 
+  testPosix.each([
+    ['zip', 'unzip'],
+    ['targz', 'tar'],
+  ] as const)('%s: %s does not inherit ANTHROPIC_* credential env vars', async (kind, cmd) => {
+    const buf = pack(kind, { 'pdf/SKILL.md': '# PDF' });
+    const real = execFileSync('sh', ['-c', `command -v ${cmd}`], { encoding: 'utf8' }).trim();
+    const bin = path.join(work, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(
+      path.join(bin, cmd),
+      `#!/bin/sh\necho "[$ANTHROPIC_API_KEY] [$KEPT]" >> '${work}/saw'\nexec '${real}' "$@"\n`,
+      { mode: 0o755 },
+    );
+    const originalEnv = process.env;
+    process.env = {
+      ...originalEnv,
+      PATH: [bin, originalEnv['PATH']].join(path.delimiter),
+      ANTHROPIC_API_KEY: 'sk-ant-should-not-leak',
+      KEPT: 'kept',
+    };
+    try {
+      await extractInto(buf, dest);
+    } finally {
+      process.env = originalEnv;
+    }
+    expect(fs.readFileSync(path.join(dest, 'SKILL.md'), 'utf8')).toBe('# PDF');
+    expect(fs.readFileSync(path.join(work, 'saw'), 'utf8')).toMatch(/^(\[\] \[kept\]\n)+$/);
+  });
+
   test.each(['zip', 'targz'] as const)('%s: extracts into a relative destination', async (kind) => {
     const buf = pack(kind, { 'pdf/SKILL.md': '# PDF' });
     const originalCwd = process.cwd();

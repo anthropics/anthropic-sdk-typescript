@@ -912,11 +912,75 @@ describe('search tools (glob/grep)', () => {
       process.env['PATH'] = [path.join(host, 'dir'), system].join(path.delimiter);
       expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
     });
+
+    test.each(['workdir/bin', 'allowed/bin', 'linked-dir', 'linked-file', 'WORKDIR/bin', 'cafe\u0301/bin'])(
+      'is not inside a directory the file tools can write (PATH entry %j)',
+      async (entry) => {
+        const ctx = {
+          workdir: path.join(host, 'workdir'),
+          allowedRoots: [path.join(host, 'allowed'), path.join(host, 'caf\u00e9')],
+        };
+        for (const bin of ['allowed/bin', 'WORKDIR/bin', 'cafe\u0301/bin']) writeRg(bin, 'echo planted');
+        fs.symlinkSync(writeRg('workdir/bin', 'echo planted'), path.join(host, 'linked-dir'));
+        fs.mkdirSync(path.join(host, 'linked-file'));
+        fs.symlinkSync(path.join(ctx.workdir, 'bin', 'rg'), path.join(host, 'linked-file', 'rg'));
+        fs.writeFileSync(path.join(ctx.workdir, 'a.txt'), 'alpha\nbeta\n');
+
+        process.env['PATH'] = path.join(host, entry);
+        expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(
+          `${path.join(ctx.workdir, 'a.txt')}:2:beta`,
+        );
+
+        const system = writeRg('system', 'echo "$0"');
+        process.env['PATH'] = [path.join(host, entry), system].join(path.delimiter);
+        expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+      },
+    );
+
+    test('is started by its resolved path', async () => {
+      const system = writeRg('system', 'echo "$0"');
+      fs.symlinkSync(system, path.join(host, 'linked-dir'));
+      process.env['PATH'] = path.join(host, 'linked-dir');
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+
+    test('is started under the name rg', async () => {
+      fs.mkdirSync(path.join(host, 'system'));
+      fs.symlinkSync(process.execPath, path.join(host, 'system', 'rg'));
+      process.env['PATH'] = path.join(host, 'system');
+      await expect(betaGrepTool(env).run({ pattern: 'beta' })).rejects.toThrow(/^grep: rg failed: rg: /);
+    });
+
+    test('is not used when a directory the file tools can write cannot be resolved', async () => {
+      fs.symlinkSync('loop', path.join(host, 'loop'));
+      process.env['PATH'] = writeRg('system', 'echo "$0"');
+      const ctx = { ...env, allowedRoots: [path.join(host, 'loop')] };
+      expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+    });
+
+    test('does not inherit ANTHROPIC_* credential env vars', async () => {
+      process.env['PATH'] = writeRg('system', 'echo "[$ANTHROPIC_API_KEY$Anthropic_Fake] [$KEPT]"');
+      process.env['ANTHROPIC_API_KEY'] = 'sk-ant-should-not-leak';
+      process.env['Anthropic_Fake'] = 'sk-ant-should-not-leak';
+      process.env['KEPT'] = 'kept';
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe('[] [kept]\n');
+    });
   });
 
   test('grep finds a line and reports file:lineno:content (works with or without rg on PATH)', async () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
+  });
+
+  test('grep without rg stops reading a file at a NUL byte', async () => {
+    const originalEnv = process.env;
+    process.env = { ...originalEnv, PATH: '' };
+    try {
+      fs.writeFileSync(path.join(dir, 'blob'), `${'\0'.repeat(1 << 17)}\nbeta\n`);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+    } finally {
+      process.env = originalEnv;
+    }
   });
 
   describePosix('grep with a ripgrep config file on the host', () => {

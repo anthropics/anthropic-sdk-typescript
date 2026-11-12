@@ -8,7 +8,7 @@
 import { child_process, fs as fssync, path, stream, util } from '../../internal/node';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { DIR_CREATE_MODE, errnoCode, FILE_CREATE_MODE, findExecutable } from './fs-util';
+import { DIR_CREATE_MODE, errnoCode, FILE_CREATE_MODE, findExecutable, scrubbedShellEnv } from './fs-util';
 import type { AgentToolContext } from './node';
 
 const fs = fssync.promises;
@@ -216,7 +216,7 @@ async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<str
       `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
     );
   }
-  const { stdout } = await execFileAsync(file, args, { cwd: path.dirname(file) });
+  const { stdout } = await execFileAsync(file, args, { cwd: path.dirname(file), env: scrubbedShellEnv() });
   return stdout;
 }
 

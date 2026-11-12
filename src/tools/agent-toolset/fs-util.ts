@@ -36,6 +36,11 @@ export function isWithinAnyCase(root: string, p: string): boolean {
   return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
 }
 
+/** {@link isWithin} with letter case and Unicode form ignored on every platform, for checks that refuse. */
+function isWithinFolded(root: string, p: string): boolean {
+  return isWithin(root.toLowerCase().normalize('NFC'), p.toLowerCase().normalize('NFC'));
+}
+
 /**
  * The first entry of `roots` whose canonical form contains the
  * already-canonical `target`, returned as configured; `undefined` when none
@@ -221,18 +226,42 @@ export function fsErrorMessage(err: unknown, file: string): string {
 /**
  * The first executable file called `name` in a `PATH` entry, or `null`. An entry that is
  * relative to the current directory or, on Windows, to the current drive (`\bin`) is skipped.
+ * With `notInside`, so is a file that resolves to somewhere inside one of those directories,
+ * and the result is the resolved path that was checked.
  * @internal
  */
-export async function findExecutable(name: string): Promise<string | null> {
+export async function findExecutable(
+  name: string,
+  notInside: readonly string[] = [],
+): Promise<string | null> {
   for (const dir of (readEnv('PATH') ?? '').split(path.delimiter)) {
     if (!path.isAbsolute(dir) || path.resolve(dir) !== path.join(dir, '.')) continue;
     const candidate = path.join(dir, name);
     try {
       await fs.access(candidate, nodefs.constants.X_OK);
-      if ((await fs.stat(candidate)).isFile()) return candidate;
+      if (!(await fs.stat(candidate)).isFile()) continue;
+      if (notInside.length === 0) return candidate;
+      const real = await fs.realpath(candidate);
+      if ((await containingRoot(notInside, real, isWithinFolded)) === undefined) return real;
     } catch {
-      // not here
+      // not here, or no telling where it is
     }
   }
   return null;
+}
+
+/**
+ * The environment for a program the toolset starts: that of this process without the `ANTHROPIC_*`
+ * variables, in any letter case, as Windows reads them. They hold its credentials, the API key, the
+ * auth token and the per-work session token among them. Everything else (PATH, HOME, locale, …) is
+ * passed through unchanged.
+ * @internal
+ */
+export function scrubbedShellEnv(): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.toUpperCase().startsWith('ANTHROPIC_')) continue;
+    env[key] = value;
+  }
+  return env;
 }

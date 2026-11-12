@@ -52,6 +52,7 @@ import {
   fsErrorMessage,
   isWithin,
   isWithinAnyCase,
+  scrubbedShellEnv,
 } from './fs-util';
 
 export { setupSkills, extractSkillArchive } from './skills';
@@ -276,28 +277,6 @@ function readOnlyRootFor(ctx: AgentToolContext, target: string): Promise<string 
 }
 
 // ---- bash ----------------------------------------------------------------
-
-/**
- * Build the environment for the spawned bash shell. The runner process holds
- * Anthropic credentials in `ANTHROPIC_*` env vars — the API key, the auth token,
- * and the per-work session token among them. `bash` runs an unrestricted shell,
- * so any command the agent runs could read those straight out of `process.env`;
- * strip the whole `ANTHROPIC_*` namespace from the child's environment.
- * Everything else (PATH, HOME, locale, …) is passed through unchanged.
- *
- * Passing an explicit `env` to {@link AgentToolContext} does NOT add to this
- * default — it FULLY REPLACES it. The provided mapping becomes the entire bash
- * environment verbatim; nothing here is merged in, so callers who want the
- * scrubbed process environment plus extras must build that mapping themselves.
- */
-function scrubbedShellEnv(): Record<string, string | undefined> {
-  const env: Record<string, string | undefined> = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (key.startsWith('ANTHROPIC_')) continue;
-    env[key] = value;
-  }
-  return env;
-}
 
 /**
  * A persistent /bin/bash process. State (cwd, env, background jobs) survives
@@ -852,6 +831,10 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
   });
 }
 
+/**
+ * Searches with the first `rg` on `PATH` whose real path is outside `workdir` and `allowedRoots`, or with
+ * a built-in search when there is none. `rg` does not get the `ANTHROPIC_*` variables of the process.
+ */
 export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
   rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
@@ -866,7 +849,7 @@ export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!pattern) throw new ToolError('grep: pattern is required');
       let searchPath = path.resolve(ctx.workdir);
       if (p) searchPath = await resolvePath(ctx, p);
-      const rg = await findExecutable('rg');
+      const rg = await findExecutable('rg', [ctx.workdir, ...(ctx.allowedRoots ?? [])]);
       return rg ?
           runRipgrep(rg, pattern, searchPath, context?.signal)
         : runWalkGrep(pattern, searchPath, context?.signal);
@@ -882,6 +865,9 @@ function runRipgrep(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = cp.spawn(rg, ['--no-config', '-n', '--no-heading', '-e', pattern, '--', searchPath], {
+      // A link called `rg` may lead to a program that goes by the name it was started under.
+      argv0: 'rg',
+      env: scrubbedShellEnv(),
       ...(signal ? { signal } : {}),
     });
     let out = '';
@@ -947,6 +933,10 @@ async function runWalkGrep(
 async function grepFile(file: string, re: RegExp, push: (line: string) => boolean): Promise<boolean> {
   const stream = fssync.createReadStream(file, { encoding: 'utf8' });
   const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+  // `rl` buffers a line until it ends, and one too long for a string throws outside this `try`.
+  stream.on('data', (chunk) => {
+    if (chunk.includes('\0')) rl.close();
+  });
   let i = 0;
   try {
     for await (const line of rl) {
