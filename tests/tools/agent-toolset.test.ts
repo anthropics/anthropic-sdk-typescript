@@ -135,6 +135,54 @@ describePosix('resolvePath symlink regressions', () => {
     );
   });
 
+  describe('a symlink to a missing path, followed by more components', () => {
+    beforeEach(() => {
+      fs.mkdirSync(path.join(dir, 'deep', 'dir'), { recursive: true });
+      fs.mkdirSync(path.join(dir, 't'));
+      fs.symlinkSync('deep/dir', path.join(dir, 's'));
+      fs.symlinkSync('../t', path.join(dir, 'deep', 'dir', 'relative'));
+      fs.symlinkSync('s/../t', path.join(dir, 'spelled'));
+      fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(dir, 't', 'leaf'));
+      fs.symlinkSync(outside, path.join(dir, 't', 'd'));
+    });
+
+    test.each(['leaf', 'd/new.txt'])(
+      "s/relative/%s takes the link's target from the directory that holds the link",
+      async (rest) => {
+        expect(await resolvePath({ workdir: dir }, `s/relative/${rest}`)).toBe(
+          path.join(fs.realpathSync(dir), 'deep', 't', rest),
+        );
+      },
+    );
+
+    test.each(['leaf', 'd/new.txt', 'd/missing/new.txt'])(
+      'spelled/%s follows the symlinks that come after the link',
+      async (rest) => {
+        await expect(resolvePath({ workdir: dir }, `spelled/${rest}`)).rejects.toThrow(
+          /is outside the session's working directory/,
+        );
+      },
+    );
+
+    test.each(['spelled', 's/relative'])('the file tools stay in the workdir through %s', async (link) => {
+      const ctx = { workdir: dir };
+      const runs = [
+        () => betaReadTool(ctx).run({ file_path: `${link}/leaf` }),
+        () => betaEditTool(ctx).run({ file_path: `${link}/leaf`, old_string: 'SECRET', new_string: 'x' }),
+        () => betaGrepTool(ctx).run({ pattern: 'SECRET', path: `${link}/leaf` }),
+        () => betaGrepTool(ctx).run({ pattern: 'SECRET', path: `${link}/d` }),
+        () => betaGlobTool(ctx).run({ pattern: '*', path: `${link}/d` }),
+        () => betaWriteTool(ctx).run({ file_path: `${link}/leaf`, content: 'x' }),
+        () => betaWriteTool(ctx).run({ file_path: `${link}/d/new.txt`, content: 'x' }),
+      ];
+      for (const run of runs) {
+        expect(await Promise.resolve().then(run).then(String, String)).not.toMatch(/secret/i);
+      }
+      expect(fs.readdirSync(outside)).toEqual(['secret.txt']);
+      expect(fs.readFileSync(path.join(outside, 'secret.txt'), 'utf8')).toBe('SECRET');
+    });
+  });
+
   test('an unreadable directory is reported as permission denied without the host path', async () => {
     if (process.getuid?.() === 0) return;
     fs.mkdirSync(path.join(dir, 'noperm'), { mode: 0o000 });

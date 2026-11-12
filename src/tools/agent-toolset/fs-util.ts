@@ -87,7 +87,8 @@ export async function canonicalize(abs: string): Promise<string> {
       if (++hops > MAX_SYMLINK_HOPS) {
         throw Object.assign(new Error('too many levels of symbolic links'), { code: 'ELOOP' });
       }
-      prefix = path.resolve(path.dirname(prefix), await fs.readlink(prefix));
+      const parent = await fs.realpath(path.dirname(prefix));
+      prefix = path.resolve(parent, await fs.readlink(prefix), ...tail.splice(0).reverse());
       continue;
     }
     return tail.length ? path.join(real, ...tail.reverse()) : real;
