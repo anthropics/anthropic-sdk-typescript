@@ -10,6 +10,10 @@ export class Permissions extends APIResource {
    *
    * The RBAC Roles API is available to Claude Enterprise organizations only.
    *
+   * @throws {OrganizationTypeNotSupportedError}
+   * @throws {ParentOrganizationRequiredError}
+   * @throws {RBACRoleNotFoundError}
+   *
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.

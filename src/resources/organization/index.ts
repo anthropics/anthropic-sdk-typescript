@@ -160,12 +160,14 @@ export {
 } from './api-keys';
 export {
   OrgMemberLimitExceededError,
+  RBACRoleNotFoundError,
   ConcurrentMembershipChangeError,
   Organization,
   type ConcurrentMembershipChangeErrorDetails,
   type OrgMemberLimitExceededErrorDetails,
   type OrganizationInfo,
   type OrganizationRole,
+  type RBACRoleNotFoundErrorDetails,
 } from './organization';
 export {
   RBACGroupGrantsOwnerAccessError,
@@ -183,6 +185,9 @@ export {
 export {
   RBACRoles,
   type RBACRole,
+  type RBACRoleSource,
+  type RBACRoleSourceBuiltIn,
+  type RBACRoleSourceCustom,
   type RBACRoleListParams,
   type RBACRolesPageCursor,
 } from './rbac-roles/index';

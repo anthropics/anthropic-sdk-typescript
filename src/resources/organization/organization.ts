@@ -165,7 +165,15 @@ import {
   RBACGroupsPageCursor,
 } from './rbac-groups/rbac-groups';
 import * as RBACRolesAPI from './rbac-roles/rbac-roles';
-import { RBACRole, RBACRoleListParams, RBACRoles, RBACRolesPageCursor } from './rbac-roles/rbac-roles';
+import {
+  RBACRole,
+  RBACRoleListParams,
+  RBACRoleSource,
+  RBACRoleSourceBuiltIn,
+  RBACRoleSourceCustom,
+  RBACRoles,
+  RBACRolesPageCursor,
+} from './rbac-roles/rbac-roles';
 import * as ServiceAccountsAPI from './service-accounts/service-accounts';
 import {
   ServiceAccount,
@@ -216,7 +224,7 @@ import {
   WorkspacesPage,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../core/api-promise';
-import { BadRequestError, ConflictError } from '../../core/error';
+import { BadRequestError, ConflictError, NotFoundError } from '../../core/error';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 
@@ -230,6 +238,17 @@ export class OrgMemberLimitExceededError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'OrgMemberLimitExceededError';
+}
+
+/**
+ * No RBAC Role with this ID was found.
+ */
+export class RBACRoleNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'rbac_role_not_found';
+  declare readonly details: RBACRoleNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RBACRoleNotFoundError';
 }
 
 /**
@@ -327,7 +346,15 @@ export type OrganizationRole =
   | 'primary_owner'
   | 'user';
 
+/**
+ * No RBAC Role with this ID was found.
+ */
+export interface RBACRoleNotFoundErrorDetails {
+  error_code: 'rbac_role_not_found';
+}
+
 Organization.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
+Organization.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Organization.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Organization.APIKeys = APIKeys;
 Organization.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
@@ -362,11 +389,13 @@ Organization.RBACRoles = RBACRoles;
 export declare namespace Organization {
   export {
     OrgMemberLimitExceededError as OrgMemberLimitExceededError,
+    RBACRoleNotFoundError as RBACRoleNotFoundError,
     ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
+    type RBACRoleNotFoundErrorDetails as RBACRoleNotFoundErrorDetails,
   };
 
   export {
@@ -586,6 +615,9 @@ export declare namespace Organization {
   export {
     RBACRoles as RBACRoles,
     type RBACRole as RBACRole,
+    type RBACRoleSource as RBACRoleSource,
+    type RBACRoleSourceBuiltIn as RBACRoleSourceBuiltIn,
+    type RBACRoleSourceCustom as RBACRoleSourceCustom,
     type RBACRolesPageCursor as RBACRolesPageCursor,
     type RBACRoleListParams as RBACRoleListParams,
   };

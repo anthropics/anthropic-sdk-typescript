@@ -25,6 +25,10 @@ export class RBACRoles extends APIResource {
    *
    * The RBAC Roles API is available to Claude Enterprise organizations only.
    *
+   * @throws {OrganizationTypeNotSupportedError}
+   * @throws {ParentOrganizationRequiredError}
+   * @throws {RBACRoleNotFoundError}
+   *
    * @example
    * ```ts
    * const betaRBACRole =
@@ -48,6 +52,9 @@ export class RBACRoles extends APIResource {
    * List RBAC Roles in the organization.
    *
    * The RBAC Roles API is available to Claude Enterprise organizations only.
+   *
+   * @throws {OrganizationTypeNotSupportedError}
+   * @throws {ParentOrganizationRequiredError}
    *
    * @example
    * ```ts
@@ -87,11 +94,17 @@ export interface BetaRBACRole {
   created_at: string;
 
   /**
-   * Name of the RBAC Role. For a role created by Anthropic, this is Anthropic's name
-   * for the access that the role grants. Anthropic may change this name, so to keep
-   * a lasting reference to a role, store its `id`.
+   * Name of the RBAC Role. For a built-in role, this is Anthropic's name for the
+   * access that the role grants. Anthropic may change this name, so to keep a
+   * lasting reference to a role, store its `id`.
    */
   display_name: string;
+
+  /**
+   * Whether the RBAC Role is built-in or custom. More values of `type` may be added,
+   * so do not treat every role that is not `built_in` as `custom`.
+   */
+  source: BetaRBACRoleSource;
 
   /**
    * Object type.
@@ -106,6 +119,23 @@ export interface BetaRBACRole {
   updated_at: string;
 }
 
+export type BetaRBACRoleSource = BetaRBACRoleSourceBuiltIn | BetaRBACRoleSourceCustom;
+
+export interface BetaRBACRoleSourceBuiltIn {
+  /**
+   * Anthropic provisions the RBAC Role, and the organization's administrators cannot
+   * change or delete it.
+   */
+  type: 'built_in';
+}
+
+export interface BetaRBACRoleSourceCustom {
+  /**
+   * The organization's administrators can change and delete the RBAC Role.
+   */
+  type: 'custom';
+}
+
 export interface RBACRoleListParams extends PageCursorParams {}
 
 RBACRoles.Permissions = Permissions;
@@ -113,6 +143,9 @@ RBACRoles.Permissions = Permissions;
 export declare namespace RBACRoles {
   export {
     type BetaRBACRole as BetaRBACRole,
+    type BetaRBACRoleSource as BetaRBACRoleSource,
+    type BetaRBACRoleSourceBuiltIn as BetaRBACRoleSourceBuiltIn,
+    type BetaRBACRoleSourceCustom as BetaRBACRoleSourceCustom,
     type BetaRBACRolesPageCursor as BetaRBACRolesPageCursor,
     type RBACRoleListParams as RBACRoleListParams,
   };

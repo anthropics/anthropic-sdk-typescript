@@ -112,6 +112,7 @@ import {
   EnforcedSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
+  ParentOrganizationRequiredError,
   RampLimitExceededError,
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
@@ -607,6 +608,8 @@ import {
   Organization,
   OrganizationInfo,
   OrganizationRole,
+  RBACRoleNotFoundError,
+  RBACRoleNotFoundErrorDetails,
 } from './resources/organization/organization';
 import {
   DeletedSkill,
@@ -2247,6 +2250,7 @@ Anthropic.UserProfiles = UserProfiles;
 Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
 Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
+Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
 Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
@@ -2257,6 +2261,7 @@ Anthropic.CMEKKeyDisabledError = CMEKKeyDisabledError;
 Anthropic.CMEKKeyNetworkBlockedError = CMEKKeyNetworkBlockedError;
 Anthropic.OrganizationOnHoldError = OrganizationOnHoldError;
 Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
+Anthropic.ParentOrganizationRequiredError = ParentOrganizationRequiredError;
 Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
 Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
@@ -2844,11 +2849,13 @@ export declare namespace Anthropic {
   export {
     Organization as Organization,
     OrgMemberLimitExceededError as OrgMemberLimitExceededError,
+    RBACRoleNotFoundError as RBACRoleNotFoundError,
     ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
+    type RBACRoleNotFoundErrorDetails as RBACRoleNotFoundErrorDetails,
   };
 
   export {
@@ -2880,6 +2887,7 @@ export declare namespace Anthropic {
     CMEKKeyNetworkBlockedError as CMEKKeyNetworkBlockedError,
     OrganizationOnHoldError as OrganizationOnHoldError,
     OrganizationTypeNotSupportedError as OrganizationTypeNotSupportedError,
+    ParentOrganizationRequiredError as ParentOrganizationRequiredError,
     RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
     SandboxEgressRestrictedError as SandboxEgressRestrictedError,
@@ -2910,6 +2918,7 @@ export declare namespace Anthropic {
   export type OrganizationOnHoldErrorDetails = API.OrganizationOnHoldErrorDetails;
   export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
   export type OverloadedError = API.OverloadedError;
+  export type ParentOrganizationRequiredErrorDetails = API.ParentOrganizationRequiredErrorDetails;
   export type PermissionError = API.PermissionError;
   export type RampLimitExceededErrorDetails = API.RampLimitExceededErrorDetails;
   export type RateLimitError = API.RateLimitError;

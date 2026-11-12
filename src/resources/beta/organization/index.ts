@@ -280,6 +280,9 @@ export {
 export {
   RBACRoles,
   type BetaRBACRole,
+  type BetaRBACRoleSource,
+  type BetaRBACRoleSourceBuiltIn,
+  type BetaRBACRoleSourceCustom,
   type RBACRoleListParams,
   type BetaRBACRolesPageCursor,
 } from './rbac-roles/index';

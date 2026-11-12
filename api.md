@@ -24,6 +24,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
+- <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">PermissionError</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
@@ -37,6 +38,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedError</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldError</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
@@ -662,7 +664,9 @@ Types:
 - <code><a href="./src/resources/organization/organization.ts">OrgMemberLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationInfo</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationRole</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACRoleNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrgMemberLimitExceededError</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACRoleNotFoundError</a></code>
 - <code><a href="./src/resources/organization/organization.ts">ConcurrentMembershipChangeError</a></code>
 
 Methods:
@@ -1118,6 +1122,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRole</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSourceBuiltIn</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSourceCustom</a></code>
 
 Methods:
 
@@ -3061,6 +3068,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRole</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSourceBuiltIn</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSourceCustom</a></code>
 
 Methods:
 

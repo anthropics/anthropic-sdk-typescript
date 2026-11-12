@@ -98,6 +98,18 @@ export class OrganizationTypeNotSupportedError extends BadRequestError {
 }
 
 /**
+ * The endpoint serves only organizations that belong to a parent organization, and
+ * this organization belongs to none.
+ */
+export class ParentOrganizationRequiredError extends BadRequestError {
+  declare readonly errorCode: 'parent_organization_required';
+  declare readonly details: ParentOrganizationRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ParentOrganizationRequiredError';
+}
+
+/**
  * The request body is not valid for its `Content-Encoding`.
  */
 export class RequestBodyEncodingInvalidError extends BadRequestError {
@@ -341,6 +353,8 @@ export type ErrorDetails =
   | ExternalKeysAPI.ExternalKeyChangedErrorDetails
   | WorkspacesAPI.WorkspaceMemberLimitExceededErrorDetails
   | OrganizationTypeNotSupportedErrorDetails
+  | ParentOrganizationRequiredErrorDetails
+  | OrganizationAPI.RBACRoleNotFoundErrorDetails
   | EnvironmentsAPI.BetaEnvironmentCreateDisabledErrorDetails
   | EnvironmentsAPI.BetaEnvironmentArchivedErrorDetails
   | EnvironmentsAPI.BetaInvalidConfigTypeChangeErrorDetails
@@ -472,6 +486,14 @@ export interface OverloadedError {
    * The broad category of the error.
    */
   type: 'overloaded_error';
+}
+
+/**
+ * The endpoint serves only organizations that belong to a parent organization, and
+ * this organization belongs to none.
+ */
+export interface ParentOrganizationRequiredErrorDetails {
+  error_code: 'parent_organization_required';
 }
 
 export interface PermissionError {

@@ -288,6 +288,9 @@ import {
 import * as RBACRolesAPI from './rbac-roles/rbac-roles';
 import {
   BetaRBACRole,
+  BetaRBACRoleSource,
+  BetaRBACRoleSourceBuiltIn,
+  BetaRBACRoleSourceCustom,
   BetaRBACRolesPageCursor,
   RBACRoleListParams,
   RBACRoles,
@@ -740,6 +743,9 @@ export declare namespace Organization {
   export {
     RBACRoles as RBACRoles,
     type BetaRBACRole as BetaRBACRole,
+    type BetaRBACRoleSource as BetaRBACRoleSource,
+    type BetaRBACRoleSourceBuiltIn as BetaRBACRoleSourceBuiltIn,
+    type BetaRBACRoleSourceCustom as BetaRBACRoleSourceCustom,
     type BetaRBACRolesPageCursor as BetaRBACRolesPageCursor,
     type RBACRoleListParams as RBACRoleListParams,
   };
