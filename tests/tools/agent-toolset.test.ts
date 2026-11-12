@@ -830,6 +830,34 @@ describe('search tools (glob/grep)', () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
   });
+
+  describePosix('grep with a ripgrep config file on the host', () => {
+    let host: string;
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      host = tmpdir();
+      fs.writeFileSync(path.join(host, 'ripgreprc'), '--follow\n');
+      process.env = { ...originalEnv, RIPGREP_CONFIG_PATH: path.join(host, 'ripgreprc') };
+    });
+    afterEach(() => {
+      process.env = originalEnv;
+      fs.rmSync(host, { recursive: true, force: true });
+    });
+
+    test('does not follow a link out of the workdir (works with or without rg on PATH)', async () => {
+      fs.writeFileSync(path.join(host, 'secret.txt'), 'leaked\n');
+      fs.symlinkSync(host, path.join(dir, 'link_out'), 'dir');
+      expect(await betaGrepTool(env).run({ pattern: 'leaked' })).toBe('no matches');
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toMatch(/a\.txt:2:beta/);
+    });
+
+    test('passes --no-config to rg', async () => {
+      fs.writeFileSync(path.join(host, 'rg'), '#!/bin/sh\nprintf "%s\\n" "$1"\n', { mode: 0o755 });
+      process.env['PATH'] = host;
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe('--no-config\n');
+    });
+  });
 });
 
 const describeBash = process.platform === 'win32' ? describe.skip : describe;

@@ -879,7 +879,7 @@ function runRipgrep(
   signal?: AbortSignal | null | undefined,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = cp.spawn(rg, ['-n', '--no-heading', '-e', pattern, '--', searchPath], {
+    const proc = cp.spawn(rg, ['--no-config', '-n', '--no-heading', '-e', pattern, '--', searchPath], {
       ...(signal ? { signal } : {}),
     });
     let out = '';
