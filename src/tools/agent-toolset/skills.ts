@@ -8,7 +8,7 @@
 import { child_process, fs as fssync, path, stream, util } from '../../internal/node';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { DIR_CREATE_MODE, errnoCode, findExecutable } from './fs-util';
+import { DIR_CREATE_MODE, errnoCode, FILE_CREATE_MODE, findExecutable } from './fs-util';
 import type { AgentToolContext } from './node';
 
 const fs = fssync.promises;
@@ -187,6 +187,24 @@ export async function assertOnlyPlainEntries(dir: string): Promise<void> {
 }
 
 /**
+ * Reset the modes `unzip` and `tar` restored from the archive. Refuses a file with
+ * a second hard link, because `chmod` would reach an inode the archive didn't create.
+ */
+async function normalizeEntryModes(dir: string): Promise<void> {
+  await fs.chmod(dir, DIR_CREATE_MODE);
+  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await normalizeEntryModes(entryPath);
+    } else if (entry.isFile()) {
+      const { mode, nlink } = await fs.lstat(entryPath);
+      if (nlink > 1) throw new AnthropicError(INCONSISTENT_LISTING);
+      await fs.chmod(entryPath, mode & 0o111 ? 0o755 : 0o644);
+    }
+  }
+}
+
+/**
  * Run `unzip` or `tar` and return its stdout. Windows looks for a program in the
  * current directory first, so it runs by absolute path and in its own directory,
  * which is also where a helper it starts, such as `gzip`, is then looked up.
@@ -245,6 +263,11 @@ function archiveTopDir(names: string[]): string {
  * member's name may be dropped too. The staging tree is verified to hold only
  * regular files and directories before anything is promoted into `dest`.
  *
+ * The modes and owners recorded in the archive are not kept. Directories get
+ * {@link DIR_CREATE_MODE}, and files get `0o755` if any execute bit is set and
+ * `0o644` otherwise. The temp file and the staging tree sit in an owner-only
+ * directory beside `dest`, which is removed afterwards.
+ *
  * The skill bundle's single wrapper directory is stripped: the archive is
  * extracted into a staging dir and the wrapper's contents are promoted into
  * `dest`, so files land at `dest/SKILL.md` rather than a doubled
@@ -253,17 +276,18 @@ function archiveTopDir(names: string[]): string {
  */
 export async function extractSkillArchive(resp: Response, dest: string): Promise<void> {
   dest = path.resolve(dest);
-  const tmp = path.join(dest, `.skill-archive-${process.pid}-${Date.now()}`);
   if (!resp.body) {
     throw new AnthropicError('skill download response had no body');
   }
-  await stream.promises.pipeline(
-    stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
-    fssync.createWriteStream(tmp),
-  );
-  const stage = path.join(path.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);
-  const excludeFile = path.join(path.dirname(dest), `.skill-exclude-${process.pid}-${Date.now()}`);
+  // A `./` member lets the extractor chmod `stage` itself, so `stage` sits inside `work`.
+  const work = await fs.mkdtemp(path.join(path.dirname(dest), '.skill-stage-'));
   try {
+    const tmp = path.join(work, 'archive');
+    const stage = path.join(work, 'stage');
+    await stream.promises.pipeline(
+      stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
+      fssync.createWriteStream(tmp, { flags: 'wx', mode: FILE_CREATE_MODE }),
+    );
     // Sniff the first bytes: zip archives start with "PK\x03\x04"; treat
     // anything else as a tar.* archive (`tar -xf` autodetects gzip/bzip2/xz).
     const head = await readHead(tmp, 4);
@@ -277,16 +301,20 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
     const { plain, special } = classifyArchiveListing(archiveCmd, names, typed);
     assertSafeMemberNames([...plain, ...special]);
     const top = archiveTopDir(plain);
-    await fs.mkdir(stage, { recursive: true, mode: DIR_CREATE_MODE });
+    await fs.mkdir(stage, { mode: DIR_CREATE_MODE });
     // `unzip` exits non-zero when every member is excluded, so only run the
     // extractor when there is something to extract.
     if (plain.length > 0) {
-      await runArchiveTool(archiveCmd, await extractArgs(archiveCmd, tmp, stage, special, excludeFile));
+      await runArchiveTool(
+        archiveCmd,
+        await extractArgs(archiveCmd, tmp, stage, special, path.join(work, 'exclude')),
+      );
     }
     await assertOnlyPlainEntries(stage);
+    await normalizeEntryModes(stage);
     // Promote the wrapper's contents (or the staged tree itself, if the
     // archive wasn't wrapped) into the already-created empty `dest`. `stage`
-    // is a sibling of `dest`, so each rename stays on one filesystem.
+    // is beside `dest`, so each rename stays on one filesystem.
     const srcRoot = top ? path.join(stage, top) : stage;
     const entries = await fs.readdir(srcRoot).catch((e: unknown) => {
       throw errnoCode(e) === 'ENOENT' ? new AnthropicError(INCONSISTENT_LISTING) : e;
@@ -295,17 +323,14 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
       await fs.rename(path.join(srcRoot, entry), path.join(dest, entry));
     }
   } finally {
-    await fs.rm(tmp, { force: true });
-    await fs.rm(excludeFile, { force: true });
-    await fs.rm(stage, { recursive: true, force: true });
+    await fs.rm(work, { recursive: true, force: true });
   }
 }
 
 /**
- * Arguments that extract `archive` into `stage` while excluding every member
- * in `special`. Names are glob-escaped because both CLIs treat exclusions as
- * patterns; `tar` reads them from `excludeFile`, `unzip` takes them after
- * `-x`, which must follow `-d` so no pattern is parsed as an option.
+ * Arguments that extract `archive` into `stage` without the members in `special`.
+ * Both CLIs treat exclusions as patterns, so names are glob-escaped. `unzip` takes
+ * them after `-x`, which must follow `-d` so no pattern is parsed as an option.
  */
 async function extractArgs(
   cmd: 'unzip' | 'tar',
@@ -318,9 +343,11 @@ async function extractArgs(
   if (cmd === 'unzip') {
     return ['-oq', archive, '-d', stage, ...(patterns.length > 0 ? ['-x', ...patterns] : [])];
   }
-  if (patterns.length === 0) return ['-xf', archive, '-C', stage];
+  // As root, `tar` would otherwise restore the archive's owners and exact modes.
+  const args = ['-xf', archive, '-C', stage, '--no-same-owner', '--no-same-permissions'];
+  if (patterns.length === 0) return args;
   await fs.writeFile(excludeFile, patterns.join('\n') + '\n', { flag: 'wx', mode: 0o600 });
-  return ['-xf', archive, '-C', stage, '-X', excludeFile];
+  return [...args, '-X', excludeFile];
 }
 
 /** Read the first `n` bytes of `file`. */

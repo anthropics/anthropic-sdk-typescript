@@ -6,6 +6,7 @@ import * as zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { extractSkillArchive, setupSkills } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 import { assertOnlyPlainEntries, classifyArchiveListing } from '@anthropic-ai/sdk/tools/agent-toolset/skills';
+import { promiseWithResolvers } from '@anthropic-ai/sdk/internal/utils/promise';
 import type { Anthropic } from '@anthropic-ai/sdk/client';
 import type { BetaManagedAgentsSession } from '@anthropic-ai/sdk/resources/beta/sessions/sessions';
 
@@ -14,6 +15,7 @@ const testPosix = process.platform === 'win32' ? test.skip : test;
 const S_IFLNK = 0o120000;
 const S_IFIFO = 0o010000;
 const S_IFREG = 0o100000;
+const S_IFDIR = 0o040000;
 
 interface TarEntry {
   name: string;
@@ -352,6 +354,142 @@ describe('extractSkillArchive', () => {
     expect(fs.readFileSync(path.join(dest, 'SKILL.md'), 'utf8')).toBe('# PDF');
     expect(fs.existsSync(path.join(dest, 'pdf'))).toBe(false);
     expect(() => fs.lstatSync(path.join(dest, 'link'))).toThrow(/ENOENT/);
+  });
+
+  for (const kind of ['tar', 'zip'] as const) {
+    testPosix(
+      `${kind}: setuid/setgid/sticky and group/other-write bits in the archive are dropped`,
+      async () => {
+        const unix = (type: number, mode: number) => ({ createSystem: 3, externalAttr: (type | mode) << 16 });
+        const buf =
+          kind === 'tar' ?
+            makeTar([
+              { name: 'pdf/sub/', type: '5', mode: 0o1777 },
+              { name: 'pdf/sub/suid.sh', type: '0', mode: 0o4755, body: '#!/bin/sh' },
+              { name: 'pdf/sgid.sh', type: '0', mode: 0o2775, body: '#!/bin/sh' },
+              { name: 'pdf/open.txt', type: '0', mode: 0o666, body: 'x' },
+              { name: 'pdf/ownerx', type: '0', mode: 0o700, body: '#!/bin/sh' },
+            ])
+          : makeZip([
+              { name: 'pdf/sub/', ...unix(S_IFDIR, 0o1777) },
+              { name: 'pdf/sub/suid.sh', body: '#!/bin/sh', ...unix(S_IFREG, 0o4755) },
+              { name: 'pdf/sgid.sh', body: '#!/bin/sh', ...unix(S_IFREG, 0o2775) },
+              { name: 'pdf/open.txt', body: 'x', ...unix(S_IFREG, 0o666) },
+              { name: 'pdf/ownerx', body: '#!/bin/sh', ...unix(S_IFREG, 0o700) },
+            ]);
+        // A 0 umask (common in containers) is where a non-root `tar` keeps group/other-write bits.
+        const umask = process.umask(0);
+        try {
+          await extractInto(buf, dest);
+        } finally {
+          process.umask(umask);
+        }
+        const mode = (rel: string) => fs.statSync(path.join(dest, rel)).mode & 0o7777;
+        expect(mode('sub')).toBe(0o700);
+        expect(mode('sub/suid.sh')).toBe(0o755);
+        expect(mode('sgid.sh')).toBe(0o755);
+        expect(mode('open.txt')).toBe(0o644);
+        expect(mode('ownerx')).toBe(0o755);
+      },
+    );
+  }
+
+  testPosix('tar: a world-writable `./` member is staged under an owner-only directory', async () => {
+    const buf = makeTar([
+      { name: './', type: '5', mode: 0o777 },
+      { name: './SKILL.md', type: '0', mode: 0o666, body: '# flat' },
+    ]);
+    const flat = path.join(work, 'skills', 'flat');
+    await fsp.mkdir(flat, { recursive: true });
+    const gate = promiseWithResolvers<void>();
+    const pulling = promiseWithResolvers<void>();
+    const body = new ReadableStream<Uint8Array>(
+      {
+        async pull(controller) {
+          pulling.resolve();
+          await gate.promise;
+          controller.enqueue(buf);
+          controller.close();
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const umask = process.umask(0);
+    const done = extractSkillArchive(new Response(body), flat);
+    let stagingModes: number[] = [];
+    try {
+      await pulling.promise;
+      stagingModes = fs
+        .readdirSync(path.dirname(flat))
+        .filter((name) => name.startsWith('.skill-stage-'))
+        .map((name) => fs.statSync(path.join(path.dirname(flat), name)).mode & 0o7777);
+    } finally {
+      gate.resolve();
+      await done.finally(() => process.umask(umask));
+    }
+    expect(stagingModes).toEqual([0o700]);
+    expect(fs.statSync(path.join(flat, 'SKILL.md')).mode & 0o7777).toBe(0o644);
+    expect(tree(path.join(work, 'skills'))).toEqual([
+      ['flat', 'dir'],
+      ['flat/SKILL.md', 'file'],
+    ]);
+  });
+
+  test('archives extracted at the same time each get their own staging directory', async () => {
+    const names = ['a', 'b', 'c'];
+    const into = (name: string) => path.join(work, 'skills', name);
+    await Promise.all(
+      names.map((name) =>
+        extractInto(makeTar([{ name: `${name}/SKILL.md`, type: '0', body: name }]), into(name)),
+      ),
+    );
+    expect(names.map((name) => fs.readFileSync(path.join(into(name), 'SKILL.md'), 'utf8'))).toEqual(names);
+  });
+
+  describe('with a wrapper around `tar` first on PATH', () => {
+    const realPath = process.env['PATH'] ?? '';
+    afterEach(() => {
+      process.env['PATH'] = realPath;
+    });
+
+    /** The wrapper runs the real `tar` and then `after`, which still sees the arguments. */
+    function wrapTar(after: string): void {
+      const realTar = execFileSync('sh', ['-c', 'command -v tar'], { encoding: 'utf8' }).trim();
+      const bin = path.join(work, 'bin');
+      fs.mkdirSync(bin);
+      fs.writeFileSync(path.join(bin, 'tar'), `#!/bin/sh\n'${realTar}' "$@" || exit\n${after}\n`, {
+        mode: 0o755,
+      });
+      process.env['PATH'] = bin + path.delimiter + realPath;
+    }
+
+    testPosix.each<[string, TarEntry[]]>([
+      ['without exclusions', []],
+      ['with exclusions', [{ name: 'pdf/link', type: '2', linkname: '/etc/passwd' }]],
+    ])('tar is told not to restore owners or exact modes, %s', async (_, special) => {
+      const log = path.join(work, 'tar.log');
+      wrapTar(`echo "$*" >> '${log}'`);
+      await extractInto(makeTar([{ name: 'pdf/SKILL.md', type: '0', body: '# PDF' }, ...special]), dest);
+      const extractions = fs
+        .readFileSync(log, 'utf8')
+        .split('\n')
+        .filter((args) => args.startsWith('-xf '));
+      expect(extractions).toEqual([expect.stringContaining(' --no-same-owner --no-same-permissions')]);
+    });
+
+    testPosix(
+      'a staged file with a second hard link is refused, and its other name keeps its mode',
+      async () => {
+        const foreign = path.join(work, 'foreign');
+        fs.writeFileSync(foreign, 'x', { mode: 0o600 });
+        wrapTar(`if [ "$1" = -xf ]; then ln '${foreign}' "$4/pdf/twin"; fi`);
+        await expect(
+          extractInto(makeTar([{ name: 'pdf/SKILL.md', type: '0', body: '# PDF' }]), dest),
+        ).rejects.toThrow(/listing is inconsistent/);
+        expect(fs.statSync(foreign).mode & 0o7777).toBe(0o600);
+        expect(tree(path.join(work, 'skills'))).toEqual([['pdf', 'dir']]);
+      },
+    );
   });
 
   test('tar: a PAX global header (git archive) leaves no file behind and the wrapper is stripped', async () => {
