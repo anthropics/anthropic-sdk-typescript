@@ -28,7 +28,7 @@ describe('resource shares', () => {
           organization_id: 'organization_id',
           page: 'page',
           target_type: 'organization',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),

@@ -32,7 +32,7 @@ describe('resource events', () => {
           order: 'asc',
           page: 'page',
           types: ['user.message'],
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -56,7 +56,7 @@ describe('resource events', () => {
   test('send: required and optional params', async () => {
     const response = await client.beta.sessions.events.send('sesn_011CZkZAtmR3yMPDzynEDxu7', {
       events: [{ content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' }],
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -79,7 +79,7 @@ describe('resource events', () => {
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
         {
           event_deltas: ['agent.message'],
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },

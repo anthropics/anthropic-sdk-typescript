@@ -23,7 +23,7 @@ describe('resource deploymentRuns', () => {
     await expect(
       client.beta.deploymentRuns.retrieve(
         'deployment_run_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -54,7 +54,7 @@ describe('resource deploymentRuns', () => {
           limit: 0,
           page: 'page',
           trigger_type: 'schedule',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },

@@ -24,7 +24,7 @@ describe('resource memoryVersions', () => {
     const response = await client.beta.memoryStores.memoryVersions.retrieve('memory_version_id', {
       memory_store_id: 'memory_store_id',
       view: 'basic',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -56,7 +56,7 @@ describe('resource memoryVersions', () => {
           service_account_id: 'service_account_id',
           session_id: 'session_id',
           view: 'basic',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -80,7 +80,7 @@ describe('resource memoryVersions', () => {
   test('redact: required and optional params', async () => {
     const response = await client.beta.memoryStores.memoryVersions.redact('memory_version_id', {
       memory_store_id: 'memory_store_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

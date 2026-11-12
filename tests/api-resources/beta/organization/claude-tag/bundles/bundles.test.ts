@@ -25,7 +25,7 @@ describe('resource bundles', () => {
     await expect(
       client.beta.organization.claudeTag.bundles.retrieve(
         'capp_011CZkZjLP1cWxj5EtMmdgbq',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -49,7 +49,7 @@ describe('resource bundles', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),

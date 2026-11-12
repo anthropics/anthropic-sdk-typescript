@@ -27,7 +27,7 @@ describe('resource webhooks', () => {
       url: 'x',
       description: 'description',
       name: 'name',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -47,7 +47,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.retrieve(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -84,7 +84,7 @@ describe('resource webhooks', () => {
           before_id: 'before_id',
           limit: 0,
           order: 'asc',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -107,7 +107,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.delete(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -129,7 +129,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.regenerateSigningSecret(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

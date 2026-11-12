@@ -26,7 +26,7 @@ describe('resource workspaces', () => {
         {
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -49,7 +49,7 @@ describe('resource workspaces', () => {
   test('add: required and optional params', async () => {
     const response = await client.beta.organization.federation.rules.workspaces.add('federation_rule_id', {
       workspace_id: 'workspace_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -69,7 +69,7 @@ describe('resource workspaces', () => {
   test('remove: required and optional params', async () => {
     const response = await client.beta.organization.federation.rules.workspaces.remove('workspace_id', {
       federation_rule_id: 'federation_rule_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

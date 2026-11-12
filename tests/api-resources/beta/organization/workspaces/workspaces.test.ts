@@ -30,7 +30,7 @@ describe('resource workspaces', () => {
       external_key_id: 'ekey_01SDCCSbTxrXDpWc1phhtcfK',
       tags: { env: 'prod', team: 'platform' },
       user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 

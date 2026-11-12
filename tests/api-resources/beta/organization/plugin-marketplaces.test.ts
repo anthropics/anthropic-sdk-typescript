@@ -23,7 +23,7 @@ describe('resource pluginMarketplaces', () => {
     await expect(
       client.beta.organization.pluginMarketplaces.retrieve(
         'marketplace_id',
-        { organization_id: 'organization_id', betas: ['message-batches-2024-09-24'] },
+        { organization_id: 'organization_id', betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -45,7 +45,7 @@ describe('resource pluginMarketplaces', () => {
   test('update: required and optional params', async () => {
     const response = await client.beta.organization.pluginMarketplaces.update('marketplace_id', {
       default_installation_preference: 'available',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -70,7 +70,7 @@ describe('resource pluginMarketplaces', () => {
           owner_type: 'organization',
           page: 'page',
           source: 'directory',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -93,7 +93,7 @@ describe('resource pluginMarketplaces', () => {
   test('validateArchive: required and optional params', async () => {
     const response = await client.beta.organization.pluginMarketplaces.validateArchive({
       archive: await toFile(Buffer.from('Example data'), 'README.md'),
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -114,7 +114,7 @@ describe('resource pluginMarketplaces', () => {
     const response = await client.beta.organization.pluginMarketplaces.validateRepository({
       repository_url: 'https://github.com/example-org/example-marketplace',
       ref: 'main',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

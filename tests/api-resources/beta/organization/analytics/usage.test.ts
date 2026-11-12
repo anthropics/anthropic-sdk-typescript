@@ -51,7 +51,7 @@ describe('resource usage', () => {
       time_bucket_width: '1d',
       user_profile_ids: ['uprof_01M33NeYUQK2WV9PpYcsPHLi'],
       workspace_ids: ['wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ'],
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });
