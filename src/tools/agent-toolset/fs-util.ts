@@ -20,8 +20,18 @@ export const DIR_CREATE_MODE = 0o700;
  */
 export const FILE_CREATE_MODE = 0o600;
 
-/** True when `p` is `root` itself or lexically contained within it. */
+/** True when `p` is `root` itself or lexically contained within it, with names compared exactly. */
 export function isWithin(root: string, p: string): boolean {
+  const from = path.resolve(root);
+  const to = path.resolve(p);
+  return to === from || to.startsWith(from.endsWith(path.sep) ? from : from + path.sep);
+}
+
+/**
+ * {@link isWithin}, but on Windows also true for names that differ only by case,
+ * for checks that refuse.
+ */
+export function isWithinAnyCase(root: string, p: string): boolean {
   const rel = path.relative(root, p);
   return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
 }
@@ -34,9 +44,13 @@ export function isWithin(root: string, p: string): boolean {
  * and refusing writes (`readOnlyRoots`) can never resolve the same entry two
  * different ways.
  */
-export async function containingRoot(roots: readonly string[], target: string): Promise<string | undefined> {
+export async function containingRoot(
+  roots: readonly string[],
+  target: string,
+  contains = isWithin,
+): Promise<string | undefined> {
   for (const root of roots) {
-    if (isWithin(await canonicalize(path.resolve(root)), target)) return root;
+    if (contains(await canonicalize(path.resolve(root)), target)) return root;
   }
   return undefined;
 }

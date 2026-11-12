@@ -216,6 +216,52 @@ describe('upload paths that touch the network or a device on Windows', () => {
   });
 });
 
+// An APFS disk reads each of these pairs of names as one directory.
+describe.skipIf(process.platform === 'darwin')('letter case on Windows', () => {
+  let base: string;
+  beforeAll(() => {
+    base = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-case-')));
+    for (const name of ['k', '\u212a', 'i\u0307', '\u0130', 'kim', 'Uploads']) {
+      fs.mkdirSync(path.join(base, name));
+      fs.writeFileSync(path.join(base, name, 'f.txt'), 'x');
+    }
+    // Where the disk tells letter case apart, a link stands in for one that does not.
+    if (!fs.existsSync(path.join(base, 'uploads'))) fs.symlinkSync('Uploads', path.join(base, 'uploads'));
+  });
+  afterAll(() => fs.rmSync(base, { recursive: true, force: true }));
+
+  const isVisible = (downloadDir: string, candidate: string) =>
+    new BetaNodeFilePolicy({ downloadDir, exposeDownloadPaths: true }).isPathVisible(candidate);
+
+  it.each([
+    ['KELVIN SIGN for k', 'k', '\u212a'],
+    ['k for KELVIN SIGN', '\u212a', 'k'],
+    ['I WITH DOT ABOVE for i and a combining dot', 'i\u0307', '\u0130'],
+    ['KELVIN SIGN for k in a name that is not on disk', 'kim', '\u212aim'],
+  ])('%s: another directory is outside', async (_, name, other) => {
+    await onPlatform('win32', async () => {
+      const dir = path.join(base, name);
+      await expect(betaCheckUploadPath(path.join(base, other, 'f.txt'), [dir])).rejects.toThrow(
+        new UploadRefusedError(UPLOAD_OUTSIDE_ROOTS),
+      );
+      expect(await isVisible(dir, path.join(base, other, 'f.txt'))).toBe(false);
+      expect(await betaCheckUploadPath(path.join(dir, 'f.txt'), [dir])).toBe(path.join(dir, 'f.txt'));
+      expect(await isVisible(dir, path.join(dir, 'f.txt'))).toBe(true);
+    });
+  });
+
+  it.each(['f.txt', path.join('new', 'f.txt')])(
+    'the same directory in another letter case is inside: %s',
+    async (rest) => {
+      await onPlatform('win32', async () => {
+        const dir = path.join(base, 'Uploads');
+        expect(await betaCheckUploadPath(path.join(base, 'uploads', rest), [dir])).toBe(path.join(dir, rest));
+        expect(await isVisible(dir, path.join(base, 'uploads', rest))).toBe(true);
+      });
+    },
+  );
+});
+
 describe('BetaNodeFilePolicy', () => {
   let base: string;
   const ctx: BetaURLContext = { member: 'file_upload' };

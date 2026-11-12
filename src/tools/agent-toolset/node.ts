@@ -51,6 +51,7 @@ import {
   findExecutable,
   fsErrorMessage,
   isWithin,
+  isWithinAnyCase,
 } from './fs-util';
 
 export { setupSkills, extractSkillArchive } from './skills';
@@ -271,7 +272,7 @@ export async function resolvePath(ctx: AgentToolContext, p: string): Promise<str
  * match the resolved write target.
  */
 function readOnlyRootFor(ctx: AgentToolContext, target: string): Promise<string | undefined> {
-  return containingRoot(ctx.readOnlyRoots ?? [], target);
+  return containingRoot(ctx.readOnlyRoots ?? [], target, isWithinAnyCase);
 }
 
 // ---- bash ----------------------------------------------------------------
