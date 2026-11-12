@@ -31,8 +31,9 @@ export class Webhooks extends APIResource {
    *   await client.beta.organization.webhooks.create({
    *     enabled_events: [
    *       'user_profile.enforcement_action_opened',
+   *       'user_profile.enforcement_action_resolved',
    *     ],
-   *     url: 'x',
+   *     url: 'https://example.com/anthropic-webhooks',
    *   });
    * ```
    */

@@ -9,8 +9,8 @@ const client = new Anthropic({
 describe('resource webhooks', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.organization.webhooks.create({
-      enabled_events: ['user_profile.enforcement_action_opened'],
-      url: 'x',
+      enabled_events: ['user_profile.enforcement_action_opened', 'user_profile.enforcement_action_resolved'],
+      url: 'https://example.com/anthropic-webhooks',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -23,10 +23,10 @@ describe('resource webhooks', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.organization.webhooks.create({
-      enabled_events: ['user_profile.enforcement_action_opened'],
-      url: 'x',
+      enabled_events: ['user_profile.enforcement_action_opened', 'user_profile.enforcement_action_resolved'],
+      url: 'https://example.com/anthropic-webhooks',
       description: 'description',
-      name: 'name',
+      name: 'Enforcement actions',
       betas: ['computer-use-2024-10-22'],
     });
   });
