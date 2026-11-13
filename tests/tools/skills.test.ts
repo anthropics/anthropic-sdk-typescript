@@ -4,13 +4,14 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import * as zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
-import { extractSkillArchive, setupSkills } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+import Anthropic from '@anthropic-ai/sdk';
+import { betaWriteTool, extractSkillArchive, setupSkills } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 import { assertOnlyPlainEntries, classifyArchiveListing } from '@anthropic-ai/sdk/tools/agent-toolset/skills';
 import { promiseWithResolvers } from '@anthropic-ai/sdk/internal/utils/promise';
-import type { Anthropic } from '@anthropic-ai/sdk/client';
 import type { BetaManagedAgentsSession } from '@anthropic-ai/sdk/resources/beta/sessions/sessions';
 
 const testPosix = process.platform === 'win32' ? test.skip : test;
+const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
 const S_IFLNK = 0o120000;
 const S_IFIFO = 0o010000;
@@ -521,6 +522,14 @@ describe('extractSkillArchive', () => {
     );
   });
 
+  test('tar: a listing too long to hold in memory is refused', async () => {
+    const names = Array.from({ length: 11_000 }, (_, i) => `pdf/${String(i).padStart(95, '0')}`);
+    await expect(extractInto(makeTar(names.map((name) => ({ name, type: '0' }))), dest)).rejects.toThrow(
+      'skill archive lists too many members: `tar` printed more than 1048576 characters',
+    );
+    expect(tree(path.join(work, 'skills'))).toEqual([['pdf', 'dir']]);
+  });
+
   test('tar: a PAX global header (git archive) leaves no file behind and the wrapper is stripped', async () => {
     const buf = makeTar([
       { name: 'pax_global_header', type: 'g', body: '52 comment=0123456789012345678901234567890123456789\n' },
@@ -812,5 +821,187 @@ describe('setupSkills version resolution', () => {
     } finally {
       fs.rmSync(work, { recursive: true, force: true });
     }
+  });
+});
+
+describePosix('the tar, unzip and gzip that setupSkills runs', () => {
+  const originalEnv = process.env;
+  const which = (name: string) =>
+    execFileSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8', env: originalEnv }).trim();
+  const archives = {
+    tgz: zlib.gzipSync(makeTar([{ name: 'pdf/SKILL.md', type: '0', body: '# PDF' }])),
+    zip: makeZip([{ name: 'pdf/SKILL.md', body: '# PDF' }]),
+  };
+  let host: string;
+  let warnings: string[];
+
+  beforeEach(() => {
+    host = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'skilltest-')));
+    warnings = [];
+    process.env = { ...originalEnv };
+  });
+  afterEach(() => {
+    process.env = originalEnv;
+    fs.rmSync(host, { recursive: true, force: true });
+  });
+
+  /** A context whose one skill downloads as `archive`. */
+  function contextFor(archive: Buffer) {
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      logLevel: 'warn',
+      logger: { ...console, warn: (...args: unknown[]) => warnings.push(JSON.stringify(args)) },
+      fetch: async (url) =>
+        String(url).endsWith('/content') ?
+          new Response(archive)
+        : Response.json({ id: 'skillver_123', name: 'pdf' }),
+    });
+    const session = {
+      agent: { skills: [{ skill_id: 'skill_01', version: 'latest' }] },
+    } as unknown as BetaManagedAgentsSession;
+    return {
+      workdir: path.join(host, 'workdir'),
+      allowedRoots: [path.join(host, 'allowed')],
+      client,
+      session,
+    };
+  }
+
+  const ranLog = (where: string) => path.join(host, `${where.replace('/', '-')}.ran`);
+  const ran = (where: string) => (fs.existsSync(ranLog(where)) ? fs.readFileSync(ranLog(where), 'utf8') : '');
+
+  /**
+   * A script that records that it ran and then runs the real program. Only GNU `tar` starts
+   * `gzip`, so the script for `tar` starts it too.
+   */
+  const recording = (where: string, name: string) =>
+    [
+      '#!/bin/sh',
+      `echo ${name} >> '${ranLog(where)}'`,
+      ...(name === 'tar' ? ['gzip --version > /dev/null'] : []),
+      `exec '${which(name)}' "$@"`,
+      '',
+    ].join('\n');
+
+  function writePrograms(where: string, names: readonly string[]): string {
+    fs.mkdirSync(path.join(host, where), { recursive: true });
+    for (const name of names) {
+      fs.writeFileSync(path.join(host, where, name), recording(where, name), { mode: 0o755 });
+    }
+    return path.join(host, where);
+  }
+
+  const programs = { tgz: ['tar', 'gzip'], zip: ['unzip'] } as const;
+
+  test.each([
+    ['tgz', 'tar', 'workdir/bin', 'workdir/bin'],
+    ['tgz', 'tar', 'allowed/bin', 'allowed/bin'],
+    ['tgz', 'tar', 'workdir/bin', 'linked-dir'],
+    ['tgz', 'tar', 'workdir/bin', 'linked-file'],
+    ['zip', 'unzip', 'workdir/bin', 'workdir/bin'],
+    ['zip', 'unzip', 'allowed/bin', 'allowed/bin'],
+    ['zip', 'unzip', 'workdir/bin', 'linked-dir'],
+    ['zip', 'unzip', 'workdir/bin', 'linked-file'],
+    ['tgz', 'gzip', 'workdir/bin', 'workdir/bin'],
+    ['tgz', 'gzip', 'allowed/bin', 'allowed/bin'],
+    ['tgz', 'gzip', 'workdir/bin', 'linked-dir'],
+    ['tgz', 'gzip', 'workdir/bin', 'linked-file'],
+    ['tgz', 'gzip', 'workdir/bin', 'linked-two-entries'],
+  ] as const)(
+    '%s: a %s that the write tool replaced in %s is passed over for the next one (PATH entry %j)',
+    async (kind, name, where, entry) => {
+      const ctx = contextFor(archives[kind]);
+      fs.mkdirSync(path.join(host, where), { recursive: true });
+      fs.writeFileSync(path.join(host, where, name), '#!/bin/sh\n', { mode: 0o755 });
+      fs.symlinkSync(path.join(host, where), path.join(host, 'linked-dir'));
+      fs.mkdirSync(path.join(host, 'linked-file'));
+      fs.symlinkSync(path.join(host, where, name), path.join(host, 'linked-file', name));
+      const twoEntries = path.join(host, 'outside') + path.delimiter + path.join(host, where);
+      fs.mkdirSync(twoEntries, { recursive: true });
+      fs.symlinkSync(twoEntries, path.join(host, 'linked-two-entries'));
+      await betaWriteTool(ctx).run({
+        file_path: path.join(host, where, name),
+        content: recording(where, name),
+      });
+      expect(fs.statSync(path.join(host, where, name)).mode & 0o777).toBe(0o755);
+
+      process.env['PATH'] = [path.join(host, entry), writePrograms('system', programs[kind])].join(
+        path.delimiter,
+      );
+      await setupSkills(ctx);
+
+      expect(warnings).toEqual([]);
+      expect(fs.readFileSync(path.join(ctx.workdir, 'skills', 'pdf', 'SKILL.md'), 'utf8')).toBe('# PDF');
+      expect(ran(where)).toBe('');
+      expect(ran('system')).toContain(name);
+    },
+  );
+
+  test.each([
+    ['tgz', 'workdir/bin'],
+    ['zip', 'workdir/bin'],
+    ['tgz', 'workdir/no-such-dir'],
+    ['tgz', 'linked-workdir/no-such-dir'],
+  ] as const)(
+    '%s: programs inside the workdir are still used when no PATH entry is outside it (%s)',
+    async (kind, entry) => {
+      const ctx = contextFor(archives[kind]);
+      const inside = writePrograms('workdir/bin', programs[kind]);
+      fs.symlinkSync(ctx.workdir, path.join(host, 'linked-workdir'));
+      process.env['PATH'] = [path.join(host, entry), inside].join(path.delimiter);
+      await setupSkills(ctx);
+
+      expect(warnings).toEqual([]);
+      expect(fs.readFileSync(path.join(ctx.workdir, 'skills', 'pdf', 'SKILL.md'), 'utf8')).toBe('# PDF');
+      for (const name of programs[kind]) expect(ran('workdir/bin')).toContain(name);
+    },
+  );
+
+  test.each([
+    ['tgz', 'tar', 'empty'],
+    ['zip', 'unzip', 'empty'],
+    ['tgz', 'tar', 'linked-gzip'],
+    ['tgz', 'tar', 'no-such-dir'],
+    ['tgz', 'tar', 'loop'],
+  ] as const)(
+    '%s: a %s inside the workdir is not used when PATH has an entry outside it (%s)',
+    async (kind, name, entry) => {
+      const ctx = contextFor(archives[kind]);
+      const inside = writePrograms('workdir/bin', programs[kind]);
+      fs.mkdirSync(path.join(host, 'empty'));
+      fs.mkdirSync(path.join(host, 'linked-gzip'));
+      fs.symlinkSync(path.join(inside, 'gzip'), path.join(host, 'linked-gzip', 'gzip'));
+      fs.symlinkSync('loop', path.join(host, 'loop'));
+      process.env['PATH'] = [inside, path.join(host, entry)].join(path.delimiter);
+      await setupSkills(ctx);
+
+      expect(warnings).toEqual([
+        expect.stringContaining(
+          `requires the \`${name}\` command, but it was not found on PATH outside \`workdir\` and \`allowedRoots\``,
+        ),
+      ]);
+      expect(ran('workdir/bin')).toBe('');
+    },
+  );
+
+  test('nothing is started when a directory the file tools can write cannot be resolved', async () => {
+    const ctx = contextFor(archives.tgz);
+    fs.symlinkSync('loop', path.join(host, 'loop'));
+    process.env['PATH'] = [
+      writePrograms('workdir/bin', programs.tgz),
+      writePrograms('system', programs.tgz),
+    ].join(path.delimiter);
+    await setupSkills({ ...ctx, allowedRoots: [path.join(host, 'loop')] });
+
+    expect(warnings).toEqual([expect.stringContaining('too many levels of symbolic links')]);
+    expect(ran('workdir/bin') + ran('system')).toBe('');
+  });
+
+  test('tar is started under the name tar', async () => {
+    fs.mkdirSync(path.join(host, 'system'));
+    fs.symlinkSync(process.execPath, path.join(host, 'system', 'tar'));
+    process.env['PATH'] = path.join(host, 'system');
+    await setupSkills(contextFor(archives.tgz));
+    expect(warnings).toEqual([expect.stringMatching(/`tar` failed \(exit \d+\): tar: /)]);
   });
 });

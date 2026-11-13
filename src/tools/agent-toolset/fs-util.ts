@@ -224,7 +224,7 @@ export function fsErrorMessage(err: unknown, file: string): string {
 }
 
 /**
- * The first executable file called `name` in a `PATH` entry, or `null`. An entry that is
+ * The first executable file called `name` in an entry of `searchPath`, or `null`. An entry that is
  * relative to the current directory or, on Windows, to the current drive (`\bin`) is skipped.
  * With `notInside`, so is a file that resolves to somewhere inside one of those directories,
  * and the result is the resolved path that was checked.
@@ -233,9 +233,9 @@ export function fsErrorMessage(err: unknown, file: string): string {
 export async function findExecutable(
   name: string,
   notInside: readonly string[] = [],
+  searchPath = readEnv('PATH') ?? '',
 ): Promise<string | null> {
-  for (const dir of (readEnv('PATH') ?? '').split(path.delimiter)) {
-    if (!path.isAbsolute(dir) || path.resolve(dir) !== path.join(dir, '.')) continue;
+  for (const dir of absolutePathEntries(searchPath)) {
     const candidate = path.join(dir, name);
     try {
       await fs.access(candidate, nodefs.constants.X_OK);
@@ -248,6 +248,41 @@ export async function findExecutable(
     }
   }
   return null;
+}
+
+/**
+ * The resolved `PATH` entries outside the `notInside` directories, or `null` when there are none.
+ * Left out are an entry that would read as two, and one where a `helpers` name leads inside.
+ * Throws when a `notInside` directory can't be resolved, so there is no telling what is outside.
+ * @internal
+ */
+export async function searchPathOutside(
+  notInside: readonly string[],
+  helpers: readonly string[],
+): Promise<string | null> {
+  const resolve = (p: string) => fs.realpath(p).catch(() => undefined);
+  const isInside = async (real: string) =>
+    (await containingRoot(notInside, real, isWithinFolded)) !== undefined;
+  let outside: string[] | null = null;
+  nextEntry: for (const dir of absolutePathEntries(readEnv('PATH') ?? '')) {
+    const real = await resolve(dir);
+    // An entry that isn't there supplies nothing, but one outside still means `PATH` reaches outside.
+    if (await isInside(real ?? (await canonicalize(dir).catch(() => dir)))) continue;
+    outside ??= [];
+    if (real === undefined || real.includes(path.delimiter)) continue;
+    for (const name of helpers) {
+      const helper = await resolve(path.join(real, name));
+      if (helper !== undefined && (await isInside(helper))) continue nextEntry;
+    }
+    outside.push(real);
+  }
+  return outside && outside.join(path.delimiter);
+}
+
+function absolutePathEntries(searchPath: string): string[] {
+  return searchPath
+    .split(path.delimiter)
+    .filter((dir) => path.isAbsolute(dir) && path.resolve(dir) === path.join(dir, '.'));
 }
 
 /**
