@@ -1184,8 +1184,9 @@ export interface BetaManagedAgentsMultiagentCoordinator {
 }
 
 /**
- * A coordinator topology: the session's primary thread orchestrates work by
- * spawning session threads, each running an agent drawn from the `agents` roster.
+ * Recommendation: use `multiagent_20261001` instead of `coordinator`. A
+ * coordinator topology: the session's primary thread orchestrates work by spawning
+ * session threads, each running an agent drawn from the `agents` roster.
  */
 export interface BetaManagedAgentsMultiagentCoordinatorParams {
   /**
