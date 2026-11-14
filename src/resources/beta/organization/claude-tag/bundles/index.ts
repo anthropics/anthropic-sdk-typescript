@@ -2,6 +2,7 @@ export {
   Bundles,
   type BetaClaudeTagBundle,
   type BundleRetrieveParams,
+  type BundleUpdateParams,
   type BundleListParams,
   type BetaClaudeTagBundlesPageCursor,
 } from './bundles';

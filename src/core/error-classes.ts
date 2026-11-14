@@ -89,6 +89,8 @@ import {
 } from '../resources/organization/workspaces/workspaces';
 import {
   BetaAPIKeyScopeMissingError,
+  BetaBundleAttachmentNotSupportedError,
+  BetaBundleOnCallError,
   BetaClaudeTagWritesNotEnabledError,
   BetaComplianceConfigurationRestrictedError,
   BetaOrganizationLevelScopedAPIKeyRequiredError,
@@ -109,6 +111,8 @@ import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/
 export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
   ['400 already_member', AlreadyMemberError],
   ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
+  ['400 bundle_attachment_not_supported', BetaBundleAttachmentNotSupportedError],
+  ['400 bundle_on_call', BetaBundleOnCallError],
   ['400 cannot_invite_emails_with_unverified_domains', CannotInviteEmailsWithUnverifiedDomainsError],
   ['400 cannot_remove_last_member', CannotRemoveLastMemberError],
   ['400 cannot_sign_out_primary_owner', BetaCannotSignOutPrimaryOwnerError],

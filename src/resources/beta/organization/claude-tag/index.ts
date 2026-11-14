@@ -1,4 +1,6 @@
 export {
+  BetaBundleAttachmentNotSupportedError,
+  BetaBundleOnCallError,
   BetaSlackChannelSetUpSettingsRefusedError,
   BetaAPIKeyScopeMissingError,
   BetaClaudeTagWritesNotEnabledError,
@@ -8,6 +10,8 @@ export {
   BetaSlackChannelSetUpSettingsConflictError,
   ClaudeTag,
   type BetaAPIKeyScopeMissingErrorDetails,
+  type BetaBundleAttachmentNotSupportedErrorDetails,
+  type BetaBundleOnCallErrorDetails,
   type BetaClaudeTagDefaultSettingSource,
   type BetaClaudeTagGuestPolicy,
   type BetaClaudeTagGuestPolicyAllow,
@@ -41,6 +45,7 @@ export {
   Bundles,
   type BetaClaudeTagBundle,
   type BundleRetrieveParams,
+  type BundleUpdateParams,
   type BundleListParams,
   type BetaClaudeTagBundlesPageCursor,
 } from './bundles/index';

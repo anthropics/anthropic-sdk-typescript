@@ -3260,6 +3260,8 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleAttachmentNotSupportedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleOnCallErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagDefaultSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicy</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
@@ -3288,6 +3290,8 @@ Types:
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsConflictErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleAttachmentNotSupportedError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleOnCallError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagWritesNotEnabledError</a></code>
@@ -3332,6 +3336,7 @@ Types:
 Methods:
 
 - <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">retrieve</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
+- <code title="post /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">update</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
 - <code title="get /v1/organizations/claude_tag/bundles">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">list</a>({ ...params }) -> BetaClaudeTagBundlesPageCursor</code>
 
 ##### Targets

@@ -382,7 +382,9 @@ export type ErrorDetails =
   | ClaudeTagAPI.BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails
   | EnvironmentsAPI.BetaEnvironmentNotFoundErrorDetails
   | ClaudeTagAPI.BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails
-  | ClaudeTagAPI.BetaSlackChannelSetUpSettingsConflictErrorDetails;
+  | ClaudeTagAPI.BetaSlackChannelSetUpSettingsConflictErrorDetails
+  | ClaudeTagAPI.BetaBundleAttachmentNotSupportedErrorDetails
+  | ClaudeTagAPI.BetaBundleOnCallErrorDetails;
 
 export type ErrorObject =
   | InvalidRequestError
