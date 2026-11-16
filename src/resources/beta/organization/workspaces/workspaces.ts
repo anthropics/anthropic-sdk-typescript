@@ -60,7 +60,7 @@ export class Workspaces extends APIResource {
    * ```ts
    * const betaWorkspace =
    *   await client.beta.organization.workspaces.create({
-   *     name: 'x',
+   *     name: 'Workspace Name',
    *   });
    * ```
    */

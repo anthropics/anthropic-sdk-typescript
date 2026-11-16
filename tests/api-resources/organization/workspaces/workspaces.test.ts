@@ -7,7 +7,7 @@ const client = new Anthropic({
 
 describe('resource workspaces', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.organization.workspaces.create({ name: 'x' });
+    const responsePromise = client.organization.workspaces.create({ name: 'Workspace Name' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,7 +19,7 @@ describe('resource workspaces', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.organization.workspaces.create({
-      name: 'x',
+      name: 'Workspace Name',
       data_residency: {
         allowed_inference_geos: 'unrestricted',
         default_inference_geo: 'global',
