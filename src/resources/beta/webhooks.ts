@@ -313,7 +313,31 @@ export type BetaWebhookEventData =
   | BetaWebhookSessionBudgetReachedEventData
   | BetaWebhookUserProfileEnforcementActionOpenedEventData
   | BetaWebhookUserProfileEnforcementActionResolvedEventData
-  | BetaWebhookUserProfileProgramStatusUpdatedEventData;
+  | BetaWebhookUserProfileProgramStatusUpdatedEventData
+  | BetaWebhookExternalKeyFailedEventData
+  | BetaWebhookExternalKeyRecoveredEventData;
+
+export interface BetaWebhookExternalKeyFailedEventData {
+  /**
+   * ID (`ekey_...`) of the external key that stopped working or works again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_key.failed';
+}
+
+export interface BetaWebhookExternalKeyRecoveredEventData {
+  /**
+   * ID (`ekey_...`) of the external key that stopped working or works again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_key.recovered';
+}
 
 export interface BetaWebhookMemoryStoreArchivedEventData {
   /**
@@ -770,6 +794,8 @@ export declare namespace Webhooks {
     type BetaWebhookEnvironmentUpdatedEventData as BetaWebhookEnvironmentUpdatedEventData,
     type BetaWebhookEvent as BetaWebhookEvent,
     type BetaWebhookEventData as BetaWebhookEventData,
+    type BetaWebhookExternalKeyFailedEventData as BetaWebhookExternalKeyFailedEventData,
+    type BetaWebhookExternalKeyRecoveredEventData as BetaWebhookExternalKeyRecoveredEventData,
     type BetaWebhookMemoryStoreArchivedEventData as BetaWebhookMemoryStoreArchivedEventData,
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
