@@ -74,8 +74,12 @@ export interface SessionToolRunnerOptions {
   /**
    * Once the session goes idle with any `stop_reason.type` but
    * `"requires_action"`, the runner keeps running for this many milliseconds before
-   * stopping; any new event resets the countdown and it re-arms on the next such
-   * idle. The countdown is deferred while a confirmation-gated call is held or
+   * stopping; any new event but a tool confirmation or a session thread's
+   * termination cancels the countdown, and it re-arms on the next such idle.
+   * If the runner fails to read the session's event history after a reconnect, a
+   * termination that then arrives on the event stream cancels the countdown too,
+   * until the next idle or successful read.
+   * The countdown is deferred while a confirmation-gated call is held or
    * still dispatching, and starts fresh once the last one resolves.
    * Defaults to {@link DEFAULT_MAX_IDLE_MS} (60s). `0` (or negative) disables
    * it — the runner then only stops on session termination or the consumer
@@ -171,10 +175,20 @@ function endsTurn(ev: { type?: string; stop_reason?: { type?: string } }): boole
 }
 
 /**
+ * Whether `ev` leaves the idle countdown as it is, with one exception in {@link IdleClock.noteEvent}.
+ * A tool confirmation acts through {@link IdleClock.unblock}, and a disarm would discard the pending arm.
+ * A session thread can terminate after the last idle, and no idle would then restart a disarmed countdown.
+ */
+function isIdleNeutral(ev: { type: string }): boolean {
+  return ev.type === 'user.tool_confirmation' || ev.type === 'session.thread_status_terminated';
+}
+
+/**
  * The `maxIdleMs` stop-countdown, including its deferral. {@link noteEvent}
- * arms on an idle that ends the turn and disarms on anything else. Gated tool
- * work registered via {@link block} — a call held for user confirmation, or a
- * user-approved call still dispatching — keeps
+ * arms on an idle that ends the turn and disarms on any other event that is not
+ * {@link isIdleNeutral}, with one exception described on {@link noteEvent}.
+ * Gated tool work registered via {@link block} — a call
+ * held for user confirmation, or a user-approved call still dispatching — keeps
  * {@link arm} pending until {@link unblock} retires the last blocker, at which
  * point the countdown starts. Event-driven — there is no polling watchdog.
  */
@@ -185,6 +199,9 @@ class IdleClock {
   // Set when arm() found blockers outstanding; the unblock that retires the
   // last blocker applies it. Cleared by any disarm.
   #armPending = false;
+  // True from a failed history read until a read succeeds or an event that is not idle-neutral arrives.
+  // While true, the countdown may come from an idle that the session has since left.
+  #idleMayBeStale = false;
   #timer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(maxIdleMs: number, onExpire: () => void) {
@@ -193,16 +210,19 @@ class IdleClock {
   }
 
   /**
-   * Arm on an idle that ends the turn; disarm otherwise. `user.tool_confirmation`
-   * is neutral: it signals neither agent activity nor an idle, and its effect
-   * on the clock flows through {@link block} / {@link unblock} instead —
-   * disarming here would discard the pending arm the verdict is about to
-   * settle.
+   * Arm on an idle that ends the turn; disarm on any other event that is not {@link isIdleNeutral},
+   * and on a session thread's termination while `#idleMayBeStale` is true.
    */
   noteEvent(ev: { type: string; stop_reason?: { type?: string } }): void {
-    if (ev.type === 'user.tool_confirmation') return;
+    if (this.#idleMayBeStale && ev.type === 'session.thread_status_terminated') this.disarm();
+    if (isIdleNeutral(ev)) return;
+    this.#idleMayBeStale = false;
     if (endsTurn(ev)) this.arm();
     else this.disarm();
+  }
+
+  noteHistoryRead(succeeded: boolean): void {
+    this.#idleMayBeStale = !succeeded;
   }
 
   /** Register gated work that must resolve before an idle countdown starts. */
@@ -227,6 +247,12 @@ class IdleClock {
   unblock(toolUseId: string): void {
     this.#blockers.delete(toolUseId);
     if (this.#blockers.size === 0 && this.#armPending) this.arm();
+  }
+
+  /** Retire gated work that can no longer resolve, and drop a pending arm that may be stale rather than apply it. */
+  abandon(toolUseId: string): void {
+    if (this.#idleMayBeStale) this.disarm();
+    this.unblock(toolUseId);
   }
 
   /**
@@ -277,16 +303,28 @@ class IdleClock {
  * still yielded (`confirmation="deny"`, `posted=false`, `result=undefined`) so
  * the consumer can observe it. A held call — and a user-approved one still
  * dispatching — defers the `maxIdleMs` countdown, so an idle observed in the
- * meantime cannot stop the runner: it waits until the verdict arrives, the
- * session terminates, or the abort signal fires — pass
+ * meantime cannot stop the runner: it waits until the verdict arrives, the call's
+ * session thread or the session terminates, or the abort signal fires — pass
  * `AbortSignal.timeout(...)` for a wall-clock bound.
+ *
+ * A session thread that has terminated accepts no further input, so its open
+ * tool calls can never get a result. A workflow run's threads terminate when the
+ * run ends, for example. Once the runner has read a thread's
+ * `session.thread_status_terminated` event, it does not execute or hold that
+ * thread's calls, and it neither posts nor yields anything for them. A call that
+ * it started before it read that event runs to the end, and the runner yields it
+ * with `posted=false` if the API refuses the result.
  *
  * Iteration ends when the session terminates (`session.status_terminated` /
  * `session.deleted`), when the consumer `break`s out of the loop or aborts the
  * supplied signal, or — once the session has gone idle with any `stop_reason.type`
  * but `"requires_action"` — when `maxIdleMs` elapses with no new event (any
- * new event resets that countdown; it re-arms on the next such idle;
- * `maxIdleMs <= 0` disables it). The `finally` branch drains any in-flight
+ * new event but a tool confirmation or a session thread's termination cancels
+ * that countdown; it re-arms on the next such idle;
+ * `maxIdleMs <= 0` disables it). If the runner fails to read the session's event
+ * history after a reconnect, a termination that then arrives on the event stream
+ * cancels the countdown too, until the next idle or successful read.
+ * The `finally` branch drains any in-flight
  * tool calls and runs each tool's `close()` cleanup hook. It does *not* touch
  * the work-item lease — wrap it in an `EnvironmentWorker` if you need
  * heartbeating / force-stop.
@@ -325,6 +363,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   // per-session O(tool calls): recorded verdicts persist for the life of the run.
   readonly #confirmationVerdicts = new Map<string, 'allow' | 'deny'>();
   readonly #awaitingConfirmation = new Map<string, DispatchedToolUseEvent>();
+  readonly #terminatedThreads = new Set<string>();
   readonly #results = new AsyncQueue<DispatchedToolCall>();
   #inFlightCount = 0;
   #sendRetryWindowMs = SEND_RETRY_WINDOW_MS;
@@ -516,9 +555,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         this.#requestOptions(),
       )) {
         this.#ingestHistory(ev, pending);
-        // Neutral here as in `IdleClock.noteEvent`: a verdict is neither agent
-        // activity nor an idle.
-        if (ev.type !== 'user.tool_confirmation') lastEndedTurn = endsTurn(ev);
+        if (!isIdleNeutral(ev)) lastEndedTurn = endsTurn(ev);
       }
     } catch (e) {
       // An abort throws to unwind the caller; a real list failure is
@@ -527,12 +564,17 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       ctrl.signal.throwIfAborted();
       this.#logger.warn('reconcile list failed', { error: String(e) });
       // If list itself failed, undo the speculative `seen` entries so the next
-      // reconcile pass (or the live stream) can pick them up. Leave the idle
-      // timer untouched — the history we read may be incomplete.
+      // reconcile pass (or the live stream) can pick them up. The history we
+      // read may be incomplete, so a running countdown keeps running, and the
+      // release of a terminated thread's held call drops a pending one.
       for (const ev of pending) this.#seen.delete(ev.id);
+      this.#idleClock.noteHistoryRead(false);
+      this.#releaseTerminatedHolds();
       return;
     }
     this.#historyRead = true;
+    this.#idleClock.noteHistoryRead(true);
+    this.#releaseTerminatedHolds();
     const unanswered = pending.filter((ev) => !this.#answered.has(ev.id));
     // Disarm before routing: `#execute` runs inline here, so a timer left armed
     // from before the reconnect could fire over an in-flight tool.
@@ -553,7 +595,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     // here: it blocks the clock, so this arm stays pending until the verdict
     // (and, for an allow, the dispatch it releases) resolves it.
     const outstanding = unanswered.filter(
-      (ev) => !this.#answered.has(ev.id) && !this.#awaitingConfirmation.has(ev.id),
+      (ev) =>
+        !this.#answered.has(ev.id) && !this.#inTerminatedThread(ev) && !this.#awaitingConfirmation.has(ev.id),
     );
     if (lastEndedTurn && outstanding.length === 0) this.#idleClock.arm();
     else this.#idleClock.disarm();
@@ -579,6 +622,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       // already known. Releasing a held call here as well would dispatch it a
       // second time when the routing pass reaches its tool_use event.
       if (!this.#answered.has(ev.tool_use_id)) this.#confirmationVerdicts.set(ev.tool_use_id, ev.result);
+    } else if (ev.type === 'session.thread_status_terminated') {
+      this.#terminatedThreads.add(ev.session_thread_id);
     }
   }
 
@@ -617,6 +662,10 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       case 'user.custom_tool_result':
         this.#answered.add(ev.custom_tool_use_id);
         return false;
+      case 'session.thread_status_terminated':
+        this.#terminatedThreads.add(ev.session_thread_id);
+        this.#releaseTerminatedHolds();
+        return false;
       case 'session.status_terminated':
       case 'session.deleted':
         this.#logger.info('session terminated', {
@@ -630,6 +679,28 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
+  // ===== terminated session threads =====
+
+  #inTerminatedThread(ev: DispatchedToolUseEvent): boolean {
+    return !!ev.session_thread_id && this.#terminatedThreads.has(ev.session_thread_id);
+  }
+
+  /** Drop the held calls of terminated session threads, and their idle-clock blockers. */
+  #releaseTerminatedHolds(): void {
+    for (const held of this.#awaitingConfirmation.values()) {
+      if (!this.#inTerminatedThread(held)) continue;
+      this.#logger.info('session thread terminated; not executing', {
+        component: 'session-tool-runner',
+        session_id: this.sessionId,
+        session_thread_id: held.session_thread_id,
+        tool: held.name,
+        tool_use_id: held.id,
+      });
+      this.#awaitingConfirmation.delete(held.id);
+      this.#idleClock.abandon(held.id);
+    }
+  }
+
   // ===== confirmation gating (always_ask tools) =====
 
   /**
@@ -637,9 +708,20 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
    * (`evaluated_permission == "ask"`) is held until its `user.tool_confirmation`
    * arrives. Fails closed: only an explicit `allow` verdict releases a gated
    * call; a server-side `deny` overrides any recorded verdict; an unrecognized
-   * permission is held like `ask` and an unrecognized verdict is denied.
+   * permission is held like `ask` and an unrecognized verdict is denied. A call
+   * of a terminated session thread is dropped.
    */
   async #routeToolEvent(ev: DispatchedToolUseEvent): Promise<void> {
+    if (this.#inTerminatedThread(ev)) {
+      this.#logger.debug('session thread terminated; not executing', {
+        component: 'session-tool-runner',
+        session_id: this.sessionId,
+        session_thread_id: ev.session_thread_id,
+        tool: ev.name,
+        tool_use_id: ev.id,
+      });
+      return;
+    }
     // `getattr`-style read: today only `agent.tool_use` carries
     // `evaluated_permission`, but if it ever lands on `agent.custom_tool_use`
     // the gate must keep failing closed rather than dispatch by event type.
