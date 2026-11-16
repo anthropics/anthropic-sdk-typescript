@@ -142,6 +142,8 @@ export {
   type BetaBashCodeExecutionToolResultBlockParam,
   type BetaBashCodeExecutionToolResultError,
   type BetaBashCodeExecutionToolResultErrorParam,
+  type BetaBillTo,
+  type BetaBillingPolicy,
   type BetaBrowserClickTarget,
   type BetaBrowserCloseTabConfig,
   type BetaBrowserCloseTabInput,

@@ -27,6 +27,7 @@ describe('resource messages', () => {
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-5-5',
+      billing_policy: { type: 'billing_policy', bill_to: 'self' },
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },
       container: {
@@ -147,6 +148,7 @@ describe('resource messages', () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-5-5',
+      billing_policy: { type: 'billing_policy', bill_to: 'self' },
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },
       context_management: {

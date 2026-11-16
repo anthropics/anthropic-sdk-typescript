@@ -642,6 +642,17 @@ export namespace BatchCreateParams {
       model: MessagesApi.Model;
 
       /**
+       * Declares which organization is billed for this request.
+       * `{"type": "billing_policy", "bill_to": "user_profile"}` bills the customer
+       * behind the user profile named in the `anthropic-user-profile-id` header, instead
+       * of your organization. If that customer has not linked an Anthropic organization
+       * to the profile, or has not allowed your organization to bill it, the request is
+       * rejected rather than billed to you. Omit the field, or send `"bill_to": "self"`
+       * (the default), to be billed as usual.
+       */
+      billing_policy?: BetaMessagesAPI.BetaBillingPolicy | null;
+
+      /**
        * Top-level cache control automatically applies a cache_control marker to the last
        * cacheable block in the request.
        */

@@ -666,6 +666,27 @@ export interface BetaBashCodeExecutionToolResultErrorParam {
 }
 
 /**
+ * Who is billed for a request.
+ */
+export type BetaBillTo = 'self' | 'user_profile';
+
+/**
+ * Declares which organization is billed for the request.
+ */
+export interface BetaBillingPolicy {
+  type: 'billing_policy';
+
+  /**
+   * Who is billed. `self`, the default, bills your organization, as if
+   * `billing_policy` were omitted. `user_profile` bills the customer behind the user
+   * profile the request names; if that customer has not linked an Anthropic
+   * organization to the profile, or has not allowed your organization to bill it,
+   * the request is rejected rather than billed to you.
+   */
+  bill_to?: BetaBillTo;
+}
+
+/**
  * Where to act: either a viewport coordinate or an element reference.
  */
 export type BetaBrowserClickTarget = BetaBrowserCoordinateTarget | BetaBrowserRefTarget;
@@ -9524,6 +9545,17 @@ export interface MessageCreateParamsBase {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Declares which organization is billed for this request.
+   * `{"type": "billing_policy", "bill_to": "user_profile"}` bills the customer
+   * behind the user profile named in the `anthropic-user-profile-id` header, instead
+   * of your organization. If that customer has not linked an Anthropic organization
+   * to the profile, or has not allowed your organization to bill it, the request is
+   * rejected rather than billed to you. Omit the field, or send `"bill_to": "self"`
+   * (the default), to be billed as usual.
+   */
+  billing_policy?: BetaBillingPolicy | null;
+
+  /**
    * Body param: Top-level cache control automatically applies a cache_control marker
    * to the last cacheable block in the request.
    */
@@ -9931,6 +9963,14 @@ export interface MessageCountTokensParams {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Declares which organization is billed when this body is sent to
+   * `/v1/messages`. Accepted here so that you can count the tokens of the exact body
+   * you will send, and otherwise ignored: counting tokens bills nobody, so no user
+   * profile is required.
+   */
+  billing_policy?: BetaBillingPolicy | null;
+
+  /**
    * Body param: Top-level cache control automatically applies a cache_control marker
    * to the last cacheable block in the request.
    */
@@ -10189,6 +10229,8 @@ export declare namespace Messages {
     type BetaBashCodeExecutionToolResultBlockParam as BetaBashCodeExecutionToolResultBlockParam,
     type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
+    type BetaBillTo as BetaBillTo,
+    type BetaBillingPolicy as BetaBillingPolicy,
     type BetaBrowserClickTarget as BetaBrowserClickTarget,
     type BetaBrowserCloseTabConfig as BetaBrowserCloseTabConfig,
     type BetaBrowserCloseTabInput as BetaBrowserCloseTabInput,

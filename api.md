@@ -1215,6 +1215,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBillTo</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBillingPolicy</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserClickTarget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabInput</a></code>

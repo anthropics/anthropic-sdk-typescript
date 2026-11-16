@@ -373,6 +373,8 @@ import {
   BetaBashCodeExecutionToolResultBlockParam,
   BetaBashCodeExecutionToolResultError,
   BetaBashCodeExecutionToolResultErrorParam,
+  BetaBillTo,
+  BetaBillingPolicy,
   BetaBrowserClickTarget,
   BetaBrowserCloseTabConfig,
   BetaBrowserCloseTabInput,
@@ -1063,7 +1065,8 @@ export type AnthropicBeta =
   | 'extended-cache-ttl-2025-04-11'
   | 'skills-2025-10-02'
   | 'cache-diagnosis-2026-04-07'
-  | 'ce-user-management-2026-07-13';
+  | 'ce-user-management-2026-07-13'
+  | 'user-profiles-billing-2026-10-01';
 
 export interface BetaAPIError {
   /**
@@ -1326,6 +1329,8 @@ export declare namespace Beta {
     type BetaBashCodeExecutionToolResultBlockParam as BetaBashCodeExecutionToolResultBlockParam,
     type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
+    type BetaBillTo as BetaBillTo,
+    type BetaBillingPolicy as BetaBillingPolicy,
     type BetaBrowserClickTarget as BetaBrowserClickTarget,
     type BetaBrowserCloseTabConfig as BetaBrowserCloseTabConfig,
     type BetaBrowserCloseTabInput as BetaBrowserCloseTabInput,
