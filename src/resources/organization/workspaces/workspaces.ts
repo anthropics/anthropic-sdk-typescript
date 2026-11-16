@@ -40,9 +40,9 @@ import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 /**
- * The External Key is bound to a user profile, and the Workspace does not have
- * that user profile. A Workspace can use only a key bound to its own user profile
- * or a key that isn't bound to one.
+ * After this request, the External Key and the Workspace would not have the same
+ * user profile. A key and its Workspace must have the same user profile, or both
+ * have none.
  */
 export class KeyProfileMismatchError extends BadRequestError {
   declare readonly errorCode: 'key_profile_mismatch';
@@ -272,9 +272,9 @@ export interface DataResidencyUpdateConfig {
 }
 
 /**
- * The External Key is bound to a user profile, and the Workspace does not have
- * that user profile. A Workspace can use only a key bound to its own user profile
- * or a key that isn't bound to one.
+ * After this request, the External Key and the Workspace would not have the same
+ * user profile. A key and its Workspace must have the same user profile, or both
+ * have none.
  */
 export interface KeyProfileMismatchErrorDetails {
   error_code: 'key_profile_mismatch';
@@ -513,7 +513,8 @@ export interface WorkspaceUpdateParams {
    * the Workspace must then name this user profile; the API rejects a request that
    * names none or a different one. Once set, it can't be replaced or removed
    * (sending the same ID again changes nothing); only deleting the user profile
-   * clears it. The default Workspace can't have a user profile.
+   * clears it. It can't be set on a Workspace whose External Key isn't bound to this
+   * user profile. The default Workspace can't have a user profile.
    */
   user_profile_id?: string;
 }
