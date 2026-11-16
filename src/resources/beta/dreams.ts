@@ -258,7 +258,7 @@ export interface BetaDream {
   /**
    * Why the dream failed, or `null` if `status` isn't `failed`.
    */
-  error: BetaDreamError | null;
+  error: BetaDreamErrorObject | null;
 
   /**
    * The sources that the dream reads, from the request that created it.
@@ -336,7 +336,7 @@ export interface BetaDream {
 /**
  * Failure detail for a Dream whose `status` is `failed`.
  */
-export interface BetaDreamError {
+export interface BetaDreamErrorObject {
   /**
    * A human-readable explanation of why the dream failed.
    */
@@ -528,17 +528,17 @@ export interface BetaDreamUsage {
   output_tokens: number;
 }
 
-export type BetaDreamingError =
-  | BetaAPI.BetaInvalidRequestError
-  | BetaAPI.BetaAuthenticationError
-  | BetaAPI.BetaBillingError
-  | BetaAPI.BetaPermissionError
-  | BetaAPI.BetaNotFoundError
-  | BetaAPI.BetaRateLimitError
-  | BetaAPI.BetaGatewayTimeoutError
-  | BetaAPI.BetaAPIError
-  | BetaAPI.BetaOverloadedError
-  | BetaTargetStoreHeldError;
+export type BetaDreamingErrorObject =
+  | BetaAPI.BetaInvalidRequestErrorObject
+  | BetaAPI.BetaAuthenticationErrorObject
+  | BetaAPI.BetaBillingErrorObject
+  | BetaAPI.BetaPermissionErrorObject
+  | BetaAPI.BetaNotFoundErrorObject
+  | BetaAPI.BetaRateLimitErrorObject
+  | BetaAPI.BetaGatewayTimeoutErrorObject
+  | BetaAPI.BetaAPIErrorObject
+  | BetaAPI.BetaOverloadedErrorObject
+  | BetaTargetStoreHeldErrorObject;
 
 /**
  * Which memory store a dream writes its result to. Defaults to `create_new` when
@@ -587,11 +587,26 @@ export interface BetaOutputBehaviorUpdateExisting {
  * end or cancel it, then retry. The response sets the `x-should-retry` header to
  * `false`.
  */
-export interface BetaTargetStoreHeldError {
+export interface BetaTargetStoreHeldErrorObject {
   type: 'conflict_error';
 
   message?: string;
 }
+
+/**
+ * @deprecated BetaDreamError has been renamed to BetaDreamErrorObject
+ */
+export type BetaDreamError = BetaDreamErrorObject;
+
+/**
+ * @deprecated BetaTargetStoreHeldError has been renamed to BetaTargetStoreHeldErrorObject
+ */
+export type BetaTargetStoreHeldError = BetaTargetStoreHeldErrorObject;
+
+/**
+ * @deprecated BetaDreamingError has been renamed to BetaDreamingErrorObject
+ */
+export type BetaDreamingError = BetaDreamingErrorObject;
 
 export interface DreamCreateParams {
   /**
@@ -745,7 +760,7 @@ export interface DreamCancelParams {
 export declare namespace Dreams {
   export {
     type BetaDream as BetaDream,
-    type BetaDreamError as BetaDreamError,
+    type BetaDreamErrorObject as BetaDreamErrorObject,
     type BetaDreamInput as BetaDreamInput,
     type BetaDreamMemoryStoreInput as BetaDreamMemoryStoreInput,
     type BetaDreamMemoryStoreOutput as BetaDreamMemoryStoreOutput,
@@ -755,11 +770,14 @@ export declare namespace Dreams {
     type BetaDreamSessionsInput as BetaDreamSessionsInput,
     type BetaDreamStatus as BetaDreamStatus,
     type BetaDreamUsage as BetaDreamUsage,
-    type BetaDreamingError as BetaDreamingError,
+    type BetaDreamingErrorObject as BetaDreamingErrorObject,
     type BetaOutputBehavior as BetaOutputBehavior,
     type BetaOutputBehaviorCreateNew as BetaOutputBehaviorCreateNew,
     type BetaOutputBehaviorUpdateExisting as BetaOutputBehaviorUpdateExisting,
+    type BetaTargetStoreHeldErrorObject as BetaTargetStoreHeldErrorObject,
+    type BetaDreamError as BetaDreamError,
     type BetaTargetStoreHeldError as BetaTargetStoreHeldError,
+    type BetaDreamingError as BetaDreamingError,
     type BetaDreamsPageCursor as BetaDreamsPageCursor,
     type DreamCreateParams as DreamCreateParams,
     type DreamRetrieveParams as DreamRetrieveParams,

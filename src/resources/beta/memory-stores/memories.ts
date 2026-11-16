@@ -205,7 +205,7 @@ export class Memories extends APIResource {
 
 export type BetaManagedAgentsMemoryListItemsPageCursor = PageCursor<BetaManagedAgentsMemoryListItem>;
 
-export interface BetaManagedAgentsConflictError {
+export interface BetaManagedAgentsConflictErrorObject {
   type: 'conflict_error';
 
   message?: string;
@@ -255,19 +255,19 @@ export interface BetaManagedAgentsDeletedMemory {
   type: 'memory_deleted';
 }
 
-export type BetaManagedAgentsError =
-  | BetaAPI.BetaInvalidRequestError
-  | BetaAPI.BetaAuthenticationError
-  | BetaAPI.BetaBillingError
-  | BetaAPI.BetaPermissionError
-  | BetaAPI.BetaNotFoundError
-  | BetaAPI.BetaRateLimitError
-  | BetaAPI.BetaGatewayTimeoutError
-  | BetaAPI.BetaAPIError
-  | BetaAPI.BetaOverloadedError
-  | BetaManagedAgentsMemoryPreconditionFailedError
-  | BetaManagedAgentsMemoryPathConflictError
-  | BetaManagedAgentsConflictError;
+export type BetaManagedAgentsErrorObject =
+  | BetaAPI.BetaInvalidRequestErrorObject
+  | BetaAPI.BetaAuthenticationErrorObject
+  | BetaAPI.BetaBillingErrorObject
+  | BetaAPI.BetaPermissionErrorObject
+  | BetaAPI.BetaNotFoundErrorObject
+  | BetaAPI.BetaRateLimitErrorObject
+  | BetaAPI.BetaGatewayTimeoutErrorObject
+  | BetaAPI.BetaAPIErrorObject
+  | BetaAPI.BetaOverloadedErrorObject
+  | BetaManagedAgentsMemoryPreconditionFailedErrorObject
+  | BetaManagedAgentsMemoryPathConflictErrorObject
+  | BetaManagedAgentsConflictErrorObject;
 
 /**
  * A text document at a path inside a memory store.
@@ -372,7 +372,7 @@ export type BetaManagedAgentsMemoryListItem = BetaManagedAgentsMemory | BetaMana
  * To handle the error in code, use `conflicting_path` and `conflicting_memory_id`
  * instead of `message`.
  */
-export interface BetaManagedAgentsMemoryPathConflictError {
+export interface BetaManagedAgentsMemoryPathConflictErrorObject {
   type: 'memory_path_conflict_error';
 
   /**
@@ -404,7 +404,7 @@ export interface BetaManagedAgentsMemoryPathConflictError {
  * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#safe-content-edits-optimistic-concurrency)
  * to learn more about safe content edits with content hash preconditions.
  */
-export interface BetaManagedAgentsMemoryPreconditionFailedError {
+export interface BetaManagedAgentsMemoryPreconditionFailedErrorObject {
   type: 'memory_precondition_failed_error';
 
   message?: string;
@@ -463,6 +463,27 @@ export interface BetaManagedAgentsPrecondition {
    */
   content_sha256?: string;
 }
+
+/**
+ * @deprecated BetaManagedAgentsMemoryPathConflictError has been renamed to BetaManagedAgentsMemoryPathConflictErrorObject
+ */
+export type BetaManagedAgentsMemoryPathConflictError = BetaManagedAgentsMemoryPathConflictErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMemoryPreconditionFailedError has been renamed to BetaManagedAgentsMemoryPreconditionFailedErrorObject
+ */
+export type BetaManagedAgentsMemoryPreconditionFailedError =
+  BetaManagedAgentsMemoryPreconditionFailedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsConflictError has been renamed to BetaManagedAgentsConflictErrorObject
+ */
+export type BetaManagedAgentsConflictError = BetaManagedAgentsConflictErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsError has been renamed to BetaManagedAgentsErrorObject
+ */
+export type BetaManagedAgentsError = BetaManagedAgentsErrorObject;
 
 export interface MemoryCreateParams {
   /**
@@ -681,17 +702,21 @@ export interface MemoryDeleteParams {
 
 export declare namespace Memories {
   export {
-    type BetaManagedAgentsConflictError as BetaManagedAgentsConflictError,
+    type BetaManagedAgentsConflictErrorObject as BetaManagedAgentsConflictErrorObject,
     type BetaManagedAgentsContentSha256Precondition as BetaManagedAgentsContentSha256Precondition,
     type BetaManagedAgentsDeletedMemory as BetaManagedAgentsDeletedMemory,
-    type BetaManagedAgentsError as BetaManagedAgentsError,
+    type BetaManagedAgentsErrorObject as BetaManagedAgentsErrorObject,
     type BetaManagedAgentsMemory as BetaManagedAgentsMemory,
     type BetaManagedAgentsMemoryListItem as BetaManagedAgentsMemoryListItem,
-    type BetaManagedAgentsMemoryPathConflictError as BetaManagedAgentsMemoryPathConflictError,
-    type BetaManagedAgentsMemoryPreconditionFailedError as BetaManagedAgentsMemoryPreconditionFailedError,
+    type BetaManagedAgentsMemoryPathConflictErrorObject as BetaManagedAgentsMemoryPathConflictErrorObject,
+    type BetaManagedAgentsMemoryPreconditionFailedErrorObject as BetaManagedAgentsMemoryPreconditionFailedErrorObject,
     type BetaManagedAgentsMemoryPrefix as BetaManagedAgentsMemoryPrefix,
     type BetaManagedAgentsMemoryView as BetaManagedAgentsMemoryView,
     type BetaManagedAgentsPrecondition as BetaManagedAgentsPrecondition,
+    type BetaManagedAgentsMemoryPathConflictError as BetaManagedAgentsMemoryPathConflictError,
+    type BetaManagedAgentsMemoryPreconditionFailedError as BetaManagedAgentsMemoryPreconditionFailedError,
+    type BetaManagedAgentsConflictError as BetaManagedAgentsConflictError,
+    type BetaManagedAgentsError as BetaManagedAgentsError,
     type BetaManagedAgentsMemoryListItemsPageCursor as BetaManagedAgentsMemoryListItemsPageCursor,
     type MemoryCreateParams as MemoryCreateParams,
     type MemoryRetrieveParams as MemoryRetrieveParams,

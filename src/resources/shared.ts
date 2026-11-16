@@ -216,7 +216,7 @@ export interface APIErrorObject {
   type: 'api_error';
 }
 
-export interface AuthenticationError {
+export interface AuthenticationErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -229,7 +229,7 @@ export interface AuthenticationError {
   type: 'authentication_error';
 }
 
-export interface BillingError {
+export interface BillingErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -387,15 +387,15 @@ export type ErrorDetails =
   | ClaudeTagAPI.BetaBundleOnCallErrorDetails;
 
 export type ErrorObject =
-  | InvalidRequestError
-  | AuthenticationError
-  | BillingError
-  | PermissionError
-  | NotFoundError
-  | RateLimitError
-  | GatewayTimeoutError
+  | InvalidRequestErrorObject
+  | AuthenticationErrorObject
+  | BillingErrorObject
+  | PermissionErrorObject
+  | NotFoundErrorObject
+  | RateLimitErrorObject
+  | GatewayTimeoutErrorObject
   | APIErrorObject
-  | OverloadedError;
+  | OverloadedErrorObject;
 
 export interface ErrorResponse {
   error: ErrorObject;
@@ -419,7 +419,7 @@ export type ErrorType =
   | 'memory_path_conflict_error'
   | 'conflict_error';
 
-export interface GatewayTimeoutError {
+export interface GatewayTimeoutErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -432,7 +432,7 @@ export interface GatewayTimeoutError {
   type: 'timeout_error';
 }
 
-export interface InvalidRequestError {
+export interface InvalidRequestErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -445,7 +445,7 @@ export interface InvalidRequestError {
   type: 'invalid_request_error';
 }
 
-export interface NotFoundError {
+export interface NotFoundErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -477,7 +477,7 @@ export interface OrganizationTypeNotSupportedErrorDetails {
   error_code: 'organization_type_not_supported';
 }
 
-export interface OverloadedError {
+export interface OverloadedErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -498,7 +498,7 @@ export interface ParentOrganizationRequiredErrorDetails {
   error_code: 'parent_organization_required';
 }
 
-export interface PermissionError {
+export interface PermissionErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -519,7 +519,7 @@ export interface RampLimitExceededErrorDetails {
   error_code: 'ramp_limit_exceeded';
 }
 
-export interface RateLimitError {
+export interface RateLimitErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
    * match on it.
@@ -561,3 +561,43 @@ export interface RequestBodyTooLargeAfterDecodingErrorDetails {
 export interface SandboxEgressRestrictedErrorDetails {
   error_code: 'sandbox_egress_restricted';
 }
+
+/**
+ * @deprecated AuthenticationError has been renamed to AuthenticationErrorObject
+ */
+export type AuthenticationError = AuthenticationErrorObject;
+
+/**
+ * @deprecated InvalidRequestError has been renamed to InvalidRequestErrorObject
+ */
+export type InvalidRequestError = InvalidRequestErrorObject;
+
+/**
+ * @deprecated BillingError has been renamed to BillingErrorObject
+ */
+export type BillingError = BillingErrorObject;
+
+/**
+ * @deprecated GatewayTimeoutError has been renamed to GatewayTimeoutErrorObject
+ */
+export type GatewayTimeoutError = GatewayTimeoutErrorObject;
+
+/**
+ * @deprecated NotFoundError has been renamed to NotFoundErrorObject
+ */
+export type NotFoundError = NotFoundErrorObject;
+
+/**
+ * @deprecated OverloadedError has been renamed to OverloadedErrorObject
+ */
+export type OverloadedError = OverloadedErrorObject;
+
+/**
+ * @deprecated PermissionError has been renamed to PermissionErrorObject
+ */
+export type PermissionError = PermissionErrorObject;
+
+/**
+ * @deprecated RateLimitError has been renamed to RateLimitErrorObject
+ */
+export type RateLimitError = RateLimitErrorObject;

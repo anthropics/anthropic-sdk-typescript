@@ -509,7 +509,7 @@ export interface BetaAdvisorTool20260301 {
 }
 
 export interface BetaAdvisorToolResultBlock {
-  content: BetaAdvisorToolResultError | BetaAdvisorResultBlock | BetaAdvisorRedactedResultBlock;
+  content: BetaAdvisorToolResultErrorObject | BetaAdvisorResultBlock | BetaAdvisorRedactedResultBlock;
 
   tool_use_id: string;
 
@@ -532,7 +532,7 @@ export interface BetaAdvisorToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface BetaAdvisorToolResultError {
+export interface BetaAdvisorToolResultErrorObject {
   error_code:
     | 'max_uses_exceeded'
     | 'prompt_too_long'
@@ -623,7 +623,7 @@ export interface BetaBashCodeExecutionResultBlockParam {
 }
 
 export interface BetaBashCodeExecutionToolResultBlock {
-  content: BetaBashCodeExecutionToolResultError | BetaBashCodeExecutionResultBlock;
+  content: BetaBashCodeExecutionToolResultErrorObject | BetaBashCodeExecutionResultBlock;
 
   tool_use_id: string;
 
@@ -643,7 +643,7 @@ export interface BetaBashCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface BetaBashCodeExecutionToolResultError {
+export interface BetaBashCodeExecutionToolResultErrorObject {
   error_code:
     | 'invalid_tool_input'
     | 'unavailable'
@@ -3659,7 +3659,7 @@ export interface BetaCodeExecutionToolResultBlock {
 }
 
 export type BetaCodeExecutionToolResultBlockContent =
-  | BetaCodeExecutionToolResultError
+  | BetaCodeExecutionToolResultErrorObject
   | BetaCodeExecutionResultBlock
   | BetaEncryptedCodeExecutionResultBlock;
 
@@ -3681,17 +3681,17 @@ export type BetaCodeExecutionToolResultBlockParamContent =
   | BetaCodeExecutionResultBlockParam
   | BetaEncryptedCodeExecutionResultBlockParam;
 
-export interface BetaCodeExecutionToolResultError {
-  error_code: BetaCodeExecutionToolResultErrorCode;
-
-  type: 'code_execution_tool_result_error';
-}
-
 export type BetaCodeExecutionToolResultErrorCode =
   | 'invalid_tool_input'
   | 'unavailable'
   | 'too_many_requests'
   | 'execution_time_exceeded';
+
+export interface BetaCodeExecutionToolResultErrorObject {
+  error_code: BetaCodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
 
 export interface BetaCodeExecutionToolResultErrorParam {
   error_code: BetaCodeExecutionToolResultErrorCode;
@@ -7194,7 +7194,7 @@ export interface BetaTextEditorCodeExecutionStrReplaceResultBlockParam {
 
 export interface BetaTextEditorCodeExecutionToolResultBlock {
   content:
-    | BetaTextEditorCodeExecutionToolResultError
+    | BetaTextEditorCodeExecutionToolResultErrorObject
     | BetaTextEditorCodeExecutionViewResultBlock
     | BetaTextEditorCodeExecutionCreateResultBlock
     | BetaTextEditorCodeExecutionStrReplaceResultBlock;
@@ -7221,7 +7221,7 @@ export interface BetaTextEditorCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface BetaTextEditorCodeExecutionToolResultError {
+export interface BetaTextEditorCodeExecutionToolResultErrorObject {
   error_code:
     | 'invalid_tool_input'
     | 'unavailable'
@@ -8078,7 +8078,7 @@ export interface BetaToolSearchToolRegex20251119 {
 }
 
 export interface BetaToolSearchToolResultBlock {
-  content: BetaToolSearchToolResultError | BetaToolSearchToolSearchResultBlock;
+  content: BetaToolSearchToolResultErrorObject | BetaToolSearchToolSearchResultBlock;
 
   tool_use_id: string;
 
@@ -8098,7 +8098,7 @@ export interface BetaToolSearchToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface BetaToolSearchToolResultError {
+export interface BetaToolSearchToolResultErrorObject {
   error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded';
 
   error_message: string | null;
@@ -9131,7 +9131,7 @@ export interface BetaWebSearchTool20260318 {
   user_location?: BetaUserLocation | null;
 }
 
-export interface BetaWebSearchToolRequestError {
+export interface BetaWebSearchToolRequestErrorObject {
   error_code: BetaWebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
@@ -9148,7 +9148,7 @@ export interface BetaWebSearchToolResultBlock {
 }
 
 export type BetaWebSearchToolResultBlockContent =
-  | BetaWebSearchToolResultError
+  | BetaWebSearchToolResultErrorObject
   | Array<BetaWebSearchResultBlock>;
 
 export interface BetaWebSearchToolResultBlockParam {
@@ -9168,13 +9168,7 @@ export interface BetaWebSearchToolResultBlockParam {
 
 export type BetaWebSearchToolResultBlockParamContent =
   | Array<BetaWebSearchResultBlockParam>
-  | BetaWebSearchToolRequestError;
-
-export interface BetaWebSearchToolResultError {
-  error_code: BetaWebSearchToolResultErrorCode;
-
-  type: 'web_search_tool_result_error';
-}
+  | BetaWebSearchToolRequestErrorObject;
 
 export type BetaWebSearchToolResultErrorCode =
   | 'invalid_tool_input'
@@ -9184,10 +9178,51 @@ export type BetaWebSearchToolResultErrorCode =
   | 'query_too_long'
   | 'request_too_large';
 
+export interface BetaWebSearchToolResultErrorObject {
+  error_code: BetaWebSearchToolResultErrorCode;
+
+  type: 'web_search_tool_result_error';
+}
+
 /**
  * @deprecated BetaRequestDocumentBlock should be used insated
  */
 export type BetaBase64PDFBlock = BetaRequestDocumentBlock;
+
+/**
+ * @deprecated BetaWebSearchToolResultError has been renamed to BetaWebSearchToolResultErrorObject
+ */
+export type BetaWebSearchToolResultError = BetaWebSearchToolResultErrorObject;
+
+/**
+ * @deprecated BetaWebSearchToolRequestError has been renamed to BetaWebSearchToolRequestErrorObject
+ */
+export type BetaWebSearchToolRequestError = BetaWebSearchToolRequestErrorObject;
+
+/**
+ * @deprecated BetaCodeExecutionToolResultError has been renamed to BetaCodeExecutionToolResultErrorObject
+ */
+export type BetaCodeExecutionToolResultError = BetaCodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated BetaBashCodeExecutionToolResultError has been renamed to BetaBashCodeExecutionToolResultErrorObject
+ */
+export type BetaBashCodeExecutionToolResultError = BetaBashCodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated BetaTextEditorCodeExecutionToolResultError has been renamed to BetaTextEditorCodeExecutionToolResultErrorObject
+ */
+export type BetaTextEditorCodeExecutionToolResultError = BetaTextEditorCodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated BetaToolSearchToolResultError has been renamed to BetaToolSearchToolResultErrorObject
+ */
+export type BetaToolSearchToolResultError = BetaToolSearchToolResultErrorObject;
+
+/**
+ * @deprecated BetaAdvisorToolResultError has been renamed to BetaAdvisorToolResultErrorObject
+ */
+export type BetaAdvisorToolResultError = BetaAdvisorToolResultErrorObject;
 
 /**
  * @deprecated BetaResponseToolUseBlockUnion has been renamed to BetaToolsetToolUseBlock
@@ -10215,7 +10250,7 @@ export declare namespace Messages {
     type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
     type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
     type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
-    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorObject as BetaAdvisorToolResultErrorObject,
     type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaAssistantMessageParam as BetaAssistantMessageParam,
@@ -10227,7 +10262,7 @@ export declare namespace Messages {
     type BetaBashCodeExecutionResultBlockParam as BetaBashCodeExecutionResultBlockParam,
     type BetaBashCodeExecutionToolResultBlock as BetaBashCodeExecutionToolResultBlock,
     type BetaBashCodeExecutionToolResultBlockParam as BetaBashCodeExecutionToolResultBlockParam,
-    type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
+    type BetaBashCodeExecutionToolResultErrorObject as BetaBashCodeExecutionToolResultErrorObject,
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
     type BetaBillTo as BetaBillTo,
     type BetaBillingPolicy as BetaBillingPolicy,
@@ -10381,8 +10416,8 @@ export declare namespace Messages {
     type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
     type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
     type BetaCodeExecutionToolResultBlockParamContent as BetaCodeExecutionToolResultBlockParamContent,
-    type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
+    type BetaCodeExecutionToolResultErrorObject as BetaCodeExecutionToolResultErrorObject,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
     type BetaCompact20260112Edit as BetaCompact20260112Edit,
     type BetaCompactionBlock as BetaCompactionBlock,
@@ -10564,7 +10599,7 @@ export declare namespace Messages {
     type BetaTextEditorCodeExecutionStrReplaceResultBlockParam as BetaTextEditorCodeExecutionStrReplaceResultBlockParam,
     type BetaTextEditorCodeExecutionToolResultBlock as BetaTextEditorCodeExecutionToolResultBlock,
     type BetaTextEditorCodeExecutionToolResultBlockParam as BetaTextEditorCodeExecutionToolResultBlockParam,
-    type BetaTextEditorCodeExecutionToolResultError as BetaTextEditorCodeExecutionToolResultError,
+    type BetaTextEditorCodeExecutionToolResultErrorObject as BetaTextEditorCodeExecutionToolResultErrorObject,
     type BetaTextEditorCodeExecutionToolResultErrorParam as BetaTextEditorCodeExecutionToolResultErrorParam,
     type BetaTextEditorCodeExecutionViewResultBlock as BetaTextEditorCodeExecutionViewResultBlock,
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
@@ -10608,7 +10643,7 @@ export declare namespace Messages {
     type BetaToolSearchToolRegex20251119 as BetaToolSearchToolRegex20251119,
     type BetaToolSearchToolResultBlock as BetaToolSearchToolResultBlock,
     type BetaToolSearchToolResultBlockParam as BetaToolSearchToolResultBlockParam,
-    type BetaToolSearchToolResultError as BetaToolSearchToolResultError,
+    type BetaToolSearchToolResultErrorObject as BetaToolSearchToolResultErrorObject,
     type BetaToolSearchToolResultErrorParam as BetaToolSearchToolResultErrorParam,
     type BetaToolSearchToolSearchResultBlock as BetaToolSearchToolSearchResultBlock,
     type BetaToolSearchToolSearchResultBlockParam as BetaToolSearchToolSearchResultBlockParam,
@@ -10650,14 +10685,21 @@ export declare namespace Messages {
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,
     type BetaWebSearchTool20260209 as BetaWebSearchTool20260209,
     type BetaWebSearchTool20260318 as BetaWebSearchTool20260318,
-    type BetaWebSearchToolRequestError as BetaWebSearchToolRequestError,
+    type BetaWebSearchToolRequestErrorObject as BetaWebSearchToolRequestErrorObject,
     type BetaWebSearchToolResultBlock as BetaWebSearchToolResultBlock,
     type BetaWebSearchToolResultBlockContent as BetaWebSearchToolResultBlockContent,
     type BetaWebSearchToolResultBlockParam as BetaWebSearchToolResultBlockParam,
     type BetaWebSearchToolResultBlockParamContent as BetaWebSearchToolResultBlockParamContent,
-    type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
     type BetaWebSearchToolResultErrorCode as BetaWebSearchToolResultErrorCode,
+    type BetaWebSearchToolResultErrorObject as BetaWebSearchToolResultErrorObject,
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
+    type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
+    type BetaWebSearchToolRequestError as BetaWebSearchToolRequestError,
+    type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
+    type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
+    type BetaTextEditorCodeExecutionToolResultError as BetaTextEditorCodeExecutionToolResultError,
+    type BetaToolSearchToolResultError as BetaToolSearchToolResultError,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
     type BetaResponseToolUseBlockUnion as BetaResponseToolUseBlockUnion,
     type BetaResponseBrowserToolUseBlock as BetaResponseBrowserToolUseBlock,
     type BetaResponseBrowserCloseTabToolUseBlock as BetaResponseBrowserCloseTabToolUseBlock,
