@@ -236,6 +236,44 @@ describe('OpenTelemetry spans', () => {
       expect(workSpan.attributes['error.type']).toBe('client_error');
     });
 
+    test('succeeds for a terminated session, running no tools', async () => {
+      const { client, stop } = makeEnvironment({
+        items: [work('work_1')],
+        retrieve: json({
+          id: 'sesn_1',
+          status: 'terminated',
+          agent: { skills: [] },
+          resources: [
+            {
+              type: 'memory_store',
+              memory_store_id: 'memstore_1',
+              access: 'read_write',
+              name: 'notes',
+              mount_path: '/mnt/memory/notes',
+            },
+          ],
+        }),
+      });
+      const worker = client.beta.environments.work.worker({
+        environmentId: 'env_1',
+        environmentKey: 'env_key',
+        tools: [echoTool()],
+        workdir: tmpdir(),
+        signal: stop.signal,
+      });
+
+      await worker.run();
+
+      const workSpan = onlySpan('anthropic.environment.work');
+      expect(workSpan.status.code).toBe(SpanStatusCode.OK);
+      expect(childrenOf(workSpan).sort()).toEqual([
+        'anthropic.environments.work.heartbeat',
+        'anthropic.environments.work.stop',
+        'anthropic.sessions.retrieve',
+      ]);
+      expect(openSpans.size).toBe(0);
+    });
+
     test.each([
       ['loses the lease', errorResponse(412, 'invalid_request_error')],
       ['has a heartbeat rejected for good', errorResponse(403, 'permission_error')],

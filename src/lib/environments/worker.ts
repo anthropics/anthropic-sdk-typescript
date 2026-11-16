@@ -93,10 +93,10 @@ export interface EnvironmentWorkerOptions {
    * either bound cuts work off. `null` disables memory download and sync
    * entirely. Memory stores are only touched for work items whose `secret`
    * carries a `sessions_token`; while sync is enabled, an item without one
-   * fails when its session has memory stores attached, because those stores
-   * cannot be mounted without the token. With `null` the same item runs,
-   * without memory, and nothing is logged — turning sync off is the
-   * operator's explicit choice.
+   * fails when its session has not terminated and has memory stores attached,
+   * because those stores cannot be mounted without the token. With `null`
+   * the same item runs, without memory, and nothing is logged — turning sync
+   * off is the operator's explicit choice.
    */
   memorySyncIntervalMs?: number | null;
   /**
@@ -208,7 +208,9 @@ export function sessionsTokenFromSecret(secret: string | null | undefined): stri
  * force-stops the work item (unless the lease was lost, in which case the item
  * is left to whoever holds it now), cleans up the downloaded skills, and loops
  * to the next one. The lease heartbeat reports `state === "stopping"` / a lost
- * lease back into the run by aborting the session runner.
+ * lease back into the run by aborting the session runner. The item of a
+ * session that has already terminated is force-stopped without running any
+ * tools.
  *
  * The `environmentKey` is the worker's standing credential. When a claimed
  * work item carries a per-item `secret` (a short-lived payload the poll
@@ -351,7 +353,9 @@ export class EnvironmentWorker {
    * environment key resolved. Throws `SessionMemoryError` when the
    * session has memory stores attached but they cannot be mounted — the work
    * item carried no sessions token (unless `memorySyncIntervalMs` turned
-   * memory off), or a store failed to download.
+   * memory off), or a store failed to download. When the session has already
+   * terminated, which includes an archived one, nothing is downloaded, no tools
+   * run, and `SessionMemoryError` is not thrown.
    *
    * `workSecret` is the work item's per-item `secret` payload from the poll
    * response, falling back to `ANTHROPIC_WORK_SECRET`; unlike the others it is
@@ -399,7 +403,8 @@ export class EnvironmentWorker {
    * The per-item body shared by {@link EnvironmentWorker.run}'s poll loop and
    * {@link EnvironmentWorker.handleItem}: run a {@link SessionToolRunner} for the
    * work item's session while heartbeating its lease, force-stopping on exit
-   * unless the lease was lost. Non-session work items are ignored.
+   * unless the lease was lost. Non-session work items, and the work item of a
+   * session that has already terminated, run no tools.
    *
    * When the poll response carried a per-item `secret` (a short-lived payload
    * scoped to this work item), the sessions token extracted from it is
@@ -490,6 +495,13 @@ export class EnvironmentWorker {
       // A failed fetch fails the work item (the teardown below still stops
       // or releases it).
       const session: BetaManagedAgentsSession = await sessionClient.beta.sessions.retrieve(sessionId);
+      if (session.status === 'terminated') {
+        log.info('skipping the work item of a terminated session', {
+          session_id: sessionId,
+          work_id: work.id,
+        });
+        return;
+      }
       // Only with the session in hand can we tell one that simply has no
       // memory from one whose memory we cannot mount. Turning memory off
       // with the interval knob is a deliberate opt-out and stays quiet.

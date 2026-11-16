@@ -103,7 +103,8 @@ type MarkerScan = {
  *
  * Thrown by {@link SessionMemoryStores.download} when a store cannot be
  * materialised on disk, and by the environment worker when a work item for a
- * session that has memory stores carried no sessions token to reach them with.
+ * session that has memory stores and has not terminated carried no sessions
+ * token to reach them with.
  */
 export class SessionMemoryError extends AnthropicError {
   constructor(message: string, cause?: unknown) {
