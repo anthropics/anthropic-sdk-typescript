@@ -28,7 +28,7 @@ describe('resource installationSettings', () => {
           organization_id: 'organization_id',
           page: 'page',
           target_type: 'organization',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -51,7 +51,7 @@ describe('resource installationSettings', () => {
   test('remove: required and optional params', async () => {
     const response = await client.beta.organization.plugins.installationSettings.remove('target', {
       plugin_id: 'plugin_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -73,7 +73,7 @@ describe('resource installationSettings', () => {
     const response = await client.beta.organization.plugins.installationSettings.set('target', {
       plugin_id: 'plugin_id',
       installation_preference: 'required',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

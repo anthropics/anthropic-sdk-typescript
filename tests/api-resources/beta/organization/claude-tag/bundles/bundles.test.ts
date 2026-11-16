@@ -25,10 +25,24 @@ describe('resource bundles', () => {
     await expect(
       client.beta.organization.claudeTag.bundles.retrieve(
         'capp_011CZkZjLP1cWxj5EtMmdgbq',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('update', async () => {
+    const responsePromise = client.beta.organization.claudeTag.bundles.update(
+      'capp_011CZkZjLP1cWxj5EtMmdgbq',
+      {},
+    );
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
   });
 
   test('list', async () => {
@@ -49,7 +63,7 @@ describe('resource bundles', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),

@@ -178,8 +178,27 @@ describe('partialParse', () => {
   test('JSON string with partial literal tokens', () => {
     expect(partialParse(`{"foo": "bar", "baz": nul`)).toEqual({ foo: 'bar' });
     expect(partialParse(`{"foo": "bar", "baz": tr`)).toEqual({ foo: 'bar' });
-    expect(partialParse(`{"foo": "bar", "baz": truee`)).toEqual({ foo: 'bar' });
     expect(partialParse(`{"foo": "bar", "baz": fal`)).toEqual({ foo: 'bar' });
+    expect(partialParse(`{"a": nul`)).toEqual({});
+    expect(partialParse(`{"a": [true, fal`)).toEqual({ a: [true] });
+    expect(partialParse(`{"a": [true, fal \n`)).toEqual({ a: [true] });
+  });
+
+  test('anything other than truncated JSON is left for JSON.parse to reject', () => {
+    expect(() => partialParse(`{"foo": "bar", "baz": truee`)).toThrow();
+    expect(() => partialParse(`{"a": nul}`)).toThrow();
+    expect(() => partialParse(`{invalid"json}`)).toThrow();
+    expect(() => partialParse(`{"a": "b"} trailing`)).toThrow();
+    expect(() => partialParse(`\\{"a": 1}`)).toThrow();
+    expect(() => partialParse(`{"size": 5GB}`)).toThrow();
+    expect(() => partialParse(`{"a": 0x1}`)).toThrow();
+    expect(() => partialParse(`{"a": +5}`)).toThrow();
+    expect(() => partialParse(`{"path": /etc}`)).toThrow();
+    expect(() => partialParse(`{"a":\u00a01}`)).toThrow();
+    expect(() => partialParse(`{"a": 1]`)).toThrow();
+    expect(() => partialParse(`{"a": 1}}`)).toThrow();
+    expect(() => partialParse(`]{"a": 1}`)).toThrow();
+    expect(() => partialParse(`{"a": [1}`)).toThrow();
   });
 
   test('deeply nested JSON objects', () => {
@@ -203,5 +222,13 @@ describe('partialParse', () => {
     expect(partialParse(`{"a": "quote \\" inside", "b": 1}`)).toEqual({ a: 'quote " inside', b: 1 });
     expect(partialParse(`{"a": "\\\\\\"", "b": 2}`)).toEqual({ a: '\\"', b: 2 });
     expect(partialParse(`{"a": "unterminated`)).toEqual({});
+  });
+
+  test('adjacent scalars are kept apart rather than fused', () => {
+    expect(() => partialParse(`{"n": 12 3}`)).toThrow();
+    expect(() => partialParse(`[1 2 3]`)).toThrow();
+    expect(() => partialParse(`{"a": - 5}`)).toThrow();
+    expect(() => partialParse(`{"a": "x" "y"}`)).toThrow();
+    expect(partialParse(`{"a": 12, "b": [1, 2], "c": "x`)).toEqual({ a: 12, b: [1, 2] });
   });
 });

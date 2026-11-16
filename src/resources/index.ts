@@ -512,12 +512,14 @@ export {
 } from './models';
 export {
   OrgMemberLimitExceededError,
+  RBACRoleNotFoundError,
   ConcurrentMembershipChangeError,
   Organization,
   type ConcurrentMembershipChangeErrorDetails,
   type OrgMemberLimitExceededErrorDetails,
   type OrganizationInfo,
   type OrganizationRole,
+  type RBACRoleNotFoundErrorDetails,
 } from './organization/organization';
 export {
   SkillReadBlockedUndecryptableError,

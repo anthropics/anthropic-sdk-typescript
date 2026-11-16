@@ -23,7 +23,7 @@ describe('resource work', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.environments.work.retrieve('work_id', {
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -46,7 +46,7 @@ describe('resource work', () => {
     const response = await client.beta.environments.work.update('work_id', {
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
       metadata: { foo: 'string' },
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -70,7 +70,7 @@ describe('resource work', () => {
         {
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -93,7 +93,7 @@ describe('resource work', () => {
   test('ack: required and optional params', async () => {
     const response = await client.beta.environments.work.ack('work_id', {
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -115,7 +115,7 @@ describe('resource work', () => {
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
       desired_ttl_seconds: 0,
       expected_last_heartbeat: 'expected_last_heartbeat',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -138,7 +138,7 @@ describe('resource work', () => {
         {
           block_ms: 1,
           reclaim_older_than_ms: 1,
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           'Anthropic-Worker-ID': 'Anthropic-Worker-ID',
         },
         { path: '/_stainless_unknown_path' },
@@ -162,7 +162,7 @@ describe('resource work', () => {
     await expect(
       client.beta.environments.work.stats(
         'env_011CZkZ9X2dpNyB7HsEFoRfW',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -185,7 +185,7 @@ describe('resource work', () => {
     const response = await client.beta.environments.work.stop('work_id', {
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
       force: true,
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

@@ -24,6 +24,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
+- <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">PermissionError</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
@@ -37,6 +38,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedError</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldError</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
@@ -662,7 +664,9 @@ Types:
 - <code><a href="./src/resources/organization/organization.ts">OrgMemberLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationInfo</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationRole</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACRoleNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrgMemberLimitExceededError</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACRoleNotFoundError</a></code>
 - <code><a href="./src/resources/organization/organization.ts">ConcurrentMembershipChangeError</a></code>
 
 Methods:
@@ -1118,6 +1122,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRole</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSourceBuiltIn</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRoleSourceCustom</a></code>
 
 Methods:
 
@@ -3061,6 +3068,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRole</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSourceBuiltIn</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRoleSourceCustom</a></code>
 
 Methods:
 
@@ -3250,6 +3260,8 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleAttachmentNotSupportedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleOnCallErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagDefaultSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicy</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
@@ -3278,6 +3290,8 @@ Types:
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsConflictErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleAttachmentNotSupportedError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaBundleOnCallError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingError</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagWritesNotEnabledError</a></code>
@@ -3322,6 +3336,7 @@ Types:
 Methods:
 
 - <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">retrieve</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
+- <code title="post /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">update</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
 - <code title="get /v1/organizations/claude_tag/bundles">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">list</a>({ ...params }) -> BetaClaudeTagBundlesPageCursor</code>
 
 ##### Targets

@@ -1,3 +1,4 @@
+import { promises } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -32,6 +33,7 @@ async function getDirectorySnapshot(basePath: string): Promise<Record<string, st
 }
 
 describe('BetaLocalFilesystemMemoryTool', () => {
+  const itPosix = process.platform === 'win32' ? it.skip : it;
   const rootPaths = ['/memories', '/memories/', '/memories/.', '/memories/sub/..'];
   let tempDir: string;
   let tool: BetaLocalFilesystemMemoryTool;
@@ -589,8 +591,73 @@ describe('BetaLocalFilesystemMemoryTool', () => {
     });
 
     afterEach(async () => {
+      vi.restoreAllMocks();
       await fs.rm(outsideDir, { recursive: true, force: true });
     });
+
+    const readCommands = {
+      view: () => tool.view({ command: 'view', path: '/memories/notes.txt' }),
+      str_replace: () =>
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/notes.txt',
+          old_str: 'data',
+          new_str: 'x',
+        }),
+      insert: () =>
+        tool.insert({ command: 'insert', path: '/memories/notes.txt', insert_line: 0, insert_text: 'x' }),
+    };
+
+    function createSymlinkAfterValidation(name: string, target: string, type: 'file' | 'dir') {
+      const validated = tool as unknown as { validatePath(memoryPath: string): Promise<unknown> };
+      const validatePath = validated.validatePath.bind(tool);
+      vi.spyOn(validated, 'validatePath').mockImplementation(async (memoryPath) => {
+        const result = await validatePath(memoryPath);
+        await fs.symlink(target, path.join(tempDir, 'memories', name), type);
+        return result;
+      });
+    }
+
+    itPosix.each(Object.entries(readCommands))(
+      '%s should reject a symlink created after validation',
+      async (_, readNotes) => {
+        createSymlinkAfterValidation('notes.txt', path.join(outsideDir, 'secret.txt'), 'file');
+
+        await expect(readNotes()).rejects.toThrow(/is a symlink|Unsupported file type/);
+      },
+    );
+
+    itPosix.each(Object.entries(readCommands))(
+      '%s should reject a file replaced with a symlink before it is opened',
+      async (_, readNotes) => {
+        await tool.create({ command: 'create', file_text: 'data', path: '/memories/notes.txt' });
+        vi.spyOn(promises, 'open').mockImplementationOnce(async (opened, flags) => {
+          await fs.unlink(opened);
+          await fs.symlink(path.join(outsideDir, 'secret.txt'), opened, 'file');
+          return await promises.open(opened, flags);
+        });
+
+        await expect(readNotes()).rejects.toThrow('is a symlink');
+      },
+    );
+
+    itPosix('view should reject a directory symlink created after validation', async () => {
+      createSymlinkAfterValidation('dir', outsideDir, 'dir');
+
+      await expect(tool.view({ command: 'view', path: '/memories/dir' })).rejects.toThrow(
+        'Unsupported file type',
+      );
+    });
+
+    itPosix.each(Object.entries(readCommands))(
+      '%s should follow a symlink that stays inside /memories',
+      async (_, readNotes) => {
+        await tool.create({ command: 'create', file_text: 'data', path: '/memories/target.txt' });
+        await fs.symlink('target.txt', path.join(tempDir, 'memories', 'notes.txt'), 'file');
+
+        await expect(readNotes()).resolves.toBeDefined();
+      },
+    );
 
     it('should reject symlink pointing outside /memories', async () => {
       const memoriesPath = path.join(tempDir, 'memories');
@@ -604,6 +671,24 @@ describe('BetaLocalFilesystemMemoryTool', () => {
           path: '/memories/escape_link/secret.txt',
         }),
       ).rejects.toThrow('Path would escape /memories directory via symlink');
+    });
+
+    it('should list symlinks only when they stay inside /memories', async () => {
+      const memoriesPath = path.join(tempDir, 'memories');
+      await fs.mkdir(path.join(memoriesPath, 'sub'));
+      await fs.writeFile(path.join(memoriesPath, 'sub', 'notes.txt'), 'hello', 'utf-8');
+      await fs.symlink(path.join('sub', 'notes.txt'), path.join(memoriesPath, 'inside_file'), 'file');
+      await fs.symlink(outsideDir, path.join(memoriesPath, 'outside_dir'), 'dir');
+      await fs.symlink(path.join(outsideDir, 'secret.txt'), path.join(memoriesPath, 'outside_file'), 'file');
+      await fs.symlink(outsideDir, path.join(memoriesPath, 'sub', 'nested_outside_dir'), 'dir');
+
+      const result = await tool.view({ command: 'view', path: '/memories' });
+
+      const listed = result
+        .split('\n')
+        .slice(2)
+        .map((line) => line.split('\t')[1]);
+      expect(listed).toEqual(['/memories/inside_file', '/memories/sub/', '/memories/sub/notes.txt']);
     });
 
     it('should reject creating files through symlink pointing outside', async () => {
@@ -694,7 +779,6 @@ describe('BetaLocalFilesystemMemoryTool', () => {
   });
 
   describe('file permissions', () => {
-    const itPosix = process.platform === 'win32' ? it.skip : it;
     let prevUmask: number;
 
     beforeEach(() => {

@@ -33,7 +33,7 @@ describe('resource telemetryDestinations', () => {
         endpoint_url: 'endpoint_url',
         max_content_bytes: 0,
       },
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -53,7 +53,7 @@ describe('resource telemetryDestinations', () => {
     await expect(
       client.beta.organization.telemetryDestinations.retrieve(
         'destination_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -89,7 +89,7 @@ describe('resource telemetryDestinations', () => {
           limit: 0,
           page: 'page',
           workspace_ids: ['string'],
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -112,7 +112,7 @@ describe('resource telemetryDestinations', () => {
     await expect(
       client.beta.organization.telemetryDestinations.delete(
         'destination_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -134,7 +134,7 @@ describe('resource telemetryDestinations', () => {
     await expect(
       client.beta.organization.telemetryDestinations.test(
         'destination_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

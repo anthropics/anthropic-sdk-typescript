@@ -110,6 +110,30 @@ describe('transformJsonSchema', () => {
 `);
   });
 
+  it('should drop $schema without adding it to description', () => {
+    const input = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    const diff = detailedDiff(input, result);
+    expect(diff).toMatchInlineSnapshot(`
+{
+  "added": {
+    "additionalProperties": false,
+  },
+  "deleted": {
+    "$schema": undefined,
+  },
+  "updated": {},
+}
+`);
+  });
+
   it('should preserve supported minItems values (0 and 1)', () => {
     const input = {
       type: 'array',

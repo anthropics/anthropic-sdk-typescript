@@ -142,7 +142,7 @@ describe('resource batches', () => {
           },
         },
       ],
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       user_profile_id: 'anthropic-user-profile-id',
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
@@ -164,7 +164,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.retrieve(
         'message_batch_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -189,7 +189,7 @@ describe('resource batches', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           limit: 1,
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -213,7 +213,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.delete(
         'message_batch_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -235,7 +235,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.cancel(
         'message_batch_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -278,7 +278,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.results(
         'message_batch_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

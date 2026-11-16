@@ -25,7 +25,7 @@ describe('resource plugins', () => {
       files: [await toFile(Buffer.from('Example data'), 'README.md')],
       marketplace_id: 'marketplace_id',
       release_notes: 'release_notes',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -45,7 +45,7 @@ describe('resource plugins', () => {
     await expect(
       client.beta.organization.plugins.retrieve(
         'plugin_id',
-        { organization_id: 'organization_id', betas: ['message-batches-2024-09-24'] },
+        { organization_id: 'organization_id', betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -67,7 +67,7 @@ describe('resource plugins', () => {
   test('update: required and optional params', async () => {
     const response = await client.beta.organization.plugins.update('plugin_id', {
       served_version_id: 'pluginver_01KaZmQpRsTuVwXyZ2b4c6d8',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -97,7 +97,7 @@ describe('resource plugins', () => {
           owner_type: 'organization',
           owner_user_id: 'owner_user_id',
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -120,7 +120,7 @@ describe('resource plugins', () => {
     await expect(
       client.beta.organization.plugins.delete(
         'plugin_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

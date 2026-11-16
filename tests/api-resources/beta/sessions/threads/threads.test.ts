@@ -23,7 +23,7 @@ describe('resource threads', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -48,7 +48,7 @@ describe('resource threads', () => {
           limit: 0,
           page: 'page',
           statuses: ['running'],
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -72,7 +72,7 @@ describe('resource threads', () => {
   test('archive: required and optional params', async () => {
     const response = await client.beta.sessions.threads.archive('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

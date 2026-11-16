@@ -34,7 +34,7 @@ describe('resource userProfiles', () => {
     await expect(
       client.beta.userProfiles.retrieve(
         'uprof_011CZkZCu8hGbp5mYRQgUmz9',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -71,7 +71,7 @@ describe('resource userProfiles', () => {
           order: 'asc',
           order_by: 'created_at',
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -95,7 +95,7 @@ describe('resource userProfiles', () => {
     await expect(
       client.beta.userProfiles.delete(
         'uprof_011CZkZCu8hGbp5mYRQgUmz9',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -117,7 +117,7 @@ describe('resource userProfiles', () => {
     await expect(
       client.beta.userProfiles.createEnrollmentURL(
         'uprof_011CZkZCu8hGbp5mYRQgUmz9',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -5,6 +5,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import type { MemoryToolHandlers } from '../../helpers/beta/memory';
+import { openRegularFile } from '../../internal/file-store';
 import {
   BetaMemoryTool20250818CreateCommand,
   BetaMemoryTool20250818DeleteCommand,
@@ -74,7 +75,7 @@ async function atomicWriteFile(targetPath: string, content: string): Promise<voi
  * Walks up from the target path to find the deepest existing ancestor,
  * then resolves it to ensure the real path stays within memoryRoot.
  */
-async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): Promise<void> {
+async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): Promise<string> {
   const resolvedRoot = await fs.realpath(memoryRoot);
 
   let current = targetPath;
@@ -84,21 +85,26 @@ async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): 
       if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
         throw new Error(`Path would escape /memories directory via symlink`);
       }
-      return;
+      return path.join(resolved, path.relative(current, targetPath));
     } catch (err: any) {
       if (err.code !== 'ENOENT') throw err;
       const parent = path.dirname(current);
       if (parent === current || current === memoryRoot) {
-        return;
+        return targetPath;
       }
       current = parent;
     }
   }
 }
 
-async function readFileContent(fullPath: string, memoryPath: string): Promise<string> {
+async function readFileContent(realPath: string, memoryPath: string): Promise<string> {
   try {
-    return await fs.readFile(fullPath, 'utf-8');
+    const handle = await openRegularFile(memoryPath, realPath);
+    try {
+      return await handle.readFile('utf-8');
+    } finally {
+      await handle.close();
+    }
   } catch (err: any) {
     if (err.code === 'ENOENT') {
       throw new Error(
@@ -139,7 +145,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     return memory;
   }
 
-  private async validatePath(memoryPath: string): Promise<string> {
+  private async validatePath(memoryPath: string): Promise<{ fullPath: string; realPath: string }> {
     if (!memoryPath.startsWith('/memories')) {
       throw new Error(`Path must start with /memories, got: ${memoryPath}`);
     }
@@ -153,17 +159,17 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       throw new Error(`Path ${memoryPath} would escape /memories directory`);
     }
 
-    await validateNoSymlinkEscape(resolvedPath, this.memoryRoot);
+    const realPath = await validateNoSymlinkEscape(resolvedPath, this.memoryRoot);
 
-    return resolvedPath;
+    return { fullPath: resolvedPath, realPath };
   }
 
   async view(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    const { realPath } = await this.validatePath(command.path);
 
     let stat;
     try {
-      stat = await fs.stat(fullPath);
+      stat = await fs.lstat(realPath);
     } catch (err: any) {
       if (err.code === 'ENOENT') {
         throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
@@ -187,6 +193,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
           const itemRelativePath = relativePath ? `${relativePath}/${item}` : item;
           let itemStat;
           try {
+            await validateNoSymlinkEscape(itemPath, this.memoryRoot);
             itemStat = await fs.stat(itemPath);
           } catch {
             continue;
@@ -203,7 +210,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
         }
       };
 
-      await collectItems(fullPath, '', 1);
+      await collectItems(realPath, '', 1);
 
       const header = `Here're the files and directories up to 2 levels deep in ${command.path}, excluding hidden items and node_modules:`;
       const dirSize = formatFileSize(stat.size);
@@ -214,7 +221,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
 
       return `${header}\n${lines.join('\n')}`;
     } else if (stat.isFile()) {
-      const content = await readFileContent(fullPath, command.path);
+      const content = await readFileContent(realPath, command.path);
       const lines = content.split('\n');
 
       if (lines.length > MAX_LINES) {
@@ -246,7 +253,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    const { fullPath } = await this.validatePath(command.path);
 
     await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
 
@@ -268,7 +275,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async str_replace(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    const { fullPath, realPath } = await this.validatePath(command.path);
 
     let stat;
     try {
@@ -284,7 +291,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       throw new Error(`The path ${command.path} is not a file.`);
     }
 
-    const content = await readFileContent(fullPath, command.path);
+    const content = await readFileContent(realPath, command.path);
     const lines = content.split('\n');
 
     const matchingLines: number[] = [];
@@ -324,7 +331,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async insert(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    const { fullPath, realPath } = await this.validatePath(command.path);
 
     let stat;
     try {
@@ -340,7 +347,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       throw new Error(`The path ${command.path} is not a file.`);
     }
 
-    const content = await readFileContent(fullPath, command.path);
+    const content = await readFileContent(realPath, command.path);
     const lines = content.split('\n');
 
     if (command.insert_line < 0 || command.insert_line > lines.length) {
@@ -355,7 +362,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async delete(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    const { fullPath } = await this.validatePath(command.path);
 
     if (fullPath === path.resolve(this.memoryRoot)) {
       throw new Error('Cannot delete the /memories directory itself');
@@ -374,8 +381,8 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async rename(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
-    const oldFullPath = await this.validatePath(command.old_path);
-    const newFullPath = await this.validatePath(command.new_path);
+    const { fullPath: oldFullPath } = await this.validatePath(command.old_path);
+    const { fullPath: newFullPath } = await this.validatePath(command.new_path);
 
     if (oldFullPath === path.resolve(this.memoryRoot)) {
       throw new Error('Cannot rename the /memories directory itself');

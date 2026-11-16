@@ -206,6 +206,10 @@ import * as ClaudeTagAPI from './claude-tag/claude-tag';
 import {
   BetaAPIKeyScopeMissingError,
   BetaAPIKeyScopeMissingErrorDetails,
+  BetaBundleAttachmentNotSupportedError,
+  BetaBundleAttachmentNotSupportedErrorDetails,
+  BetaBundleOnCallError,
+  BetaBundleOnCallErrorDetails,
   BetaClaudeTagDefaultSettingSource,
   BetaClaudeTagGuestPolicy,
   BetaClaudeTagGuestPolicyAllow,
@@ -288,6 +292,9 @@ import {
 import * as RBACRolesAPI from './rbac-roles/rbac-roles';
 import {
   BetaRBACRole,
+  BetaRBACRoleSource,
+  BetaRBACRoleSourceBuiltIn,
+  BetaRBACRoleSourceCustom,
   BetaRBACRolesPageCursor,
   RBACRoleListParams,
   RBACRoles,
@@ -492,6 +499,8 @@ Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
 Organization.Webhooks = Webhooks;
 Organization.ClaudeTag = ClaudeTag;
+Organization.BetaBundleAttachmentNotSupportedError = BetaBundleAttachmentNotSupportedError;
+Organization.BetaBundleOnCallError = BetaBundleOnCallError;
 Organization.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
 Organization.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
 Organization.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
@@ -740,6 +749,9 @@ export declare namespace Organization {
   export {
     RBACRoles as RBACRoles,
     type BetaRBACRole as BetaRBACRole,
+    type BetaRBACRoleSource as BetaRBACRoleSource,
+    type BetaRBACRoleSourceBuiltIn as BetaRBACRoleSourceBuiltIn,
+    type BetaRBACRoleSourceCustom as BetaRBACRoleSourceCustom,
     type BetaRBACRolesPageCursor as BetaRBACRolesPageCursor,
     type RBACRoleListParams as RBACRoleListParams,
   };
@@ -848,6 +860,8 @@ export declare namespace Organization {
 
   export {
     ClaudeTag as ClaudeTag,
+    BetaBundleAttachmentNotSupportedError as BetaBundleAttachmentNotSupportedError,
+    BetaBundleOnCallError as BetaBundleOnCallError,
     BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
     BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
     BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
@@ -856,6 +870,8 @@ export declare namespace Organization {
     BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
     BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
     type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
+    type BetaBundleAttachmentNotSupportedErrorDetails as BetaBundleAttachmentNotSupportedErrorDetails,
+    type BetaBundleOnCallErrorDetails as BetaBundleOnCallErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,

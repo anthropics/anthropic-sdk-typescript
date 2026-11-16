@@ -53,7 +53,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
@@ -98,7 +98,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -139,7 +139,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -182,7 +182,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -230,7 +230,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -285,8 +285,8 @@ export class Batches extends APIResource {
         ...options,
         headers: buildHeaders([
           {
-            'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
             Accept: 'application/binary',
+            ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
             ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
           },
           options?.headers,

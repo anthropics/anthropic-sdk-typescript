@@ -5,14 +5,20 @@
  * `node.ts` — distinct enough, and large enough, to review on its own.
  */
 
-import { child_process, fs as fssync, path, stream, util } from '../../internal/node';
+import { child_process, fs as fssync, path, stream } from '../../internal/node';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { DIR_CREATE_MODE, errnoCode } from './fs-util';
+import {
+  DIR_CREATE_MODE,
+  errnoCode,
+  FILE_CREATE_MODE,
+  findExecutable,
+  scrubbedShellEnv,
+  searchPathOutside,
+} from './fs-util';
 import type { AgentToolContext } from './node';
 
 const fs = fssync.promises;
-const execFileAsync = util.promisify(child_process.execFile);
 
 /**
  * Download the session agent's skills into `{ctx.workdir}/skills/<name>/`.
@@ -24,6 +30,14 @@ const execFileAsync = util.promisify(child_process.execFile);
  * tar.* archive) into a directory named after the skill. A failure on one skill
  * is logged and does not block the others. Call this before starting the
  * session tool runner (e.g. right after the bash session / workdir is ready).
+ *
+ * The `tar` and `unzip` that extract an archive, and a helper they start such as
+ * `gzip`, come only from the `PATH` entries outside `ctx.workdir` and
+ * `ctx.allowedRoots`, where the file tools can write, and a link that leads inside
+ * those directories is passed over. A skill whose `tar` or `unzip` is not found
+ * there is not downloaded. Only when no `PATH` entry is outside them, as with a
+ * workdir of `/`, is all of `PATH` searched, because extraction has no built-in
+ * fallback.
  *
  * Pass `ctx.session`. A session's resources cannot change while it runs, so the
  * caller fetches it once and shares that snapshot with the memory-store
@@ -77,7 +91,7 @@ export async function setupSkills(ctx: AgentToolContext): Promise<() => Promise<
       await fs.rm(dest, { recursive: true, force: true });
       await fs.mkdir(dest, { recursive: true, mode: DIR_CREATE_MODE });
       created.push(dest);
-      await extractSkillArchive(resp, dest);
+      await extractArchive(resp, dest, [ctx.workdir, ...(ctx.allowedRoots ?? [])]);
       log.info('downloaded skill', {
         component: 'agent-tool-context',
         skill_id: skill.skill_id,
@@ -187,23 +201,101 @@ export async function assertOnlyPlainEntries(dir: string): Promise<void> {
 }
 
 /**
- * Run an archive CLI (`unzip` for zip archives, `tar` for everything else),
- * returning its stdout. Both binaries must be on `PATH`; a missing one would
- * otherwise surface as an opaque `ENOENT` spawn failure, so it is turned into a
- * clear, specific error naming the missing command.
+ * Reset the modes `unzip` and `tar` restored from the archive. Refuses a file with
+ * a second hard link, because `chmod` would reach an inode the archive didn't create.
  */
-async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<string> {
-  try {
-    const { stdout } = await execFileAsync(cmd, args);
-    return stdout;
-  } catch (e) {
-    if (errnoCode(e) === 'ENOENT') {
-      throw new AnthropicError(
-        `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
-      );
+async function normalizeEntryModes(dir: string): Promise<void> {
+  await fs.chmod(dir, DIR_CREATE_MODE);
+  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await normalizeEntryModes(entryPath);
+    } else if (entry.isFile()) {
+      const { mode, nlink } = await fs.lstat(entryPath);
+      if (nlink > 1) throw new AnthropicError(INCONSISTENT_LISTING);
+      await fs.chmod(entryPath, mode & 0o111 ? 0o755 : 0o644);
     }
-    throw e;
   }
+}
+
+/** Bounds the memory a listing takes, because a small archive can list very many members. */
+const ARCHIVE_TOOL_OUTPUT_LIMIT = 1024 * 1024;
+
+/** The programs that GNU `tar` or `bsdtar` may start to read a compressed archive. */
+const ARCHIVE_TOOL_HELPERS = [
+  'bzip2',
+  'compress',
+  'grzip',
+  'gzip',
+  'lrzip',
+  'lz4',
+  'lzip',
+  'lzma',
+  'lzop',
+  'xz',
+  'zstd',
+];
+
+/**
+ * Run `unzip` or `tar` and return its stdout. It and its helpers come from outside `notInside`,
+ * or from all of `PATH` when no entry is outside, which the file tools can't bring about.
+ */
+async function runArchiveTool(
+  cmd: 'unzip' | 'tar',
+  args: string[],
+  notInside: readonly string[],
+): Promise<string> {
+  const onWindows = process.platform === 'win32';
+  const name = onWindows ? `${cmd}.exe` : cmd;
+  const helpers = ARCHIVE_TOOL_HELPERS.flatMap((helper) =>
+    onWindows ? [helper, `${helper}.exe`] : [helper],
+  );
+  const searchPath = notInside.length > 0 ? await searchPathOutside(notInside, helpers) : null;
+  const file =
+    searchPath === null ? await findExecutable(name) : await findExecutable(name, notInside, searchPath);
+  if (!file) {
+    throw new AnthropicError(
+      `skill extraction requires the \`${cmd}\` command, but it was not found on PATH` +
+        (searchPath === null ? '' : ' outside `workdir` and `allowedRoots`'),
+    );
+  }
+  const env = scrubbedShellEnv();
+  if (searchPath !== null) env['PATH'] = searchPath;
+  return new Promise((resolve, reject) => {
+    const proc = child_process.spawn(file, args, {
+      // A link called `tar` may lead to a program that goes by the name it was started under.
+      argv0: cmd,
+      // Windows looks in the current directory first, for a program and for a helper it starts.
+      cwd: path.dirname(file),
+      env,
+    });
+    const output = { stdout: '', stderr: '' };
+    let overLimit = false;
+    for (const pipe of ['stdout', 'stderr'] as const) {
+      proc[pipe].setEncoding('utf8').on('data', (chunk: string) => {
+        output[pipe] += chunk;
+        if (output[pipe].length <= ARCHIVE_TOOL_OUTPUT_LIMIT) return;
+        overLimit = true;
+        proc.kill();
+      });
+    }
+    proc.on('error', reject);
+    proc.on('close', (code, signal) => {
+      if (overLimit) {
+        reject(
+          new AnthropicError(
+            `skill archive lists too many members: \`${cmd}\` printed more than ${ARCHIVE_TOOL_OUTPUT_LIMIT} characters`,
+          ),
+        );
+      } else if (code !== 0) {
+        reject(
+          new AnthropicError(`\`${cmd}\` failed (${signal ?? `exit ${code}`}): ${output.stderr.trim()}`),
+        );
+      } else {
+        resolve(output.stdout);
+      }
+    });
+  });
 }
 
 /**
@@ -239,7 +331,8 @@ function archiveTopDir(names: string[]): string {
  * never buffered in memory — skills can contain large binaries), then shells out
  * to `unzip`/`tar` — consistent with the rest of the toolset, which already
  * invokes `bash` and `rg`. Both `unzip` and `tar` must be available on `PATH`; a
- * missing binary surfaces as a clear error (see {@link runArchiveTool}). Refuses
+ * missing binary surfaces as a clear error (see {@link runArchiveTool}). The first
+ * of each on `PATH` is used; only {@link setupSkills} knows which to pass over. Refuses
  * any member that would escape `dest` (zip-slip / tar-slip): skill archives
  * come from the API, but skills can be third-party. Members that are not a
  * regular file or directory (symlink, hardlink, device, fifo) are excluded
@@ -249,6 +342,11 @@ function archiveTopDir(names: string[]): string {
  * member's name may be dropped too. The staging tree is verified to hold only
  * regular files and directories before anything is promoted into `dest`.
  *
+ * The modes and owners recorded in the archive are not kept. Directories get
+ * {@link DIR_CREATE_MODE}, and files get `0o755` if any execute bit is set and
+ * `0o644` otherwise. The temp file and the staging tree sit in an owner-only
+ * directory beside `dest`, which is removed afterwards.
+ *
  * The skill bundle's single wrapper directory is stripped: the archive is
  * extracted into a staging dir and the wrapper's contents are promoted into
  * `dest`, so files land at `dest/SKILL.md` rather than a doubled
@@ -256,17 +354,28 @@ function archiveTopDir(names: string[]): string {
  * done uniformly by staging + promote rather than per-tool flags).
  */
 export async function extractSkillArchive(resp: Response, dest: string): Promise<void> {
-  const tmp = path.join(dest, `.skill-archive-${process.pid}-${Date.now()}`);
+  await extractArchive(resp, dest, []);
+}
+
+/** {@link extractSkillArchive}, with the directories that {@link runArchiveTool} stays out of. */
+async function extractArchive(
+  resp: Response,
+  dest: string,
+  toolsNotInside: readonly string[],
+): Promise<void> {
+  dest = path.resolve(dest);
   if (!resp.body) {
     throw new AnthropicError('skill download response had no body');
   }
-  await stream.promises.pipeline(
-    stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
-    fssync.createWriteStream(tmp),
-  );
-  const stage = path.join(path.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);
-  const excludeFile = path.join(path.dirname(dest), `.skill-exclude-${process.pid}-${Date.now()}`);
+  // A `./` member lets the extractor chmod `stage` itself, so `stage` sits inside `work`.
+  const work = await fs.mkdtemp(path.join(path.dirname(dest), '.skill-stage-'));
   try {
+    const tmp = path.join(work, 'archive');
+    const stage = path.join(work, 'stage');
+    await stream.promises.pipeline(
+      stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
+      fssync.createWriteStream(tmp, { flags: 'wx', mode: FILE_CREATE_MODE }),
+    );
     // Sniff the first bytes: zip archives start with "PK\x03\x04"; treat
     // anything else as a tar.* archive (`tar -xf` autodetects gzip/bzip2/xz).
     const head = await readHead(tmp, 4);
@@ -275,21 +384,30 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
     const archiveCmd = isZip ? 'unzip' : 'tar';
     // List first, validate, then extract — `tar`/`unzip` will happily write a
     // `../` member (or follow a symlink member) outside `-C`/`-d` otherwise.
-    const names = await runArchiveTool(archiveCmd, isZip ? ['-Z1', tmp] : ['-tf', tmp]);
-    const typed = await runArchiveTool(archiveCmd, isZip ? ['-Z', '--h', '--t', tmp] : ['-tvf', tmp]);
+    const names = await runArchiveTool(archiveCmd, isZip ? ['-Z1', tmp] : ['-tf', tmp], toolsNotInside);
+    const typed = await runArchiveTool(
+      archiveCmd,
+      isZip ? ['-Z', '--h', '--t', tmp] : ['-tvf', tmp],
+      toolsNotInside,
+    );
     const { plain, special } = classifyArchiveListing(archiveCmd, names, typed);
     assertSafeMemberNames([...plain, ...special]);
     const top = archiveTopDir(plain);
-    await fs.mkdir(stage, { recursive: true, mode: DIR_CREATE_MODE });
+    await fs.mkdir(stage, { mode: DIR_CREATE_MODE });
     // `unzip` exits non-zero when every member is excluded, so only run the
     // extractor when there is something to extract.
     if (plain.length > 0) {
-      await runArchiveTool(archiveCmd, await extractArgs(archiveCmd, tmp, stage, special, excludeFile));
+      await runArchiveTool(
+        archiveCmd,
+        await extractArgs(archiveCmd, tmp, stage, special, path.join(work, 'exclude')),
+        toolsNotInside,
+      );
     }
     await assertOnlyPlainEntries(stage);
+    await normalizeEntryModes(stage);
     // Promote the wrapper's contents (or the staged tree itself, if the
     // archive wasn't wrapped) into the already-created empty `dest`. `stage`
-    // is a sibling of `dest`, so each rename stays on one filesystem.
+    // is beside `dest`, so each rename stays on one filesystem.
     const srcRoot = top ? path.join(stage, top) : stage;
     const entries = await fs.readdir(srcRoot).catch((e: unknown) => {
       throw errnoCode(e) === 'ENOENT' ? new AnthropicError(INCONSISTENT_LISTING) : e;
@@ -298,17 +416,14 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
       await fs.rename(path.join(srcRoot, entry), path.join(dest, entry));
     }
   } finally {
-    await fs.rm(tmp, { force: true });
-    await fs.rm(excludeFile, { force: true });
-    await fs.rm(stage, { recursive: true, force: true });
+    await fs.rm(work, { recursive: true, force: true });
   }
 }
 
 /**
- * Arguments that extract `archive` into `stage` while excluding every member
- * in `special`. Names are glob-escaped because both CLIs treat exclusions as
- * patterns; `tar` reads them from `excludeFile`, `unzip` takes them after
- * `-x`, which must follow `-d` so no pattern is parsed as an option.
+ * Arguments that extract `archive` into `stage` without the members in `special`.
+ * Both CLIs treat exclusions as patterns, so names are glob-escaped. `unzip` takes
+ * them after `-x`, which must follow `-d` so no pattern is parsed as an option.
  */
 async function extractArgs(
   cmd: 'unzip' | 'tar',
@@ -321,9 +436,11 @@ async function extractArgs(
   if (cmd === 'unzip') {
     return ['-oq', archive, '-d', stage, ...(patterns.length > 0 ? ['-x', ...patterns] : [])];
   }
-  if (patterns.length === 0) return ['-xf', archive, '-C', stage];
+  // As root, `tar` would otherwise restore the archive's owners and exact modes.
+  const args = ['-xf', archive, '-C', stage, '--no-same-owner', '--no-same-permissions'];
+  if (patterns.length === 0) return args;
   await fs.writeFile(excludeFile, patterns.join('\n') + '\n', { flag: 'wx', mode: 0o600 });
-  return ['-xf', archive, '-C', stage, '-X', excludeFile];
+  return [...args, '-X', excludeFile];
 }
 
 /** Read the first `n` bytes of `file`. */

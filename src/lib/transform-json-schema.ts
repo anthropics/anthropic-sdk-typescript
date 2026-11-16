@@ -64,6 +64,8 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const anyOf = pop(jsonSchema, 'anyOf');
   const oneOf = pop(jsonSchema, 'oneOf');
   const allOf = pop(jsonSchema, 'allOf');
+  // `$schema` names the dialect and constrains nothing, so it stays out of the description.
+  pop(jsonSchema, '$schema');
 
   if (Array.isArray(anyOf)) {
     strictSchema['anyOf'] = anyOf.map((variant) => _transformJSONSchema(variant as JSONSchema));

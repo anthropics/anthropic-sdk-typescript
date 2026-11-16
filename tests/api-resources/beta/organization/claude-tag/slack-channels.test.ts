@@ -31,7 +31,7 @@ describe('resource slackChannels', () => {
         model: 'x',
         reply_mode: { type: 'automatic' },
       },
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -53,7 +53,7 @@ describe('resource slackChannels', () => {
     await expect(
       client.beta.organization.claudeTag.slackChannels.retrieve(
         'slch_01SvpyRQK3nN6eH9uhRA7n1q',
-        { include_inherited: true, betas: ['message-batches-2024-09-24'] },
+        { include_inherited: true, betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -85,7 +85,7 @@ describe('resource slackChannels', () => {
           model: 'x',
           reply_mode: { type: 'automatic' },
         },
-        betas: ['message-batches-2024-09-24'],
+        betas: ['computer-use-2024-10-22'],
       },
     );
   });
@@ -110,7 +110,7 @@ describe('resource slackChannels', () => {
       limit: 0,
       page: 'page',
       slack_channel_id: 'slack_channel_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -132,7 +132,7 @@ describe('resource slackChannels', () => {
     await expect(
       client.beta.organization.claudeTag.slackChannels.delete(
         'slch_01SvpyRQK3nN6eH9uhRA7n1q',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

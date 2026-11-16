@@ -10,6 +10,7 @@ import {
   EnforcedSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
+  ParentOrganizationRequiredError,
   RampLimitExceededError,
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
@@ -55,6 +56,7 @@ import {
 import {
   ConcurrentMembershipChangeError,
   OrgMemberLimitExceededError,
+  RBACRoleNotFoundError,
 } from '../resources/organization/organization';
 import { CannotRemoveLastMemberError } from '../resources/organization/users';
 import { SkillReadBlockedUndecryptableError } from '../resources/skills/skills';
@@ -87,6 +89,8 @@ import {
 } from '../resources/organization/workspaces/workspaces';
 import {
   BetaAPIKeyScopeMissingError,
+  BetaBundleAttachmentNotSupportedError,
+  BetaBundleOnCallError,
   BetaClaudeTagWritesNotEnabledError,
   BetaComplianceConfigurationRestrictedError,
   BetaOrganizationLevelScopedAPIKeyRequiredError,
@@ -107,6 +111,8 @@ import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/
 export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
   ['400 already_member', AlreadyMemberError],
   ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
+  ['400 bundle_attachment_not_supported', BetaBundleAttachmentNotSupportedError],
+  ['400 bundle_on_call', BetaBundleOnCallError],
   ['400 cannot_invite_emails_with_unverified_domains', CannotInviteEmailsWithUnverifiedDomainsError],
   ['400 cannot_remove_last_member', CannotRemoveLastMemberError],
   ['400 cannot_sign_out_primary_owner', BetaCannotSignOutPrimaryOwnerError],
@@ -138,6 +144,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 organization_not_enrolled_in_beta', BetaOrganizationNotEnrolledInBetaError],
   ['400 organization_on_hold', OrganizationOnHoldError],
   ['400 organization_type_not_supported', OrganizationTypeNotSupportedError],
+  ['400 parent_organization_required', ParentOrganizationRequiredError],
   ['400 rbac_group_grants_owner_access', RBACGroupGrantsOwnerAccessError],
   ['400 rbac_group_owner_access_unconfirmed', RBACGroupOwnerAccessUnconfirmedError],
   ['400 request_body_encoding_invalid', RequestBodyEncodingInvalidError],
@@ -170,6 +177,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['403 spend_limits_admin_api_writes_not_enabled', BetaSpendLimitsAdminAPIWritesNotEnabledError],
   ['404 environment_not_found', BetaEnvironmentNotFoundError],
   ['404 file_expired', FileExpiredError],
+  ['404 rbac_role_not_found', RBACRoleNotFoundError],
   ['404 slack_channel_set_up_environment_not_found', BetaSlackChannelSetUpEnvironmentNotFoundError],
   ['404 thread_not_found', ThreadNotFoundError],
   ['409 concurrent_membership_change', ConcurrentMembershipChangeError],

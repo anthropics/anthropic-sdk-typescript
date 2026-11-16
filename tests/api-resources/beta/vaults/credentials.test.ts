@@ -33,7 +33,7 @@ describe('resource credentials', () => {
       },
       display_name: 'Example credential',
       metadata: { environment: 'production' },
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -54,7 +54,7 @@ describe('resource credentials', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -87,7 +87,7 @@ describe('resource credentials', () => {
       },
       display_name: 'Example credential',
       metadata: { environment: 'production' },
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -112,7 +112,7 @@ describe('resource credentials', () => {
           include_archived: true,
           limit: 0,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -136,7 +136,7 @@ describe('resource credentials', () => {
   test('delete: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -157,7 +157,7 @@ describe('resource credentials', () => {
   test('archive: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -178,7 +178,7 @@ describe('resource credentials', () => {
   test('mcpOAuthValidate: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

@@ -1,3 +1,5 @@
+import type { Worker, WorkerOptions } from 'node:worker_threads';
+import { getEventListeners } from 'node:events';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -17,6 +19,27 @@ import {
 import { AnthropicError } from '@anthropic-ai/sdk';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { ToolError } from '@anthropic-ai/sdk/lib/tools/ToolError';
+
+// Real workers, whose program a test can replace, or whose construction it can make fail.
+const workers = vi.hoisted(() => ({
+  spawned: [] as Worker[],
+  options: undefined as WorkerOptions | undefined,
+  messages: 0,
+  onSpawn: undefined as ((source: string | URL) => string) | undefined,
+}));
+
+vi.mock('node:worker_threads', async (importOriginal) => {
+  const real = await importOriginal<typeof import('node:worker_threads')>();
+  class SpyWorker extends real.Worker {
+    constructor(source: string | URL, options?: WorkerOptions) {
+      super(workers.onSpawn?.(source) ?? source, options);
+      workers.options = options;
+      workers.spawned.push(this);
+      this.on('message', () => workers.messages++);
+    }
+  }
+  return { ...real, Worker: SpyWorker };
+});
 
 function tmpdir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'runner-test-'));
@@ -133,6 +156,54 @@ describePosix('resolvePath symlink regressions', () => {
     await expect(resolvePath({ workdir: dir }, 'dangle_out')).rejects.toThrow(
       /is outside the session's working directory/,
     );
+  });
+
+  describe('a symlink to a missing path, followed by more components', () => {
+    beforeEach(() => {
+      fs.mkdirSync(path.join(dir, 'deep', 'dir'), { recursive: true });
+      fs.mkdirSync(path.join(dir, 't'));
+      fs.symlinkSync('deep/dir', path.join(dir, 's'));
+      fs.symlinkSync('../t', path.join(dir, 'deep', 'dir', 'relative'));
+      fs.symlinkSync('s/../t', path.join(dir, 'spelled'));
+      fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(dir, 't', 'leaf'));
+      fs.symlinkSync(outside, path.join(dir, 't', 'd'));
+    });
+
+    test.each(['leaf', 'd/new.txt'])(
+      "s/relative/%s takes the link's target from the directory that holds the link",
+      async (rest) => {
+        expect(await resolvePath({ workdir: dir }, `s/relative/${rest}`)).toBe(
+          path.join(fs.realpathSync(dir), 'deep', 't', rest),
+        );
+      },
+    );
+
+    test.each(['leaf', 'd/new.txt', 'd/missing/new.txt'])(
+      'spelled/%s follows the symlinks that come after the link',
+      async (rest) => {
+        await expect(resolvePath({ workdir: dir }, `spelled/${rest}`)).rejects.toThrow(
+          /is outside the session's working directory/,
+        );
+      },
+    );
+
+    test.each(['spelled', 's/relative'])('the file tools stay in the workdir through %s', async (link) => {
+      const ctx = { workdir: dir };
+      const runs = [
+        () => betaReadTool(ctx).run({ file_path: `${link}/leaf` }),
+        () => betaEditTool(ctx).run({ file_path: `${link}/leaf`, old_string: 'SECRET', new_string: 'x' }),
+        () => betaGrepTool(ctx).run({ pattern: 'SECRET', path: `${link}/leaf` }),
+        () => betaGrepTool(ctx).run({ pattern: 'SECRET', path: `${link}/d` }),
+        () => betaGlobTool(ctx).run({ pattern: '*', path: `${link}/d` }),
+        () => betaWriteTool(ctx).run({ file_path: `${link}/leaf`, content: 'x' }),
+        () => betaWriteTool(ctx).run({ file_path: `${link}/d/new.txt`, content: 'x' }),
+      ];
+      for (const run of runs) {
+        expect(await Promise.resolve().then(run).then(String, String)).not.toMatch(/secret/i);
+      }
+      expect(fs.readdirSync(outside)).toEqual(['secret.txt']);
+      expect(fs.readFileSync(path.join(outside, 'secret.txt'), 'utf8')).toBe('SECRET');
+    });
   });
 
   test('an unreadable directory is reported as permission denied without the host path', async () => {
@@ -826,9 +897,396 @@ describe('search tools (glob/grep)', () => {
     }
   });
 
+  describePosix('the rg that grep runs', () => {
+    let host: string;
+    const originalEnv = process.env;
+    const originalCwd = process.cwd();
+
+    function writeRg(where: string, script: string): string {
+      fs.mkdirSync(path.join(host, where), { recursive: true });
+      fs.writeFileSync(path.join(host, where, 'rg'), `#!/bin/sh\n${script}\n`, { mode: 0o755 });
+      return path.join(host, where);
+    }
+
+    beforeEach(() => {
+      host = fs.realpathSync(tmpdir());
+      process.env = { ...originalEnv };
+      writeRg('cwd/bin', 'echo planted');
+      process.chdir(writeRg('cwd', 'echo planted'));
+    });
+    afterEach(() => {
+      process.chdir(originalCwd);
+      process.env = originalEnv;
+      fs.rmSync(host, { recursive: true, force: true });
+    });
+
+    test.each(['.', '', 'bin', '../cwd'])('does not come from the PATH entry %j', async (entry) => {
+      process.env['PATH'] = entry;
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+
+      const system = writeRg('system', 'echo "$0"');
+      process.env['PATH'] = [entry, system].join(path.delimiter);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+
+    test('is not a directory called rg', async () => {
+      fs.mkdirSync(path.join(host, 'dir', 'rg'), { recursive: true });
+      const system = writeRg('system', 'echo "$0"');
+      process.env['PATH'] = [path.join(host, 'dir'), system].join(path.delimiter);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+
+    test.each(['workdir/bin', 'allowed/bin', 'linked-dir', 'linked-file', 'WORKDIR/bin', 'cafe\u0301/bin'])(
+      'is not inside a directory the file tools can write (PATH entry %j)',
+      async (entry) => {
+        const ctx = {
+          workdir: path.join(host, 'workdir'),
+          allowedRoots: [path.join(host, 'allowed'), path.join(host, 'caf\u00e9')],
+        };
+        for (const bin of ['allowed/bin', 'WORKDIR/bin', 'cafe\u0301/bin']) writeRg(bin, 'echo planted');
+        fs.symlinkSync(writeRg('workdir/bin', 'echo planted'), path.join(host, 'linked-dir'));
+        fs.mkdirSync(path.join(host, 'linked-file'));
+        fs.symlinkSync(path.join(ctx.workdir, 'bin', 'rg'), path.join(host, 'linked-file', 'rg'));
+        fs.writeFileSync(path.join(ctx.workdir, 'a.txt'), 'alpha\nbeta\n');
+
+        process.env['PATH'] = path.join(host, entry);
+        expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(
+          `${path.join(ctx.workdir, 'a.txt')}:2:beta`,
+        );
+
+        const system = writeRg('system', 'echo "$0"');
+        process.env['PATH'] = [path.join(host, entry), system].join(path.delimiter);
+        expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+      },
+    );
+
+    test('is started by its resolved path', async () => {
+      const system = writeRg('system', 'echo "$0"');
+      fs.symlinkSync(system, path.join(host, 'linked-dir'));
+      process.env['PATH'] = path.join(host, 'linked-dir');
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(system, 'rg')}\n`);
+    });
+
+    test('is started under the name rg', async () => {
+      fs.mkdirSync(path.join(host, 'system'));
+      fs.symlinkSync(process.execPath, path.join(host, 'system', 'rg'));
+      process.env['PATH'] = path.join(host, 'system');
+      await expect(betaGrepTool(env).run({ pattern: 'beta' })).rejects.toThrow(/^grep: rg failed: rg: /);
+    });
+
+    test('is not used when a directory the file tools can write cannot be resolved', async () => {
+      fs.symlinkSync('loop', path.join(host, 'loop'));
+      process.env['PATH'] = writeRg('system', 'echo "$0"');
+      const ctx = { ...env, allowedRoots: [path.join(host, 'loop')] };
+      expect(await betaGrepTool(ctx).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+    });
+
+    test('does not inherit ANTHROPIC_* credential env vars', async () => {
+      process.env['PATH'] = writeRg('system', 'echo "[$ANTHROPIC_API_KEY$Anthropic_Fake] [$KEPT]"');
+      process.env['ANTHROPIC_API_KEY'] = 'sk-ant-should-not-leak';
+      process.env['Anthropic_Fake'] = 'sk-ant-should-not-leak';
+      process.env['KEPT'] = 'kept';
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe('[] [kept]\n');
+    });
+  });
+
   test('grep finds a line and reports file:lineno:content (works with or without rg on PATH)', async () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
+  });
+
+  test('grep without rg stops reading a file at a NUL byte', async () => {
+    const originalEnv = process.env;
+    process.env = { ...originalEnv, PATH: '' };
+    try {
+      fs.writeFileSync(path.join(dir, 'blob'), `${'\0'.repeat(1 << 17)}\nbeta\n`);
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe(`${path.join(dir, 'a.txt')}:2:beta`);
+    } finally {
+      process.env = originalEnv;
+    }
+  });
+
+  describePosix('grep with a ripgrep config file on the host', () => {
+    let host: string;
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      host = tmpdir();
+      fs.writeFileSync(path.join(host, 'ripgreprc'), '--follow\n');
+      process.env = { ...originalEnv, RIPGREP_CONFIG_PATH: path.join(host, 'ripgreprc') };
+    });
+    afterEach(() => {
+      process.env = originalEnv;
+      fs.rmSync(host, { recursive: true, force: true });
+    });
+
+    test('does not follow a link out of the workdir (works with or without rg on PATH)', async () => {
+      fs.writeFileSync(path.join(host, 'secret.txt'), 'leaked\n');
+      fs.symlinkSync(host, path.join(dir, 'link_out'), 'dir');
+      expect(await betaGrepTool(env).run({ pattern: 'leaked' })).toBe('no matches');
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toMatch(/a\.txt:2:beta/);
+    });
+
+    test('passes --no-config to rg', async () => {
+      fs.writeFileSync(path.join(host, 'rg'), '#!/bin/sh\nprintf "%s\\n" "$1"\n', { mode: 0o755 });
+      process.env['PATH'] = host;
+      expect(await betaGrepTool(env).run({ pattern: 'beta' })).toBe('--no-config\n');
+    });
+  });
+});
+
+describe('grep without ripgrep', () => {
+  // Backtracks for tens of seconds, not forever, so that a regression fails these tests instead of hanging them.
+  const SLOW_PATTERN = '^(a+)+$';
+  const SLOW_LINE = `${'a'.repeat(30)}b`;
+  const TIMEOUT_MS = 60_000;
+  const READY = `const { parentPort } = require('node:worker_threads'); parentPort.postMessage([]);`;
+  const ABORTED = new ToolError('grep: aborted');
+  const TIMED_OUT = new ToolError('grep: timed out after 60s');
+  const realSetTimeout = setTimeout;
+
+  let dir: string;
+  let controller = new AbortController();
+
+  const write = (rel: string, content: string): string => {
+    const file = path.join(dir, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+    return file;
+  };
+
+  const grep = async (pattern: string, file?: string): Promise<unknown> => {
+    const toolUse = { type: 'tool_use', id: 'toolu_test', name: 'grep', input: {} } as const;
+    const { signal } = controller;
+    return betaGrepTool({ workdir: dir }).run(
+      { pattern, path: file },
+      { toolUse, toolUseBlock: toolUse, signal },
+    );
+  };
+
+  /** Polls in real time, because `vi.waitFor` would advance the fake clock. */
+  const until = async (condition: () => boolean): Promise<void> => {
+    while (!condition()) await new Promise((resolve) => realSetTimeout(resolve, 10));
+  };
+
+  /** Waits until the worker has burned CPU that this idle thread has not. */
+  const untilBusy = async (): Promise<void> => {
+    await until(() => workers.spawned.length === 1);
+    const before = process.cpuUsage();
+    await until(() => process.cpuUsage(before).user > 300_000);
+  };
+
+  const refuse = (): never => {
+    throw new Error('refused');
+  };
+
+  beforeEach(() => {
+    dir = tmpdir();
+    // A failed test's searches would hold up the next test's.
+    controller.abort();
+    controller = new AbortController();
+    workers.spawned = [];
+    workers.messages = 0;
+    workers.onSpawn = undefined;
+    vi.stubEnv('PATH', dir);
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+  });
+
+  afterEach(async () => {
+    const timers = vi.getTimerCount();
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    fs.rmSync(dir, { recursive: true, force: true });
+
+    // However a search ends, it leaves no timer, listener or thread behind.
+    expect(timers).toBe(0);
+    expect(getEventListeners(controller.signal, 'abort')).toEqual([]);
+    await until(() => workers.spawned.every(({ threadId }) => threadId === -1));
+  });
+
+  test('a backtracking regex times out, with the event loop free until then', async () => {
+    write('a.txt', SLOW_LINE);
+    const failure = expect(grep(SLOW_PATTERN)).rejects.toThrow(TIMED_OUT);
+    await untilBusy();
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+    expect(vi.getTimerCount()).toBe(1);
+    await vi.advanceTimersByTimeAsync(1);
+    await failure;
+  });
+
+  test('a timeout returns the matches found before it', async () => {
+    const file = write('a.txt', `aaa\n${'-\n'.repeat(1000)}${SLOW_LINE}`);
+    const search = grep(SLOW_PATTERN);
+    await until(() => workers.messages === 2);
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    expect(await search).toBe(`${file}:1:aaa\n[the search was cut short after 60000 ms]`);
+  });
+
+  test.each([
+    ['a backtracking regex', undefined],
+    ['a worker that never gets ready', () => `for (const end = Date.now() + 30_000; Date.now() < end; );`],
+  ])('an abort stops %s', async (_name, onSpawn) => {
+    write('a.txt', SLOW_LINE);
+    workers.onSpawn = onSpawn;
+    const failure = expect(grep(SLOW_PATTERN)).rejects.toThrow(ABORTED);
+    await untilBusy();
+    controller.abort();
+    await failure;
+  });
+
+  test('four searches run at a time, first come first served, each with its own 60 seconds', async () => {
+    write('a.txt', SLOW_LINE);
+    const ended: number[] = [];
+    const searches: Promise<unknown>[] = [];
+    for (let i = 0; i < 9; i++) {
+      const failure = expect(grep(SLOW_PATTERN)).rejects.toThrow(TIMED_OUT);
+      searches.push(failure.then(() => ended.push(i)));
+      await until(() => getEventListeners(controller.signal, 'abort').length === i + 1);
+    }
+    for (const [running, started] of [
+      [4, 4],
+      [4, 8],
+      [1, 9],
+    ] as const) {
+      await until(() => workers.spawned.length >= started);
+      expect(vi.getTimerCount()).toBe(running);
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    }
+    await Promise.all(searches);
+    expect(ended).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  test('an abort ends a search that waits, which takes no place', async () => {
+    write('a.txt', SLOW_LINE);
+    for (const started of [4, 8]) {
+      const running = (controller = new AbortController());
+      const aborted = Array.from({ length: 4 }, () => expect(grep(SLOW_PATTERN)).rejects.toThrow(ABORTED));
+      await until(() => workers.spawned.length === started);
+
+      controller = new AbortController();
+      const failure = expect(grep(SLOW_PATTERN)).rejects.toThrow(ABORTED);
+      await until(() => getEventListeners(controller.signal, 'abort').length === 1);
+      expect(vi.getTimerCount()).toBe(4);
+      controller.abort();
+      await failure;
+
+      running.abort();
+      await Promise.all(aborted);
+    }
+  });
+
+  test.each([
+    ['matches', undefined],
+    ['is refused a worker', refuse],
+    ['fails', () => `${READY}parentPort.on('message', () => process.exit(3));`],
+  ])('a search that %s makes room for the next one', async (_name, onSpawn) => {
+    for (let i = 0; i < 20; i++) write(`${i}.txt`, 'beta\n');
+    let started = 0;
+    let ended = 0;
+    let most = 0;
+    workers.onSpawn = (source) => {
+      most = Math.max(most, ++started - ended);
+      return onSpawn?.() ?? String(source);
+    };
+    const searches = Array.from({ length: 6 }, () => grep('beta').finally(() => ended++));
+    await Promise.allSettled(searches);
+    expect(started).toBe(6);
+    expect(most).toBeLessThanOrEqual(4);
+  });
+
+  test('starts no worker for an aborted signal, an invalid regex, or a tree with no lines', async () => {
+    write('empty.txt', '');
+    expect(await grep('a')).toBe('no matches');
+    await expect(grep('(')).rejects.toThrow(
+      new ToolError('grep: invalid regex: Invalid regular expression: /(/: Unterminated group'),
+    );
+    controller.abort();
+    await expect(grep('a')).rejects.toThrow(ABORTED);
+    expect(workers.spawned).toEqual([]);
+  });
+
+  test('the worker gets no environment, no preloads, and as much stack as the main thread', async () => {
+    write('a.txt', 'beta\n');
+    await grep('beta');
+    expect(workers.options).toMatchObject({ env: {}, execArgv: [], resourceLimits: { stackSizeMb: 8 } });
+  });
+
+  describe.each([
+    ['on a worker', undefined],
+    ['where a worker is refused', refuse],
+    ['where the worker errors before it is ready', () => `throw new Error('refused');`],
+    ['where the worker exits before it is ready', () => `process.exit(0);`],
+  ])('%s', (_name, onSpawn) => {
+    beforeEach(() => void (workers.onSpawn = onSpawn));
+
+    test('numbers the lines of a file that spans batches', async () => {
+      const lines = Array.from({ length: 3000 }, (_, i) => (i % 999 === 0 ? `needle ${i}` : `line ${i}`));
+      lines[3] = 'needle '.repeat(300);
+      const file = write('sub/a.txt', lines.join('\r\n'));
+      expect(await grep('^needle')).toBe(
+        [0, 999, 1998, 2997].map((i) => `${file}:${i + 1}:needle ${i}`).join('\n'),
+      );
+    });
+
+    test('stops at the output limit', async () => {
+      for (const name of ['a.txt', 'b.txt']) write(name, `${'beta '.repeat(100)}\n`.repeat(1000));
+      const lines = String(await grep('beta')).split('\n');
+      expect(lines.indexOf('[output truncated at 102400 bytes]')).toBe(lines.length - 1);
+      expect(lines.length).toBeLessThan(1000);
+    });
+
+    test('skips the rest of a file once the regex overflows on one of its lines', async () => {
+      const file = write('a.txt', `b\n${'b'.repeat(1990)}\n${'b\n'.repeat(2000)}`);
+      expect(await grep('^(?:(?:a?){2000}b)*c?$')).toBe(`${file}:1:b`);
+    });
+  });
+
+  test('a search that ends while its worker starts does not move to this thread', async () => {
+    write('a.txt', SLOW_LINE);
+    workers.onSpawn = () => {
+      vi.advanceTimersByTime(TIMEOUT_MS);
+      return refuse();
+    };
+    await expect(grep(SLOW_PATTERN)).rejects.toThrow(TIMED_OUT);
+  });
+
+  // A file that can't be opened, so that its late error is seen to be handled.
+  testPosix('a search aborted before its first line starts no worker afterwards', async () => {
+    fs.chmodSync(write('unreadable.txt', 'beta\n'), 0);
+    for (const file of ['unreadable.txt', write('a.txt', 'beta\n')]) {
+      controller = new AbortController();
+      const failure = expect(grep('beta', file)).rejects.toThrow(ABORTED);
+      while (getEventListeners(controller.signal, 'abort').length === 0) {
+        await new Promise((resolve) => setImmediate(resolve));
+      }
+      controller.abort();
+      await failure;
+    }
+
+    controller = new AbortController();
+    expect(await grep('beta')).toContain('a.txt:1:beta');
+    expect(workers.spawned).toHaveLength(1);
+  });
+
+  test('a pattern that only the worker rejects fails the search, and does not move it to this thread', async () => {
+    write('a.txt', 'beta\n');
+    workers.onSpawn = (source) => `RegExp = function () { throw new Error('too deep'); };${source}`;
+    await expect(grep('beta')).rejects.toThrow(
+      expect.objectContaining({ content: 'grep: search failed: too deep' }),
+    );
+  });
+
+  test.each([
+    [`parentPort.on('message', () => { throw new Error('gone'); });`, 'gone'],
+    [`parentPort.on('message', () => process.exit(3));`, 'worker exited with code 3'],
+    [`parentPort.once('message', () => parentPort.postMessage([false]));`, 'worker exited with code 0'],
+  ])('a worker that fails once ready fails the search: %s', async (source, message) => {
+    write('a.txt', 'beta\n');
+    write('b.txt', 'beta\n');
+    workers.onSpawn = () => READY + source;
+    await expect(grep('beta')).rejects.toThrow(
+      expect.objectContaining({ content: `grep: search failed: ${message}`, cause: expect.any(Error) }),
+    );
   });
 });
 

@@ -9,4 +9,12 @@ export {
   type PermissionListParams,
   type RBACRolePermissionsPageCursor,
 } from './permissions';
-export { RBACRoles, type RBACRole, type RBACRoleListParams, type RBACRolesPageCursor } from './rbac-roles';
+export {
+  RBACRoles,
+  type RBACRole,
+  type RBACRoleSource,
+  type RBACRoleSourceBuiltIn,
+  type RBACRoleSourceCustom,
+  type RBACRoleListParams,
+  type RBACRolesPageCursor,
+} from './rbac-roles';

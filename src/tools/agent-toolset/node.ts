@@ -35,12 +35,16 @@ import * as path from 'node:path';
 import * as cp from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as readline from 'node:readline';
+import { once } from 'node:events';
+import { Worker } from 'node:worker_threads';
 import type { Anthropic } from '../../client';
 import type { BetaManagedAgentsSession } from '../../resources/beta/sessions/sessions';
 import { AnthropicError } from '../../core/error';
 import type { BetaRunnableTool } from '../../lib/tools/BetaRunnableTool';
 import { ToolError } from '../../lib/tools/ToolError';
 import { betaTool } from '../../helpers/beta/json-schema';
+import { linkAbort } from '../../internal/utils/abort';
+import { AsyncQueue } from '../../internal/utils/async-queue';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import {
   atomicWriteFile,
@@ -48,8 +52,11 @@ import {
   confineToRoot,
   containingRoot,
   DIR_CREATE_MODE,
+  findExecutable,
   fsErrorMessage,
   isWithin,
+  isWithinAnyCase,
+  scrubbedShellEnv,
 } from './fs-util';
 
 export { setupSkills, extractSkillArchive } from './skills';
@@ -72,7 +79,10 @@ const DEFAULT_MAX_FILE_BYTES = 256 * 1024;
 const READ_STREAM_CHUNK_BYTES = 64 * 1024;
 const NEWLINE = Buffer.from('\n');
 const GREP_OUTPUT_LIMIT = 100 * 1024;
+const GREP_TIMEOUT_MS = 60_000;
 const GREP_MAX_LINE_LENGTH = 2000;
+const GREP_BATCH_LINES = 1000;
+const GREP_MAX_SEARCHES = 4;
 const GLOB_RESULT_LIMIT = 200;
 
 /**
@@ -270,32 +280,10 @@ export async function resolvePath(ctx: AgentToolContext, p: string): Promise<str
  * match the resolved write target.
  */
 function readOnlyRootFor(ctx: AgentToolContext, target: string): Promise<string | undefined> {
-  return containingRoot(ctx.readOnlyRoots ?? [], target);
+  return containingRoot(ctx.readOnlyRoots ?? [], target, isWithinAnyCase);
 }
 
 // ---- bash ----------------------------------------------------------------
-
-/**
- * Build the environment for the spawned bash shell. The runner process holds
- * Anthropic credentials in `ANTHROPIC_*` env vars — the API key, the auth token,
- * and the per-work session token among them. `bash` runs an unrestricted shell,
- * so any command the agent runs could read those straight out of `process.env`;
- * strip the whole `ANTHROPIC_*` namespace from the child's environment.
- * Everything else (PATH, HOME, locale, …) is passed through unchanged.
- *
- * Passing an explicit `env` to {@link AgentToolContext} does NOT add to this
- * default — it FULLY REPLACES it. The provided mapping becomes the entire bash
- * environment verbatim; nothing here is merged in, so callers who want the
- * scrubbed process environment plus extras must build that mapping themselves.
- */
-function scrubbedShellEnv(): Record<string, string | undefined> {
-  const env: Record<string, string | undefined> = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (key.startsWith('ANTHROPIC_')) continue;
-    env[key] = value;
-  }
-  return env;
-}
 
 /**
  * A persistent /bin/bash process. State (cwd, env, background jobs) survives
@@ -850,6 +838,10 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
   });
 }
 
+/**
+ * Searches with the first `rg` on `PATH` whose real path is outside `workdir` and `allowedRoots`, or with
+ * a built-in search when there is none. `rg` does not get the `ANTHROPIC_*` variables of the process.
+ */
 export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
   rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
@@ -864,7 +856,7 @@ export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!pattern) throw new ToolError('grep: pattern is required');
       let searchPath = path.resolve(ctx.workdir);
       if (p) searchPath = await resolvePath(ctx, p);
-      const rg = await findRg();
+      const rg = await findExecutable('rg', [ctx.workdir, ...(ctx.allowedRoots ?? [])]);
       return rg ?
           runRipgrep(rg, pattern, searchPath, context?.signal)
         : runWalkGrep(pattern, searchPath, context?.signal);
@@ -879,7 +871,10 @@ function runRipgrep(
   signal?: AbortSignal | null | undefined,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = cp.spawn(rg, ['-n', '--no-heading', '-e', pattern, '--', searchPath], {
+    const proc = cp.spawn(rg, ['--no-config', '-n', '--no-heading', '-e', pattern, '--', searchPath], {
+      // A link called `rg` may lead to a program that goes by the name it was started under.
+      argv0: 'rg',
+      env: scrubbedShellEnv(),
       ...(signal ? { signal } : {}),
     });
     let out = '';
@@ -909,6 +904,10 @@ function runRipgrep(
   });
 }
 
+// Each search has its own worker, and enough of them at once would use up this process's memory, threads or files.
+const grepSlots = new AsyncQueue<void>();
+for (let i = 0; i < GREP_MAX_SEARCHES; i++) grepSlots.push();
+
 async function runWalkGrep(
   pattern: string,
   root: string,
@@ -920,6 +919,10 @@ async function runWalkGrep(
   } catch (e) {
     throw new ToolError(`grep: invalid regex: ${e instanceof Error ? e.message : String(e)}`);
   }
+  if (signal?.aborted) throw new ToolError('grep: aborted');
+  const { done } = await grepSlots.next(signal ?? undefined);
+  if (done) throw new ToolError('grep: aborted');
+
   const hits: string[] = [];
   let budget = GREP_OUTPUT_LIMIT;
   const push = (line: string): boolean => {
@@ -931,36 +934,164 @@ async function runWalkGrep(
     hits.push(line);
     return true;
   };
-  const stat = await fs.stat(root).catch(() => null);
-  if (stat?.isFile()) {
-    await grepFile(root, re, push);
-  } else {
-    await walk(root, '', (rel) => grepFile(path.join(root, rel), re, push), signal);
+
+  const stop = new AbortController();
+  const unlink = linkAbort(signal, stop);
+  const timer = setTimeout(() => stop.abort(), GREP_TIMEOUT_MS);
+  const match = lineMatcher(re, stop.signal);
+  const grepPath = (rel: string) => grepFile(path.join(root, rel), match, push, stop.signal);
+  const search = async (): Promise<unknown> => {
+    const stat = await fs.stat(root).catch(() => null);
+    return stat?.isFile() ? grepPath('') : walk(root, '', grepPath, stop.signal);
+  };
+  try {
+    await Promise.race([search(), once(stop.signal, 'abort')]);
+    if (signal?.aborted) throw new ToolError('grep: aborted');
+    if (stop.signal.aborted) {
+      if (hits.length === 0) throw new ToolError(`grep: timed out after ${GREP_TIMEOUT_MS / 1000}s`);
+      hits.push(`[the search was cut short after ${GREP_TIMEOUT_MS} ms]`);
+    }
+  } finally {
+    clearTimeout(timer);
+    unlink();
+    stop.abort();
+    grepSlots.push();
   }
-  if (signal?.aborted) throw new ToolError('grep: aborted');
   if (hits.length === 0) return 'no matches';
   return hits.join('\n');
 }
 
-async function grepFile(file: string, re: RegExp, push: (line: string) => boolean): Promise<boolean> {
+async function grepFile(
+  file: string,
+  match: LineMatcher,
+  push: (line: string) => boolean,
+  signal: AbortSignal,
+): Promise<boolean> {
   const stream = fssync.createReadStream(file, { encoding: 'utf8' });
-  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
-  let i = 0;
+  // An abort closes `rl`, which stops listening for errors while the file may still be opening.
+  stream.on('error', () => {});
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity, signal });
+  // `rl` buffers a line until it ends, and one too long for a string throws outside this `try`.
+  stream.on('data', (chunk) => {
+    if (chunk.includes('\0')) rl.close();
+  });
   try {
-    for await (const line of rl) {
-      i++;
-      // Cap line length: `pattern` is model-supplied and JS regexes backtrack,
-      // so a pathological pattern against a very long line is a ReDoS.
-      if (line.length > GREP_MAX_LINE_LENGTH) continue;
-      if (re.test(line) && !push(`${file}:${i}:${line}`)) return false;
+    for await (const { numbers, lines } of lineBatches(rl)) {
+      const matched = await match(lines);
+      for (const [i, line] of lines.entries()) {
+        if (matched[i] && !push(`${file}:${numbers[i]}:${line}`)) return false;
+      }
+      if (matched.length < lines.length) break;
     }
-  } catch {
-    // unreadable / binary
   } finally {
+    rl.close();
     stream.destroy();
   }
   return true;
 }
+
+async function* lineBatches(
+  input: AsyncIterable<string>,
+): AsyncGenerator<{ numbers: number[]; lines: string[] }> {
+  let i = 0;
+  let numbers: number[] = [];
+  let lines: string[] = [];
+  try {
+    for await (const line of input) {
+      i++;
+      // Cap line length: `pattern` is model-supplied and JS regexes backtrack,
+      // so a pathological pattern against a very long line is a ReDoS.
+      if (line.length > GREP_MAX_LINE_LENGTH) continue;
+      numbers.push(i);
+      if (lines.push(line) < GREP_BATCH_LINES) continue;
+      yield { numbers, lines };
+      numbers = [];
+      lines = [];
+    }
+  } catch {
+    // unreadable / binary
+  }
+  if (lines.length > 0) yield { numbers, lines };
+}
+
+/** Says which lines match. The answer ends at the first line that the regex fails on. */
+type LineMatcher = (lines: string[]) => Promise<boolean[]>;
+
+/**
+ * Matches lines on a worker thread, which leaves this one free and can be terminated while a regex backtracks.
+ * Where no worker can start, it matches on this thread, where each batch of lines runs to its end.
+ */
+function lineMatcher(re: RegExp, signal: AbortSignal): LineMatcher {
+  let reply = promiseWithResolvers<boolean[]>();
+  const fail = (cause: Error): void => {
+    reply.promise.catch(() => {});
+    reply.reject(Object.assign(new ToolError(`grep: search failed: ${cause.message}`), { cause }));
+  };
+
+  const start = async (): Promise<Worker | null> => {
+    try {
+      const worker = new Worker(GREP_WORKER_SOURCE, {
+        eval: true,
+        workerData: re.source,
+        // keep this process's credentials and preloads out of the thread
+        env: {},
+        execArgv: [],
+        // otherwise a thread that can't start leaks listeners on this process's streams
+        stdout: true,
+        stderr: true,
+        // the default stack is smaller than the main thread's, and V8 crashes compiling a deeply nested regex on it
+        resourceLimits: { stackSizeMb: 8 },
+      });
+      signal.addEventListener('abort', () => void worker.terminate(), { once: true });
+      worker.on('message', (matched: boolean[]) => {
+        reply.resolve(matched);
+        reply = promiseWithResolvers();
+      });
+      worker.on('error', fail);
+      worker.on('exit', (code) => fail(new AnthropicError(`worker exited with code ${code}`)));
+      await reply.promise;
+      return worker;
+    } catch {
+      return null;
+    }
+  };
+
+  let starting: Promise<Worker | null> | undefined;
+  return async (lines) => {
+    if (signal.aborted) return [];
+    const worker = await (starting ??= start());
+    // An abort also ends a worker that is still starting, which must not move the search to this thread.
+    if (signal.aborted) return [];
+    if (worker) {
+      worker.postMessage(lines);
+      return reply.promise;
+    }
+
+    const matched: boolean[] = [];
+    try {
+      for (const line of lines) matched.push(re.test(line));
+    } catch {
+      // the regex overflowed its stack
+    }
+    return matched;
+  };
+}
+
+// The first message says that it is ready. The pattern is used only after that, because one that is too deep for
+// this thread's stack must not move the search to the main thread. The loop is the one in `lineMatcher`.
+const GREP_WORKER_SOURCE = `
+const { parentPort, workerData } = require('node:worker_threads');
+let re;
+parentPort.on('message', (lines) => {
+  re ??= new RegExp(workerData);
+  const matched = [];
+  try {
+    for (const line of lines) matched.push(re.test(line));
+  } catch {}
+  parentPort.postMessage(matched);
+});
+parentPort.postMessage([]);
+`;
 
 // ---- utils ---------------------------------------------------------------
 
@@ -1004,18 +1135,4 @@ async function walk(
     return true;
   }
   await inner(rel, 0);
-}
-
-async function findRg(): Promise<string | null> {
-  const dirs = (process.env['PATH'] ?? '').split(path.delimiter);
-  for (const d of dirs) {
-    const candidate = path.join(d, 'rg');
-    try {
-      await fs.access(candidate, fssync.constants.X_OK);
-      return candidate;
-    } catch {
-      // not here
-    }
-  }
-  return null;
 }

@@ -38,7 +38,7 @@ describe('resource spendLimits', () => {
           page: 'page',
           scope_type: ['organization'],
           workspace_id: 'workspace_id',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -75,7 +75,7 @@ describe('resource spendLimits', () => {
       amount: '50000',
       scope: { type: 'user', user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu' },
       period: 'monthly',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

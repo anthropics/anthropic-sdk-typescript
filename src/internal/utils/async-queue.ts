@@ -1,8 +1,8 @@
 export type AsyncQueueResult<T> = { done: false; value: T } | { done: true; value: undefined };
 
 /**
- * Single-consumer async queue that bridges background producers to an
- * `AsyncIterator`-style reader. Producers `push()` items; the consumer awaits
+ * Async queue that bridges background producers to `AsyncIterator`-style
+ * readers, first come first served. Producers `push()` items; a reader awaits
  * `next()`. `close()` is idempotent and wakes any pending `next()` with
  * `done: true`. `tryShift()` synchronously drains remaining items after
  * iteration has been signalled to stop.

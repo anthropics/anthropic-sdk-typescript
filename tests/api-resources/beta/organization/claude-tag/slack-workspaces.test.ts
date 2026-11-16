@@ -25,7 +25,7 @@ describe('resource slackWorkspaces', () => {
     await expect(
       client.beta.organization.claudeTag.slackWorkspaces.retrieve(
         'slws_01Hq8TzW5mKc2YbX7vNd4RfJ',
-        { include_inherited: true, betas: ['message-batches-2024-09-24'] },
+        { include_inherited: true, betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -57,7 +57,7 @@ describe('resource slackWorkspaces', () => {
           model: 'x',
           reply_mode: { type: 'automatic' },
         },
-        betas: ['message-batches-2024-09-24'],
+        betas: ['computer-use-2024-10-22'],
       },
     );
   });
@@ -82,7 +82,7 @@ describe('resource slackWorkspaces', () => {
           limit: 0,
           page: 'page',
           slack_workspace_id: 'slack_workspace_id',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),

@@ -23,7 +23,7 @@ describe('resource certificates', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.tunnels.certificates.create('tunnel_id', {
       ca_certificate_pem: 'ca_certificate_pem',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -44,7 +44,7 @@ describe('resource certificates', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.tunnels.certificates.retrieve('certificate_id', {
       tunnel_id: 'tunnel_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -69,7 +69,7 @@ describe('resource certificates', () => {
           include_archived: true,
           limit: 0,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -93,7 +93,7 @@ describe('resource certificates', () => {
   test('archive: required and optional params', async () => {
     const response = await client.beta.tunnels.certificates.archive('certificate_id', {
       tunnel_id: 'tunnel_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

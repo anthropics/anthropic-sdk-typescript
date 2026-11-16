@@ -26,9 +26,34 @@ import {
   BetaClaudeTagBundlesPageCursor,
   BundleListParams,
   BundleRetrieveParams,
+  BundleUpdateParams,
   Bundles,
 } from './bundles/bundles';
 import { BadRequestError, ConflictError, NotFoundError, PermissionDeniedError } from '../../../../core/error';
+
+/**
+ * The Bundle has an attachment this API does not support editing, so its
+ * instructions can be changed only in claude.ai.
+ */
+export class BetaBundleAttachmentNotSupportedError extends BadRequestError {
+  declare readonly errorCode: 'bundle_attachment_not_supported';
+  declare readonly details: BetaBundleAttachmentNotSupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBundleAttachmentNotSupportedError';
+}
+
+/**
+ * This Bundle's instructions are managed in claude.ai and can't be changed through
+ * the API.
+ */
+export class BetaBundleOnCallError extends BadRequestError {
+  declare readonly errorCode: 'bundle_on_call';
+  declare readonly details: BetaBundleOnCallErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBundleOnCallError';
+}
 
 /**
  * The request set the channel up, and `settings` was then refused. The channel
@@ -125,6 +150,22 @@ export class ClaudeTag extends APIResource {
  */
 export interface BetaAPIKeyScopeMissingErrorDetails {
   error_code: 'api_key_scope_missing';
+}
+
+/**
+ * The Bundle has an attachment this API does not support editing, so its
+ * instructions can be changed only in claude.ai.
+ */
+export interface BetaBundleAttachmentNotSupportedErrorDetails {
+  error_code: 'bundle_attachment_not_supported';
+}
+
+/**
+ * This Bundle's instructions are managed in claude.ai and can't be changed through
+ * the API.
+ */
+export interface BetaBundleOnCallErrorDetails {
+  error_code: 'bundle_on_call';
 }
 
 /**
@@ -560,6 +601,8 @@ export interface BetaSlackChannelSetUpSettingsRefusedErrorDetails {
   slack_channel_id: string;
 }
 
+ClaudeTag.BetaBundleAttachmentNotSupportedError = BetaBundleAttachmentNotSupportedError;
+ClaudeTag.BetaBundleOnCallError = BetaBundleOnCallError;
 ClaudeTag.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
 ClaudeTag.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
 ClaudeTag.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
@@ -573,6 +616,8 @@ ClaudeTag.Bundles = Bundles;
 
 export declare namespace ClaudeTag {
   export {
+    BetaBundleAttachmentNotSupportedError as BetaBundleAttachmentNotSupportedError,
+    BetaBundleOnCallError as BetaBundleOnCallError,
     BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
     BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
     BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
@@ -581,6 +626,8 @@ export declare namespace ClaudeTag {
     BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
     BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
     type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
+    type BetaBundleAttachmentNotSupportedErrorDetails as BetaBundleAttachmentNotSupportedErrorDetails,
+    type BetaBundleOnCallErrorDetails as BetaBundleOnCallErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
@@ -637,6 +684,7 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagBundle as BetaClaudeTagBundle,
     type BetaClaudeTagBundlesPageCursor as BetaClaudeTagBundlesPageCursor,
     type BundleRetrieveParams as BundleRetrieveParams,
+    type BundleUpdateParams as BundleUpdateParams,
     type BundleListParams as BundleListParams,
   };
 }

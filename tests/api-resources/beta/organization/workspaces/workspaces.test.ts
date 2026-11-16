@@ -8,7 +8,7 @@ const client = new Anthropic({
 
 describe('resource workspaces', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.beta.organization.workspaces.create({ name: 'x' });
+    const responsePromise = client.beta.organization.workspaces.create({ name: 'Workspace Name' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -20,7 +20,7 @@ describe('resource workspaces', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.organization.workspaces.create({
-      name: 'x',
+      name: 'Workspace Name',
       data_residency: {
         allowed_inference_geos: 'unrestricted',
         default_inference_geo: 'global',
@@ -30,7 +30,7 @@ describe('resource workspaces', () => {
       external_key_id: 'ekey_01SDCCSbTxrXDpWc1phhtcfK',
       tags: { env: 'prod', team: 'platform' },
       user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
