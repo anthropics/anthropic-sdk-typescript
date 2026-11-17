@@ -351,6 +351,7 @@ export type ErrorDetails =
   | UserProfilesAPI.UserProfileRequiredErrorDetails
   | LinkedOrganizationBillingUnavailableErrorDetails
   | LinkedOrganizationSpendLimitReachedErrorDetails
+  | UserProfilesAPI.UserProfileBillingNotAuthorizedErrorDetails
   | UserProfilesAPI.UserProfileNotBillableErrorDetails
   | MessagesAPI.ThreadNotFoundErrorDetails
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails

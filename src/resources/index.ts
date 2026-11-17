@@ -553,11 +553,13 @@ export {
 export {
   UserProfileNotFoundError,
   UserProfileRequiredError,
+  UserProfileBillingNotAuthorizedError,
   UserProfileNotBillableError,
   UserProfiles,
   type DeletedUserProfile,
   type UserProfile,
   type UserProfileAccessType,
+  type UserProfileBillingNotAuthorizedErrorDetails,
   type UserProfileCyberProgram,
   type UserProfileCyberRequirements,
   type UserProfileCyberTier,

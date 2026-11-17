@@ -63,6 +63,7 @@ import {
 import { CannotRemoveLastMemberError } from '../resources/organization/users';
 import { SkillReadBlockedUndecryptableError } from '../resources/skills/skills';
 import {
+  UserProfileBillingNotAuthorizedError,
   UserProfileNotBillableError,
   UserProfileNotFoundError,
   UserProfileRequiredError,
@@ -184,6 +185,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['403 organization_level_scoped_api_key_required', BetaOrganizationLevelScopedAPIKeyRequiredError],
   ['403 sandbox_egress_restricted', SandboxEgressRestrictedError],
   ['403 spend_limits_admin_api_writes_not_enabled', BetaSpendLimitsAdminAPIWritesNotEnabledError],
+  ['403 user_profile_billing_not_authorized', UserProfileBillingNotAuthorizedError],
   ['403 user_profile_not_billable', UserProfileNotBillableError],
   ['404 environment_not_found', BetaEnvironmentNotFoundError],
   ['404 file_expired', FileExpiredError],

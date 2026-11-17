@@ -40,6 +40,19 @@ export class UserProfileRequiredError extends BadRequestError {
 }
 
 /**
+ * The customer that the named user profile represents has not authorized the
+ * caller to bill them, or the authorization that the request's credential uses has
+ * ended. The response does not say which applies.
+ */
+export class UserProfileBillingNotAuthorizedError extends PermissionDeniedError {
+  declare readonly errorCode: 'user_profile_billing_not_authorized';
+  declare readonly details: UserProfileBillingNotAuthorizedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileBillingNotAuthorizedError';
+}
+
+/**
  * The caller is not allowed to bill the user profile that the request names. The
  * response gives no more specific error code and does not say what the reason is.
  */
@@ -316,6 +329,15 @@ export interface UserProfile {
  *   resells Claude access to.
  */
 export type UserProfileAccessType = 'application' | 'passthrough';
+
+/**
+ * The customer that the named user profile represents has not authorized the
+ * caller to bill them, or the authorization that the request's credential uses has
+ * ended. The response does not say which applies.
+ */
+export interface UserProfileBillingNotAuthorizedErrorDetails {
+  error_code: 'user_profile_billing_not_authorized';
+}
 
 /**
  * A user profile's standing in the Cyber Verification Program, which relaxes cyber
@@ -887,6 +909,7 @@ export interface UserProfileDeleteParams {
 
 UserProfiles.UserProfileNotFoundError = UserProfileNotFoundError;
 UserProfiles.UserProfileRequiredError = UserProfileRequiredError;
+UserProfiles.UserProfileBillingNotAuthorizedError = UserProfileBillingNotAuthorizedError;
 UserProfiles.UserProfileNotBillableError = UserProfileNotBillableError;
 UserProfiles.ActionURLs = ActionURLs;
 
@@ -894,10 +917,12 @@ export declare namespace UserProfiles {
   export {
     UserProfileNotFoundError as UserProfileNotFoundError,
     UserProfileRequiredError as UserProfileRequiredError,
+    UserProfileBillingNotAuthorizedError as UserProfileBillingNotAuthorizedError,
     UserProfileNotBillableError as UserProfileNotBillableError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileBillingNotAuthorizedErrorDetails as UserProfileBillingNotAuthorizedErrorDetails,
     type UserProfileCyberProgram as UserProfileCyberProgram,
     type UserProfileCyberRequirements as UserProfileCyberRequirements,
     type UserProfileCyberTier as UserProfileCyberTier,

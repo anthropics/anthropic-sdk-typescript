@@ -633,6 +633,7 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">DeletedUserProfile</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfile</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileAccessType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileBillingNotAuthorizedErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberProgram</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberRequirements</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberTier</a></code>
@@ -657,6 +658,7 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundError</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileBillingNotAuthorizedError</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotBillableError</a></code>
 
 Methods:

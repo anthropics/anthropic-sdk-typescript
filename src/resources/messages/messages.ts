@@ -286,6 +286,7 @@ export class Messages extends APIResource {
    * @throws {UserProfileRequiredError}
    * @throws {LinkedOrganizationBillingUnavailableError}
    * @throws {LinkedOrganizationSpendLimitReachedError}
+   * @throws {UserProfileBillingNotAuthorizedError}
    * @throws {UserProfileNotBillableError}
    * @throws {ThreadNotFoundError}
    * @throws {SkillReadBlockedUndecryptableError}

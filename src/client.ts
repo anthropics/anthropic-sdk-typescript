@@ -646,6 +646,8 @@ import {
   DeletedUserProfile,
   UserProfile,
   UserProfileAccessType,
+  UserProfileBillingNotAuthorizedError,
+  UserProfileBillingNotAuthorizedErrorDetails,
   UserProfileCreateParams,
   UserProfileCyberProgram,
   UserProfileCyberRequirements,
@@ -2272,6 +2274,7 @@ Anthropic.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableErro
 Anthropic.UserProfiles = UserProfiles;
 Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
 Anthropic.UserProfileRequiredError = UserProfileRequiredError;
+Anthropic.UserProfileBillingNotAuthorizedError = UserProfileBillingNotAuthorizedError;
 Anthropic.UserProfileNotBillableError = UserProfileNotBillableError;
 Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
@@ -2849,10 +2852,12 @@ export declare namespace Anthropic {
     UserProfiles as UserProfiles,
     UserProfileNotFoundError as UserProfileNotFoundError,
     UserProfileRequiredError as UserProfileRequiredError,
+    UserProfileBillingNotAuthorizedError as UserProfileBillingNotAuthorizedError,
     UserProfileNotBillableError as UserProfileNotBillableError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileBillingNotAuthorizedErrorDetails as UserProfileBillingNotAuthorizedErrorDetails,
     type UserProfileCyberProgram as UserProfileCyberProgram,
     type UserProfileCyberRequirements as UserProfileCyberRequirements,
     type UserProfileCyberTier as UserProfileCyberTier,
