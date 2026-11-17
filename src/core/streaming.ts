@@ -239,6 +239,7 @@ export async function* _iterSSEMessages(
 
   const decoder = new TextDecoder('utf-8', { ignoreBOM: true });
   let text = '';
+  let endsWithCR = false;
   let event: string | null = null;
   let data: string[] = [];
   let raw: string[] = [];
@@ -274,7 +275,10 @@ export async function* _iterSSEMessages(
   for await (const chunk of ReadableStreamToAsyncIterable<Bytes>(response.body)) {
     if (chunk == null) continue;
 
-    text += decoder.decode(typeof chunk === 'string' ? encodeUTF8(chunk) : chunk, { stream: true });
+    const decoded = decoder.decode(typeof chunk === 'string' ? encodeUTF8(chunk) : chunk, { stream: true });
+    text += decoded;
+    // Searching `text` after `+=` copies the whole pending line, so wait for a chunk with a line ending.
+    if (!endsWithCR && !decoded.includes('\n') && !decoded.includes('\r')) continue;
 
     let start = 0;
     if (!text.includes('\r')) {
@@ -297,6 +301,7 @@ export async function* _iterSSEMessages(
       }
     }
     text = text.slice(start);
+    endsWithCR = text.endsWith('\r');
   }
 
   text += decoder.decode();
