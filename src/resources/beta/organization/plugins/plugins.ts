@@ -139,6 +139,7 @@ export class Plugins extends APIResource {
    * @throws {CMEKKeyDisabledError}
    * @throws {CMEKKeyNetworkBlockedError}
    * @throws {BetaUnsupportedCharsetError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {BetaPluginNameTakenError}
    * @throws {BetaSkillNameTakenError}
    * @throws {BetaRegistrationPendingError}
@@ -260,6 +261,7 @@ export class Plugins extends APIResource {
    * @throws {CMEKKeyDisabledError}
    * @throws {CMEKKeyNetworkBlockedError}
    * @throws {BetaScanFailedError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {BetaScanPendingError}
    * @throws {BetaSkillNameTakenError}
    *
@@ -378,6 +380,7 @@ export class Plugins extends APIResource {
    * readiness enabled.
    *
    * @throws {CMEKKeyDisabledError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
