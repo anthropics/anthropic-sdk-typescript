@@ -19,6 +19,7 @@ import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
 import {
   BadRequestError,
   ContentTooLargeError,
+  PaymentRequiredError,
   PermissionDeniedError,
   RateLimitError as ErrorsRateLimitError,
   ServiceUnavailableError,
@@ -129,6 +130,32 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
+}
+
+/**
+ * Anthropic cannot currently bill the organization linked to the request's user
+ * profile, for a reason that lies with that organization's own account. The
+ * response does not say what the reason is.
+ */
+export class LinkedOrganizationBillingUnavailableError extends PaymentRequiredError {
+  declare readonly errorCode: 'linked_organization_billing_unavailable';
+  declare readonly details: LinkedOrganizationBillingUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'LinkedOrganizationBillingUnavailableError';
+}
+
+/**
+ * The organization linked to the request's user profile has reached a spend limit
+ * that it set, or lacks credit for the request. The response does not say which
+ * applies.
+ */
+export class LinkedOrganizationSpendLimitReachedError extends PaymentRequiredError {
+  declare readonly errorCode: 'linked_organization_spend_limit_reached';
+  declare readonly details: LinkedOrganizationSpendLimitReachedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'LinkedOrganizationSpendLimitReachedError';
 }
 
 /**
@@ -321,6 +348,10 @@ export type ErrorDetails =
   | MessagesAPI.ThreadUnsupportedRequestErrorDetails
   | MessagesAPI.ToolNameConflictErrorDetails
   | MessagesAPI.ToolReferenceUnresolvedErrorDetails
+  | UserProfilesAPI.UserProfileRequiredErrorDetails
+  | LinkedOrganizationBillingUnavailableErrorDetails
+  | LinkedOrganizationSpendLimitReachedErrorDetails
+  | UserProfilesAPI.UserProfileNotBillableErrorDetails
   | MessagesAPI.ThreadNotFoundErrorDetails
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
@@ -443,6 +474,24 @@ export interface InvalidRequestErrorObject {
    * The broad category of the error.
    */
   type: 'invalid_request_error';
+}
+
+/**
+ * Anthropic cannot currently bill the organization linked to the request's user
+ * profile, for a reason that lies with that organization's own account. The
+ * response does not say what the reason is.
+ */
+export interface LinkedOrganizationBillingUnavailableErrorDetails {
+  error_code: 'linked_organization_billing_unavailable';
+}
+
+/**
+ * The organization linked to the request's user profile has reached a spend limit
+ * that it set, or lacks credit for the request. The response does not say which
+ * applies.
+ */
+export interface LinkedOrganizationSpendLimitReachedErrorDetails {
+  error_code: 'linked_organization_spend_limit_reached';
 }
 
 export interface NotFoundErrorObject {

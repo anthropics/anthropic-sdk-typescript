@@ -110,6 +110,8 @@ import {
   ClaudeCodeKeyCreatorNotMemberError,
   ClaudeCodeVersionTooOldError,
   EnforcedSpendLimitReachedError,
+  LinkedOrganizationBillingUnavailableError,
+  LinkedOrganizationSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
   ParentOrganizationRequiredError,
@@ -664,10 +666,14 @@ import {
   UserProfileListOrder,
   UserProfileListOrderBy,
   UserProfileListParams,
+  UserProfileNotBillableError,
+  UserProfileNotBillableErrorDetails,
   UserProfileNotFoundError,
   UserProfileNotFoundErrorDetails,
   UserProfileProgramStatus,
   UserProfilePrograms,
+  UserProfileRequiredError,
+  UserProfileRequiredErrorDetails,
   UserProfileRetrieveParams,
   UserProfileUpdateParams,
   UserProfiles,
@@ -2210,6 +2216,7 @@ export class BaseAnthropic {
   static InternalServerError = Errors.InternalServerError;
   static NotImplementedError = Errors.NotImplementedError;
   static GatewayTimeoutError = Errors.GatewayTimeoutError;
+  static PaymentRequiredError = Errors.PaymentRequiredError;
   static ContentTooLargeError = Errors.ContentTooLargeError;
   static PermissionDeniedError = Errors.PermissionDeniedError;
   static PreconditionFailedError = Errors.PreconditionFailedError;
@@ -2264,6 +2271,8 @@ Anthropic.Skills = Skills;
 Anthropic.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
 Anthropic.UserProfiles = UserProfiles;
 Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
+Anthropic.UserProfileRequiredError = UserProfileRequiredError;
+Anthropic.UserProfileNotBillableError = UserProfileNotBillableError;
 Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
@@ -2280,6 +2289,8 @@ Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
 Anthropic.ParentOrganizationRequiredError = ParentOrganizationRequiredError;
 Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.LinkedOrganizationBillingUnavailableError = LinkedOrganizationBillingUnavailableError;
+Anthropic.LinkedOrganizationSpendLimitReachedError = LinkedOrganizationSpendLimitReachedError;
 Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
 Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
 Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
@@ -2837,6 +2848,8 @@ export declare namespace Anthropic {
   export {
     UserProfiles as UserProfiles,
     UserProfileNotFoundError as UserProfileNotFoundError,
+    UserProfileRequiredError as UserProfileRequiredError,
+    UserProfileNotBillableError as UserProfileNotBillableError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
@@ -2857,9 +2870,11 @@ export declare namespace Anthropic {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotBillableErrorDetails as UserProfileNotBillableErrorDetails,
     type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
+    type UserProfileRequiredErrorDetails as UserProfileRequiredErrorDetails,
     type UserProfilesPageCursor as UserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,
     type UserProfileRetrieveParams as UserProfileRetrieveParams,
@@ -2922,6 +2937,8 @@ export declare namespace Anthropic {
     ParentOrganizationRequiredError as ParentOrganizationRequiredError,
     RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    LinkedOrganizationBillingUnavailableError as LinkedOrganizationBillingUnavailableError,
+    LinkedOrganizationSpendLimitReachedError as LinkedOrganizationSpendLimitReachedError,
     SandboxEgressRestrictedError as SandboxEgressRestrictedError,
     RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
     EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
@@ -2946,6 +2963,10 @@ export declare namespace Anthropic {
   export type ErrorType = API.ErrorType;
   export type GatewayTimeoutErrorObject = API.GatewayTimeoutErrorObject;
   export type InvalidRequestErrorObject = API.InvalidRequestErrorObject;
+  export type LinkedOrganizationBillingUnavailableErrorDetails =
+    API.LinkedOrganizationBillingUnavailableErrorDetails;
+  export type LinkedOrganizationSpendLimitReachedErrorDetails =
+    API.LinkedOrganizationSpendLimitReachedErrorDetails;
   export type NotFoundErrorObject = API.NotFoundErrorObject;
   export type OrganizationOnHoldErrorDetails = API.OrganizationOnHoldErrorDetails;
   export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;

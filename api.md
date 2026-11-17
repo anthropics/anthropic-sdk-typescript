@@ -20,6 +20,8 @@ Types:
 - <code><a href="./src/resources/shared.ts">ErrorType</a></code>
 - <code><a href="./src/resources/shared.ts">GatewayTimeoutErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationBillingUnavailableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">NotFoundErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
@@ -49,6 +51,8 @@ Types:
 - <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationBillingUnavailableError</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingError</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedError</a></code>
@@ -646,10 +650,14 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserEntityType</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrder</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrderBy</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotBillableErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileProgramStatus</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfilePrograms</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotBillableError</a></code>
 
 Methods:
 

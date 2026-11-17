@@ -6,6 +6,8 @@ export {
 } from './action-urls';
 export {
   UserProfileNotFoundError,
+  UserProfileRequiredError,
+  UserProfileNotBillableError,
   UserProfiles,
   type DeletedUserProfile,
   type UserProfile,
@@ -27,9 +29,11 @@ export {
   type UserProfileExternalUserEntityType,
   type UserProfileListOrder,
   type UserProfileListOrderBy,
+  type UserProfileNotBillableErrorDetails,
   type UserProfileNotFoundErrorDetails,
   type UserProfileProgramStatus,
   type UserProfilePrograms,
+  type UserProfileRequiredErrorDetails,
   type UserProfileCreateParams,
   type UserProfileRetrieveParams,
   type UserProfileUpdateParams,

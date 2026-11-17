@@ -283,6 +283,10 @@ export class Messages extends APIResource {
    * @throws {ThreadUnsupportedRequestError}
    * @throws {ToolNameConflictError}
    * @throws {ToolReferenceUnresolvedError}
+   * @throws {UserProfileRequiredError}
+   * @throws {LinkedOrganizationBillingUnavailableError}
+   * @throws {LinkedOrganizationSpendLimitReachedError}
+   * @throws {UserProfileNotBillableError}
    * @throws {ThreadNotFoundError}
    * @throws {SkillReadBlockedUndecryptableError}
    * @throws {RequestBodyTooLargeAfterDecodingError}

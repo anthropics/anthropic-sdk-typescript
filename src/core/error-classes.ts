@@ -8,6 +8,8 @@ import {
   ClaudeCodeKeyCreatorNotMemberError,
   ClaudeCodeVersionTooOldError,
   EnforcedSpendLimitReachedError,
+  LinkedOrganizationBillingUnavailableError,
+  LinkedOrganizationSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
   ParentOrganizationRequiredError,
@@ -60,7 +62,11 @@ import {
 } from '../resources/organization/organization';
 import { CannotRemoveLastMemberError } from '../resources/organization/users';
 import { SkillReadBlockedUndecryptableError } from '../resources/skills/skills';
-import { UserProfileNotFoundError } from '../resources/user-profiles/user-profiles';
+import {
+  UserProfileNotBillableError,
+  UserProfileNotFoundError,
+  UserProfileRequiredError,
+} from '../resources/user-profiles/user-profiles';
 import {
   BetaEnvironmentArchivedError,
   BetaEnvironmentCreateDisabledError,
@@ -160,9 +166,12 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 tool_reference_unresolved', ToolReferenceUnresolvedError],
   ['400 unsupported_charset', BetaUnsupportedCharsetError],
   ['400 user_profile_not_found', UserProfileNotFoundError],
+  ['400 user_profile_required', UserProfileRequiredError],
   ['400 workspace_api_key_limit_exceeded', WorkspaceAPIKeyLimitExceededError],
   ['400 workspace_member_limit_exceeded', WorkspaceMemberLimitExceededError],
   ['400 workspace_policy_violation', WorkspacePolicyViolationError],
+  ['402 linked_organization_billing_unavailable', LinkedOrganizationBillingUnavailableError],
+  ['402 linked_organization_spend_limit_reached', LinkedOrganizationSpendLimitReachedError],
   ['403 api_key_scope_missing', BetaAPIKeyScopeMissingError],
   ['403 cannot_sign_out_managed_member', BetaCannotSignOutManagedMemberError],
   ['403 cannot_sign_out_membership_admin', BetaCannotSignOutMembershipAdminError],
@@ -175,6 +184,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['403 organization_level_scoped_api_key_required', BetaOrganizationLevelScopedAPIKeyRequiredError],
   ['403 sandbox_egress_restricted', SandboxEgressRestrictedError],
   ['403 spend_limits_admin_api_writes_not_enabled', BetaSpendLimitsAdminAPIWritesNotEnabledError],
+  ['403 user_profile_not_billable', UserProfileNotBillableError],
   ['404 environment_not_found', BetaEnvironmentNotFoundError],
   ['404 file_expired', FileExpiredError],
   ['404 rbac_role_not_found', RBACRoleNotFoundError],
