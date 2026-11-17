@@ -109,6 +109,7 @@ import {
   CMEKKeyUnreachableError,
   ClaudeCodeKeyCreatorNotMemberError,
   ClaudeCodeVersionTooOldError,
+  ContractSpendLimitReachedError,
   EnforcedSpendLimitReachedError,
   LinkedOrganizationBillingUnavailableError,
   LinkedOrganizationSpendLimitReachedError,
@@ -2296,6 +2297,7 @@ Anthropic.LinkedOrganizationBillingUnavailableError = LinkedOrganizationBillingU
 Anthropic.LinkedOrganizationSpendLimitReachedError = LinkedOrganizationSpendLimitReachedError;
 Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
 Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
+Anthropic.ContractSpendLimitReachedError = ContractSpendLimitReachedError;
 Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
 Anthropic.RampLimitExceededError = RampLimitExceededError;
 Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
@@ -2946,6 +2948,7 @@ export declare namespace Anthropic {
     LinkedOrganizationSpendLimitReachedError as LinkedOrganizationSpendLimitReachedError,
     SandboxEgressRestrictedError as SandboxEgressRestrictedError,
     RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
+    ContractSpendLimitReachedError as ContractSpendLimitReachedError,
     EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
     RampLimitExceededError as RampLimitExceededError,
     CMEKContextUnavailableError as CMEKContextUnavailableError,
@@ -2961,6 +2964,7 @@ export declare namespace Anthropic {
   export type CMEKKeyDisabledErrorDetails = API.CMEKKeyDisabledErrorDetails;
   export type CMEKKeyNetworkBlockedErrorDetails = API.CMEKKeyNetworkBlockedErrorDetails;
   export type CMEKKeyUnreachableErrorDetails = API.CMEKKeyUnreachableErrorDetails;
+  export type ContractSpendLimitReachedErrorDetails = API.ContractSpendLimitReachedErrorDetails;
   export type EnforcedSpendLimitReachedErrorDetails = API.EnforcedSpendLimitReachedErrorDetails;
   export type ErrorDetails = API.ErrorDetails;
   export type ErrorObject = API.ErrorObject;

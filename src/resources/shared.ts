@@ -183,6 +183,17 @@ export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError 
 }
 
 /**
+ * The organization has reached the spend limit of its contract.
+ */
+export class ContractSpendLimitReachedError extends ErrorsRateLimitError {
+  declare readonly errorCode: 'contract_spend_limit_reached';
+  declare readonly details: ContractSpendLimitReachedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ContractSpendLimitReachedError';
+}
+
+/**
  * The organization has crossed the monthly API usage threshold of its API tier.
  */
 export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
@@ -319,6 +330,13 @@ export interface CMEKKeyUnreachableErrorDetails {
 }
 
 /**
+ * The organization has reached the spend limit of its contract.
+ */
+export interface ContractSpendLimitReachedErrorDetails {
+  error_code: 'contract_spend_limit_reached';
+}
+
+/**
  * The organization has crossed the monthly API usage threshold of its API tier.
  */
 export interface EnforcedSpendLimitReachedErrorDetails {
@@ -356,6 +374,7 @@ export type ErrorDetails =
   | MessagesAPI.ThreadNotFoundErrorDetails
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
+  | ContractSpendLimitReachedErrorDetails
   | EnforcedSpendLimitReachedErrorDetails
   | RampLimitExceededErrorDetails
   | CMEKKeyUnreachableErrorDetails

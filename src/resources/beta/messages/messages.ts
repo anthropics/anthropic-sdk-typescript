@@ -113,6 +113,7 @@ export class Messages extends APIResource {
    * @throws {ThreadNotFoundError}
    * @throws {SkillReadBlockedUndecryptableError}
    * @throws {RequestBodyTooLargeAfterDecodingError}
+   * @throws {ContractSpendLimitReachedError}
    * @throws {EnforcedSpendLimitReachedError}
    * @throws {RampLimitExceededError}
    * @throws {CMEKKeyUnreachableError}

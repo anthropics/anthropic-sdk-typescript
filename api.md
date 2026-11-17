@@ -13,6 +13,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">CMEKKeyDisabledErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyUnreachableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">ContractSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
@@ -55,6 +56,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingError</a></code>
+- <code><a href="./src/resources/shared.ts">ContractSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededError</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKContextUnavailableError</a></code>
