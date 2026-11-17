@@ -310,7 +310,7 @@ export type BetaManagedAgentsDeploymentsPageCursor = PageCursor<BetaManagedAgent
 /**
  * The deployment's agent was archived.
  */
-export interface BetaManagedAgentsAgentArchivedDeploymentPausedReasonError {
+export interface BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject {
   type: 'agent_archived_error';
 }
 
@@ -497,21 +497,21 @@ export type BetaManagedAgentsDeploymentPausedReason =
 /**
  * The error that triggered an auto-pause. Matches the failed run's `error.type`.
  */
-export type BetaManagedAgentsDeploymentPausedReasonError =
-  | BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError
-  | BetaManagedAgentsAgentArchivedDeploymentPausedReasonError
-  | BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError
-  | BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError
-  | BetaManagedAgentsFileNotFoundDeploymentPausedReasonError
-  | BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError
-  | BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError
-  | BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError
-  | BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError
-  | BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError
-  | BetaManagedAgentsVaultArchivedDeploymentPausedReasonError
-  | BetaManagedAgentsUnknownDeploymentPausedReasonError
-  | BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError
-  | BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError;
+export type BetaManagedAgentsDeploymentPausedReasonErrorObject =
+  | BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject
+  | BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject;
 
 /**
  * Lifecycle status of a deployment.
@@ -579,14 +579,14 @@ export interface BetaManagedAgentsDeploymentUserMessageEvent {
 /**
  * The deployment's environment was archived.
  */
-export interface BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError {
+export interface BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject {
   type: 'environment_archived_error';
 }
 
 /**
  * The deployment's environment no longer exists.
  */
-export interface BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError {
+export interface BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject {
   type: 'environment_not_found_error';
 }
 
@@ -597,7 +597,7 @@ export interface BetaManagedAgentsErrorDeploymentPausedReason {
   /**
    * The failed run's error.
    */
-  error: BetaManagedAgentsDeploymentPausedReasonError;
+  error: BetaManagedAgentsDeploymentPausedReasonErrorObject;
 
   type: 'error';
 }
@@ -605,7 +605,7 @@ export interface BetaManagedAgentsErrorDeploymentPausedReason {
 /**
  * A file resource referenced by the deployment no longer exists.
  */
-export interface BetaManagedAgentsFileNotFoundDeploymentPausedReasonError {
+export interface BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject {
   type: 'file_not_found_error';
 }
 
@@ -660,14 +660,14 @@ export interface BetaManagedAgentsManualDeploymentPausedReason {
  * An MCP server host used by the deployment's agent is blocked by the
  * environment's network policy.
  */
-export interface BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError {
+export interface BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject {
   type: 'mcp_egress_blocked_error';
 }
 
 /**
  * A memory store referenced by the deployment is archived.
  */
-export interface BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError {
+export interface BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject {
   type: 'memory_store_archived_error';
 }
 
@@ -699,7 +699,7 @@ export interface BetaManagedAgentsMemoryStoreResourceConfig {
 /**
  * The deployment's organization is disabled.
  */
-export interface BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError {
+export interface BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject {
   type: 'organization_disabled_error';
 }
 
@@ -766,7 +766,7 @@ export interface BetaManagedAgentsScheduleParams {
  * The deployment configures resources, but its environment is self-hosted and
  * cannot mount them.
  */
-export interface BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError {
+export interface BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject {
   type: 'self_hosted_resources_unsupported_error';
 }
 
@@ -781,14 +781,14 @@ export type BetaManagedAgentsSessionResourceConfig =
 /**
  * A referenced resource no longer exists and its kind was not reported.
  */
-export interface BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError {
+export interface BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject {
   type: 'session_resource_not_found_error';
 }
 
 /**
  * A skill referenced by the deployment's agent no longer exists.
  */
-export interface BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError {
+export interface BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject {
   type: 'skill_not_found_error';
 }
 
@@ -796,30 +796,119 @@ export interface BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError {
  * An unrecognized error auto-paused the deployment. A fallback variant; matches a
  * run whose `error.type` is `unknown_error`.
  */
-export interface BetaManagedAgentsUnknownDeploymentPausedReasonError {
+export interface BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject {
   type: 'unknown_error';
 }
 
 /**
  * A vault referenced by the deployment is archived.
  */
-export interface BetaManagedAgentsVaultArchivedDeploymentPausedReasonError {
+export interface BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject {
   type: 'vault_archived_error';
 }
 
 /**
  * A vault referenced by the deployment no longer exists.
  */
-export interface BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError {
+export interface BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject {
   type: 'vault_not_found_error';
 }
 
 /**
  * The deployment's workspace was archived.
  */
-export interface BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError {
+export interface BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject {
   type: 'workspace_archived_error';
 }
+
+/**
+ * @deprecated BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError has been renamed to BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError =
+  BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsAgentArchivedDeploymentPausedReasonError has been renamed to BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsAgentArchivedDeploymentPausedReasonError =
+  BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError has been renamed to BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError =
+  BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError has been renamed to BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError =
+  BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError has been renamed to BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError =
+  BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError has been renamed to BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError =
+  BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsFileNotFoundDeploymentPausedReasonError has been renamed to BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsFileNotFoundDeploymentPausedReasonError =
+  BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError has been renamed to BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError =
+  BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError has been renamed to BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError =
+  BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError has been renamed to BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError =
+  BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError has been renamed to BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError =
+  BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError has been renamed to BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError =
+  BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsVaultArchivedDeploymentPausedReasonError has been renamed to BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsVaultArchivedDeploymentPausedReasonError =
+  BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsUnknownDeploymentPausedReasonError has been renamed to BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsUnknownDeploymentPausedReasonError =
+  BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsDeploymentPausedReasonError has been renamed to BetaManagedAgentsDeploymentPausedReasonErrorObject
+ */
+export type BetaManagedAgentsDeploymentPausedReasonError = BetaManagedAgentsDeploymentPausedReasonErrorObject;
 
 export interface DeploymentCreateParams {
   /**
@@ -1129,39 +1218,54 @@ export interface DeploymentUnpauseParams {
 
 export declare namespace Deployments {
   export {
-    type BetaManagedAgentsAgentArchivedDeploymentPausedReasonError as BetaManagedAgentsAgentArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject as BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsCronSchedule as BetaManagedAgentsCronSchedule,
     type BetaManagedAgentsCronScheduleParams as BetaManagedAgentsCronScheduleParams,
     type BetaManagedAgentsDeployment as BetaManagedAgentsDeployment,
     type BetaManagedAgentsDeploymentInitialEvent as BetaManagedAgentsDeploymentInitialEvent,
     type BetaManagedAgentsDeploymentInitialEventParams as BetaManagedAgentsDeploymentInitialEventParams,
     type BetaManagedAgentsDeploymentPausedReason as BetaManagedAgentsDeploymentPausedReason,
-    type BetaManagedAgentsDeploymentPausedReasonError as BetaManagedAgentsDeploymentPausedReasonError,
+    type BetaManagedAgentsDeploymentPausedReasonErrorObject as BetaManagedAgentsDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsDeploymentStatus as BetaManagedAgentsDeploymentStatus,
     type BetaManagedAgentsDeploymentSystemMessageEvent as BetaManagedAgentsDeploymentSystemMessageEvent,
     type BetaManagedAgentsDeploymentUserDefineOutcomeEvent as BetaManagedAgentsDeploymentUserDefineOutcomeEvent,
     type BetaManagedAgentsDeploymentUserMessageEvent as BetaManagedAgentsDeploymentUserMessageEvent,
-    type BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError as BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError,
-    type BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError as BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject as BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject as BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsErrorDeploymentPausedReason as BetaManagedAgentsErrorDeploymentPausedReason,
-    type BetaManagedAgentsFileNotFoundDeploymentPausedReasonError as BetaManagedAgentsFileNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject as BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsFileResourceConfig as BetaManagedAgentsFileResourceConfig,
     type BetaManagedAgentsGitHubRepositoryResourceConfig as BetaManagedAgentsGitHubRepositoryResourceConfig,
     type BetaManagedAgentsManualDeploymentPausedReason as BetaManagedAgentsManualDeploymentPausedReason,
-    type BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError as BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError,
-    type BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError as BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject as BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject as BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsMemoryStoreResourceConfig as BetaManagedAgentsMemoryStoreResourceConfig,
-    type BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError as BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError,
+    type BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject as BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsSchedule as BetaManagedAgentsSchedule,
     type BetaManagedAgentsScheduleParams as BetaManagedAgentsScheduleParams,
-    type BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError as BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError,
+    type BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject as BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject,
     type BetaManagedAgentsSessionResourceConfig as BetaManagedAgentsSessionResourceConfig,
-    type BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError as BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError,
-    type BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError as BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError,
-    type BetaManagedAgentsUnknownDeploymentPausedReasonError as BetaManagedAgentsUnknownDeploymentPausedReasonError,
-    type BetaManagedAgentsVaultArchivedDeploymentPausedReasonError as BetaManagedAgentsVaultArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject as BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject as BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject as BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject as BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject as BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject as BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject,
+    type BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError as BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsAgentArchivedDeploymentPausedReasonError as BetaManagedAgentsAgentArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError as BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError as BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError,
+    type BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError as BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError,
     type BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError as BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsFileNotFoundDeploymentPausedReasonError as BetaManagedAgentsFileNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError as BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError,
     type BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError as BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError as BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError,
+    type BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError as BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError as BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError,
+    type BetaManagedAgentsVaultArchivedDeploymentPausedReasonError as BetaManagedAgentsVaultArchivedDeploymentPausedReasonError,
+    type BetaManagedAgentsUnknownDeploymentPausedReasonError as BetaManagedAgentsUnknownDeploymentPausedReasonError,
+    type BetaManagedAgentsDeploymentPausedReasonError as BetaManagedAgentsDeploymentPausedReasonError,
     type BetaManagedAgentsDeploymentsPageCursor as BetaManagedAgentsDeploymentsPageCursor,
     type DeploymentCreateParams as DeploymentCreateParams,
     type DeploymentRetrieveParams as DeploymentRetrieveParams,

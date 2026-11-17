@@ -221,8 +221,12 @@ export class Plugins extends APIResource {
   /**
    * Change which stored version of an organization-owned Plugin is served to
    * members, for example to roll back to an earlier one. This pins the served
-   * version: later uploads are stored but no longer change what is served, and
-   * pinning cannot currently be undone, here or in claude.ai.
+   * version: later uploads through this API are stored but no longer change what is
+   * served, and pinning cannot currently be undone, here or in claude.ai.
+   *
+   * A version from claude.ai might still change what is served: see
+   * [Versions and the served version](/docs/en/manage-claude/plugins-api#versions-and-the-served-version)
+   * in the Plugins API guide.
    *
    * Pass the version as `served_version_id`: an earlier one to roll back, a later
    * one to start serving a version that was stored without being served, or the one
@@ -591,8 +595,17 @@ export interface BetaPluginContentScan {
   /**
    * The primary mechanism behind a `warn` or `fail`, such as `credential-exposure`
    * or `guardrail-tampering`; a mechanism this API does not yet name reads as
-   * `other`. Null on a `pass`, whenever `assessment` is null, and when no mechanism
-   * is reported for the verdict.
+   * `other`. Read `status` first: on an `errored` scan it is not a finding but why
+   * there is no verdict: `scan-invalid-archive`, the scan refused the version's
+   * archive, or could not process it, before checking what its files say, and
+   * running it again will not help, so change the files and store a new version;
+   * `scan-did-not-finish`, the scan did not finish or its result is no longer
+   * available, so retry the scan in claude.ai if it offers a retry;
+   * `scan-unavailable`, the scan could not run or its result cannot be read right
+   * now, so read the version again later, then retry the scan in claude.ai if it
+   * offers a retry. If these steps do not help, contact support. Null on a `pass`,
+   * while a scan runs, and when no mechanism is reported for the verdict. On an
+   * errored scan, null means that a compliance configuration ruled out the scan.
    */
   reason: string | null;
 

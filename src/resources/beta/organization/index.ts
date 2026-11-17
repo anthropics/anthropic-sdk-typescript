@@ -261,10 +261,11 @@ export { Organization, type BetaOrganization, type BetaOrganizationRole } from '
 export {
   PluginMarketplaces,
   type BetaPluginMarketplace,
-  type BetaPluginMarketplaceValidationPluginError,
+  type BetaPluginMarketplaceValidationPluginErrorObject,
   type BetaPluginMarketplaceValidationPluginWarning,
   type BetaPluginMarketplaceValidationPluginWarnings,
   type BetaPluginMarketplaceValidationReport,
+  type BetaPluginMarketplaceValidationPluginError,
   type PluginMarketplaceRetrieveParams,
   type PluginMarketplaceUpdateParams,
   type PluginMarketplaceListParams,

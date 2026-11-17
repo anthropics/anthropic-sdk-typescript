@@ -167,9 +167,9 @@ These rules are about the design of a client library. They don't depend on the l
 - A deprecation names the replacement.
 - Don't ship a deprecated alias for something that was never released. Rename it.
 - A breaking release is rare and a maintainer's call. A small, technically breaking change doesn't warrant one. Describe the compatibility impact in the PR instead of asking for one.
-- Where CI runs `detect-breaking-changes`, it checks the generated tests from a base against your branch. The base is the `breaking-change-baseline` tag when the repository has one, otherwise `main`. With neither, the job skips.
+- Where CI runs `detect-breaking-changes`, it checks the generated tests from a base against your branch. The base is the `breaking-change-baseline` tag when the repository has one, otherwise `main`. Where the repository also keeps a separate branch for the next release, a branch with commits of its own uses the commit where it left that branch instead, so a break that is already there doesn't fail it. With neither a tag nor `main`, the job skips.
 - Where CI runs `detect-breaking-changes`, it misses most breaks in hand-written API, and all changed defaults and newly rejected inputs. Call those out yourself.
-- If `detect-breaking-changes` fails the same way on the branch your PR targets, the break was already there and isn't yours.
+- If your PR targets a branch other than the one for the next release and `detect-breaking-changes` fails the same way there, the break comes from that branch.
 - Avoid a new runtime dependency unless it's absolutely necessary. An optional integration doesn't add its dependency for users who don't use it.
 - Where an optional dependency can be missing at runtime, the code that needs it fails with an error that names the package to install.
 

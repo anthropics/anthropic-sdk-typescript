@@ -27,6 +27,7 @@ export {
   InternalServerError,
   NotImplementedError,
   GatewayTimeoutError,
+  PaymentRequiredError,
   ContentTooLargeError,
   PermissionDeniedError,
   PreconditionFailedError,

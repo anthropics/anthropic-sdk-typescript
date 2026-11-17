@@ -54,6 +54,7 @@ import * as PluginMarketplacesAPI from './plugin-marketplaces';
 import {
   BetaPluginMarketplace,
   BetaPluginMarketplaceValidationPluginError,
+  BetaPluginMarketplaceValidationPluginErrorObject,
   BetaPluginMarketplaceValidationPluginWarning,
   BetaPluginMarketplaceValidationPluginWarnings,
   BetaPluginMarketplaceValidationReport,
@@ -790,10 +791,11 @@ export declare namespace Organization {
   export {
     PluginMarketplaces as PluginMarketplaces,
     type BetaPluginMarketplace as BetaPluginMarketplace,
-    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
+    type BetaPluginMarketplaceValidationPluginErrorObject as BetaPluginMarketplaceValidationPluginErrorObject,
     type BetaPluginMarketplaceValidationPluginWarning as BetaPluginMarketplaceValidationPluginWarning,
     type BetaPluginMarketplaceValidationPluginWarnings as BetaPluginMarketplaceValidationPluginWarnings,
     type BetaPluginMarketplaceValidationReport as BetaPluginMarketplaceValidationReport,
+    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
     type BetaPluginMarketplacesPageCursor as BetaPluginMarketplacesPageCursor,
     type PluginMarketplaceRetrieveParams as PluginMarketplaceRetrieveParams,
     type PluginMarketplaceUpdateParams as PluginMarketplaceUpdateParams,

@@ -187,6 +187,11 @@ export class AuthenticationError extends APIError<401, Headers> {
   static override readonly _errorName: string = 'AuthenticationError';
 }
 
+export class PaymentRequiredError extends APIError<402, Headers> {
+  /** @internal */
+  static override readonly _errorName: string = 'PaymentRequiredError';
+}
+
 export class PermissionDeniedError extends APIError<403, Headers> {
   /** @internal */
   static override readonly _errorName: string = 'PermissionDeniedError';
@@ -273,6 +278,7 @@ export class OverloadedError extends InternalServerError {
 const STATUS_ERROR_CLASSES = /* @__PURE__ */ new Map<number, typeof APIError<number, Headers>>([
   [400, BadRequestError],
   [401, AuthenticationError],
+  [402, PaymentRequiredError],
   [403, PermissionDeniedError],
   [404, NotFoundError],
   [408, RequestTimeoutError],

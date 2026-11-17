@@ -372,7 +372,7 @@ export interface BetaPluginMarketplace {
   type: 'plugin_marketplace';
 }
 
-export interface BetaPluginMarketplaceValidationPluginError {
+export interface BetaPluginMarketplaceValidationPluginErrorObject {
   /**
    * Why the plugin would be skipped by a synchronization.
    */
@@ -440,7 +440,7 @@ export interface BetaPluginMarketplaceValidationReport {
    * One entry per plugin a synchronization would skip entirely, keyed by the
    * plugin's name in marketplace.json.
    */
-  plugin_errors: Array<BetaPluginMarketplaceValidationPluginError>;
+  plugin_errors: Array<BetaPluginMarketplaceValidationPluginErrorObject>;
 
   /**
    * One entry per plugin that would synchronize with some of its contents left out,
@@ -472,6 +472,11 @@ export interface BetaPluginMarketplaceValidationReport {
    */
   valid: boolean;
 }
+
+/**
+ * @deprecated BetaPluginMarketplaceValidationPluginError has been renamed to BetaPluginMarketplaceValidationPluginErrorObject
+ */
+export type BetaPluginMarketplaceValidationPluginError = BetaPluginMarketplaceValidationPluginErrorObject;
 
 export interface PluginMarketplaceRetrieveParams {
   /**
@@ -591,10 +596,11 @@ export interface PluginMarketplaceValidateRepositoryParams {
 export declare namespace PluginMarketplaces {
   export {
     type BetaPluginMarketplace as BetaPluginMarketplace,
-    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
+    type BetaPluginMarketplaceValidationPluginErrorObject as BetaPluginMarketplaceValidationPluginErrorObject,
     type BetaPluginMarketplaceValidationPluginWarning as BetaPluginMarketplaceValidationPluginWarning,
     type BetaPluginMarketplaceValidationPluginWarnings as BetaPluginMarketplaceValidationPluginWarnings,
     type BetaPluginMarketplaceValidationReport as BetaPluginMarketplaceValidationReport,
+    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
     type BetaPluginMarketplacesPageCursor as BetaPluginMarketplacesPageCursor,
     type PluginMarketplaceRetrieveParams as PluginMarketplaceRetrieveParams,
     type PluginMarketplaceUpdateParams as PluginMarketplaceUpdateParams,

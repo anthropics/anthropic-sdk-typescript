@@ -93,7 +93,7 @@ export type BetaManagedAgentsDeploymentRunsPageCursor = PageCursor<BetaManagedAg
 /**
  * The deployment's agent was archived.
  */
-export interface BetaManagedAgentsAgentArchivedRunError {
+export interface BetaManagedAgentsAgentArchivedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -133,22 +133,22 @@ export interface BetaManagedAgentsDeploymentRun {
    * `error` is non-null.
    */
   error:
-    | BetaManagedAgentsEnvironmentArchivedRunError
-    | BetaManagedAgentsAgentArchivedRunError
-    | BetaManagedAgentsEnvironmentNotFoundRunError
-    | BetaManagedAgentsVaultNotFoundRunError
-    | BetaManagedAgentsVaultArchivedRunError
-    | BetaManagedAgentsFileNotFoundRunError
-    | BetaManagedAgentsMemoryStoreArchivedRunError
-    | BetaManagedAgentsSkillNotFoundRunError
-    | BetaManagedAgentsSessionResourceNotFoundRunError
-    | BetaManagedAgentsWorkspaceArchivedRunError
-    | BetaManagedAgentsOrganizationDisabledRunError
-    | BetaManagedAgentsSessionRateLimitedRunError
-    | BetaManagedAgentsSessionCreationRejectedRunError
-    | BetaManagedAgentsUnknownRunError
-    | BetaManagedAgentsSelfHostedResourcesUnsupportedRunError
-    | BetaManagedAgentsMCPEgressBlockedRunError
+    | BetaManagedAgentsEnvironmentArchivedRunErrorObject
+    | BetaManagedAgentsAgentArchivedRunErrorObject
+    | BetaManagedAgentsEnvironmentNotFoundRunErrorObject
+    | BetaManagedAgentsVaultNotFoundRunErrorObject
+    | BetaManagedAgentsVaultArchivedRunErrorObject
+    | BetaManagedAgentsFileNotFoundRunErrorObject
+    | BetaManagedAgentsMemoryStoreArchivedRunErrorObject
+    | BetaManagedAgentsSkillNotFoundRunErrorObject
+    | BetaManagedAgentsSessionResourceNotFoundRunErrorObject
+    | BetaManagedAgentsWorkspaceArchivedRunErrorObject
+    | BetaManagedAgentsOrganizationDisabledRunErrorObject
+    | BetaManagedAgentsSessionRateLimitedRunErrorObject
+    | BetaManagedAgentsSessionCreationRejectedRunErrorObject
+    | BetaManagedAgentsUnknownRunErrorObject
+    | BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject
+    | BetaManagedAgentsMCPEgressBlockedRunErrorObject
     | null;
 
   /**
@@ -168,7 +168,7 @@ export interface BetaManagedAgentsDeploymentRun {
 /**
  * The deployment's environment was archived.
  */
-export interface BetaManagedAgentsEnvironmentArchivedRunError {
+export interface BetaManagedAgentsEnvironmentArchivedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -180,7 +180,7 @@ export interface BetaManagedAgentsEnvironmentArchivedRunError {
 /**
  * The deployment's environment no longer exists.
  */
-export interface BetaManagedAgentsEnvironmentNotFoundRunError {
+export interface BetaManagedAgentsEnvironmentNotFoundRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -192,7 +192,7 @@ export interface BetaManagedAgentsEnvironmentNotFoundRunError {
 /**
  * A file resource referenced by the deployment no longer exists.
  */
-export interface BetaManagedAgentsFileNotFoundRunError {
+export interface BetaManagedAgentsFileNotFoundRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -213,7 +213,7 @@ export interface BetaManagedAgentsManualTriggerContext {
  * An MCP server host used by the deployment's agent is blocked by the
  * environment's network policy.
  */
-export interface BetaManagedAgentsMCPEgressBlockedRunError {
+export interface BetaManagedAgentsMCPEgressBlockedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -225,7 +225,7 @@ export interface BetaManagedAgentsMCPEgressBlockedRunError {
 /**
  * A memory store referenced by the deployment is archived.
  */
-export interface BetaManagedAgentsMemoryStoreArchivedRunError {
+export interface BetaManagedAgentsMemoryStoreArchivedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -237,7 +237,7 @@ export interface BetaManagedAgentsMemoryStoreArchivedRunError {
 /**
  * The deployment's organization is disabled.
  */
-export interface BetaManagedAgentsOrganizationDisabledRunError {
+export interface BetaManagedAgentsOrganizationDisabledRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -264,7 +264,7 @@ export interface BetaManagedAgentsScheduleTriggerContext {
  * The deployment configures resources, but its environment is self-hosted and
  * cannot mount them.
  */
-export interface BetaManagedAgentsSelfHostedResourcesUnsupportedRunError {
+export interface BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -276,7 +276,7 @@ export interface BetaManagedAgentsSelfHostedResourcesUnsupportedRunError {
 /**
  * The session create request was rejected with a non-retryable validation error.
  */
-export interface BetaManagedAgentsSessionCreationRejectedRunError {
+export interface BetaManagedAgentsSessionCreationRejectedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -289,7 +289,7 @@ export interface BetaManagedAgentsSessionCreationRejectedRunError {
  * Session creation was rejected due to rate limiting. The schedule keeps firing;
  * subsequent runs may succeed.
  */
-export interface BetaManagedAgentsSessionRateLimitedRunError {
+export interface BetaManagedAgentsSessionRateLimitedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -301,7 +301,7 @@ export interface BetaManagedAgentsSessionRateLimitedRunError {
 /**
  * A referenced resource no longer exists and its kind was not reported.
  */
-export interface BetaManagedAgentsSessionResourceNotFoundRunError {
+export interface BetaManagedAgentsSessionResourceNotFoundRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -313,7 +313,7 @@ export interface BetaManagedAgentsSessionResourceNotFoundRunError {
 /**
  * A skill referenced by the deployment's agent no longer exists.
  */
-export interface BetaManagedAgentsSkillNotFoundRunError {
+export interface BetaManagedAgentsSkillNotFoundRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -342,7 +342,7 @@ export type BetaManagedAgentsTriggerType = 'schedule' | 'manual';
  * An unknown or unexpected error caused the run to fail. A fallback variant;
  * clients that do not recognize a new error type can match on message alone.
  */
-export interface BetaManagedAgentsUnknownRunError {
+export interface BetaManagedAgentsUnknownRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -354,7 +354,7 @@ export interface BetaManagedAgentsUnknownRunError {
 /**
  * A vault referenced by the deployment is archived.
  */
-export interface BetaManagedAgentsVaultArchivedRunError {
+export interface BetaManagedAgentsVaultArchivedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -366,7 +366,7 @@ export interface BetaManagedAgentsVaultArchivedRunError {
 /**
  * A vault referenced by the deployment no longer exists.
  */
-export interface BetaManagedAgentsVaultNotFoundRunError {
+export interface BetaManagedAgentsVaultNotFoundRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -378,7 +378,7 @@ export interface BetaManagedAgentsVaultNotFoundRunError {
 /**
  * The deployment's workspace was archived.
  */
-export interface BetaManagedAgentsWorkspaceArchivedRunError {
+export interface BetaManagedAgentsWorkspaceArchivedRunErrorObject {
   /**
    * Human-readable error description.
    */
@@ -386,6 +386,90 @@ export interface BetaManagedAgentsWorkspaceArchivedRunError {
 
   type: 'workspace_archived_error';
 }
+
+/**
+ * @deprecated BetaManagedAgentsEnvironmentArchivedRunError has been renamed to BetaManagedAgentsEnvironmentArchivedRunErrorObject
+ */
+export type BetaManagedAgentsEnvironmentArchivedRunError = BetaManagedAgentsEnvironmentArchivedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsAgentArchivedRunError has been renamed to BetaManagedAgentsAgentArchivedRunErrorObject
+ */
+export type BetaManagedAgentsAgentArchivedRunError = BetaManagedAgentsAgentArchivedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsEnvironmentNotFoundRunError has been renamed to BetaManagedAgentsEnvironmentNotFoundRunErrorObject
+ */
+export type BetaManagedAgentsEnvironmentNotFoundRunError = BetaManagedAgentsEnvironmentNotFoundRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsVaultNotFoundRunError has been renamed to BetaManagedAgentsVaultNotFoundRunErrorObject
+ */
+export type BetaManagedAgentsVaultNotFoundRunError = BetaManagedAgentsVaultNotFoundRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsVaultArchivedRunError has been renamed to BetaManagedAgentsVaultArchivedRunErrorObject
+ */
+export type BetaManagedAgentsVaultArchivedRunError = BetaManagedAgentsVaultArchivedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsFileNotFoundRunError has been renamed to BetaManagedAgentsFileNotFoundRunErrorObject
+ */
+export type BetaManagedAgentsFileNotFoundRunError = BetaManagedAgentsFileNotFoundRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMemoryStoreArchivedRunError has been renamed to BetaManagedAgentsMemoryStoreArchivedRunErrorObject
+ */
+export type BetaManagedAgentsMemoryStoreArchivedRunError = BetaManagedAgentsMemoryStoreArchivedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSkillNotFoundRunError has been renamed to BetaManagedAgentsSkillNotFoundRunErrorObject
+ */
+export type BetaManagedAgentsSkillNotFoundRunError = BetaManagedAgentsSkillNotFoundRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSessionResourceNotFoundRunError has been renamed to BetaManagedAgentsSessionResourceNotFoundRunErrorObject
+ */
+export type BetaManagedAgentsSessionResourceNotFoundRunError =
+  BetaManagedAgentsSessionResourceNotFoundRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsWorkspaceArchivedRunError has been renamed to BetaManagedAgentsWorkspaceArchivedRunErrorObject
+ */
+export type BetaManagedAgentsWorkspaceArchivedRunError = BetaManagedAgentsWorkspaceArchivedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsOrganizationDisabledRunError has been renamed to BetaManagedAgentsOrganizationDisabledRunErrorObject
+ */
+export type BetaManagedAgentsOrganizationDisabledRunError =
+  BetaManagedAgentsOrganizationDisabledRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSessionRateLimitedRunError has been renamed to BetaManagedAgentsSessionRateLimitedRunErrorObject
+ */
+export type BetaManagedAgentsSessionRateLimitedRunError = BetaManagedAgentsSessionRateLimitedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSessionCreationRejectedRunError has been renamed to BetaManagedAgentsSessionCreationRejectedRunErrorObject
+ */
+export type BetaManagedAgentsSessionCreationRejectedRunError =
+  BetaManagedAgentsSessionCreationRejectedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsUnknownRunError has been renamed to BetaManagedAgentsUnknownRunErrorObject
+ */
+export type BetaManagedAgentsUnknownRunError = BetaManagedAgentsUnknownRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsSelfHostedResourcesUnsupportedRunError has been renamed to BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject
+ */
+export type BetaManagedAgentsSelfHostedResourcesUnsupportedRunError =
+  BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMCPEgressBlockedRunError has been renamed to BetaManagedAgentsMCPEgressBlockedRunErrorObject
+ */
+export type BetaManagedAgentsMCPEgressBlockedRunError = BetaManagedAgentsMCPEgressBlockedRunErrorObject;
 
 export interface DeploymentRunRetrieveParams {
   /**
@@ -463,27 +547,43 @@ export interface DeploymentRunListParams extends PageCursorParams {
 
 export declare namespace DeploymentRuns {
   export {
-    type BetaManagedAgentsAgentArchivedRunError as BetaManagedAgentsAgentArchivedRunError,
+    type BetaManagedAgentsAgentArchivedRunErrorObject as BetaManagedAgentsAgentArchivedRunErrorObject,
     type BetaManagedAgentsDeploymentRun as BetaManagedAgentsDeploymentRun,
-    type BetaManagedAgentsEnvironmentArchivedRunError as BetaManagedAgentsEnvironmentArchivedRunError,
-    type BetaManagedAgentsEnvironmentNotFoundRunError as BetaManagedAgentsEnvironmentNotFoundRunError,
-    type BetaManagedAgentsFileNotFoundRunError as BetaManagedAgentsFileNotFoundRunError,
+    type BetaManagedAgentsEnvironmentArchivedRunErrorObject as BetaManagedAgentsEnvironmentArchivedRunErrorObject,
+    type BetaManagedAgentsEnvironmentNotFoundRunErrorObject as BetaManagedAgentsEnvironmentNotFoundRunErrorObject,
+    type BetaManagedAgentsFileNotFoundRunErrorObject as BetaManagedAgentsFileNotFoundRunErrorObject,
     type BetaManagedAgentsManualTriggerContext as BetaManagedAgentsManualTriggerContext,
-    type BetaManagedAgentsMCPEgressBlockedRunError as BetaManagedAgentsMCPEgressBlockedRunError,
-    type BetaManagedAgentsMemoryStoreArchivedRunError as BetaManagedAgentsMemoryStoreArchivedRunError,
-    type BetaManagedAgentsOrganizationDisabledRunError as BetaManagedAgentsOrganizationDisabledRunError,
+    type BetaManagedAgentsMCPEgressBlockedRunErrorObject as BetaManagedAgentsMCPEgressBlockedRunErrorObject,
+    type BetaManagedAgentsMemoryStoreArchivedRunErrorObject as BetaManagedAgentsMemoryStoreArchivedRunErrorObject,
+    type BetaManagedAgentsOrganizationDisabledRunErrorObject as BetaManagedAgentsOrganizationDisabledRunErrorObject,
     type BetaManagedAgentsScheduleTriggerContext as BetaManagedAgentsScheduleTriggerContext,
-    type BetaManagedAgentsSelfHostedResourcesUnsupportedRunError as BetaManagedAgentsSelfHostedResourcesUnsupportedRunError,
-    type BetaManagedAgentsSessionCreationRejectedRunError as BetaManagedAgentsSessionCreationRejectedRunError,
-    type BetaManagedAgentsSessionRateLimitedRunError as BetaManagedAgentsSessionRateLimitedRunError,
-    type BetaManagedAgentsSessionResourceNotFoundRunError as BetaManagedAgentsSessionResourceNotFoundRunError,
-    type BetaManagedAgentsSkillNotFoundRunError as BetaManagedAgentsSkillNotFoundRunError,
+    type BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject as BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject,
+    type BetaManagedAgentsSessionCreationRejectedRunErrorObject as BetaManagedAgentsSessionCreationRejectedRunErrorObject,
+    type BetaManagedAgentsSessionRateLimitedRunErrorObject as BetaManagedAgentsSessionRateLimitedRunErrorObject,
+    type BetaManagedAgentsSessionResourceNotFoundRunErrorObject as BetaManagedAgentsSessionResourceNotFoundRunErrorObject,
+    type BetaManagedAgentsSkillNotFoundRunErrorObject as BetaManagedAgentsSkillNotFoundRunErrorObject,
     type BetaManagedAgentsTriggerContext as BetaManagedAgentsTriggerContext,
     type BetaManagedAgentsTriggerType as BetaManagedAgentsTriggerType,
-    type BetaManagedAgentsUnknownRunError as BetaManagedAgentsUnknownRunError,
-    type BetaManagedAgentsVaultArchivedRunError as BetaManagedAgentsVaultArchivedRunError,
+    type BetaManagedAgentsUnknownRunErrorObject as BetaManagedAgentsUnknownRunErrorObject,
+    type BetaManagedAgentsVaultArchivedRunErrorObject as BetaManagedAgentsVaultArchivedRunErrorObject,
+    type BetaManagedAgentsVaultNotFoundRunErrorObject as BetaManagedAgentsVaultNotFoundRunErrorObject,
+    type BetaManagedAgentsWorkspaceArchivedRunErrorObject as BetaManagedAgentsWorkspaceArchivedRunErrorObject,
+    type BetaManagedAgentsEnvironmentArchivedRunError as BetaManagedAgentsEnvironmentArchivedRunError,
+    type BetaManagedAgentsAgentArchivedRunError as BetaManagedAgentsAgentArchivedRunError,
+    type BetaManagedAgentsEnvironmentNotFoundRunError as BetaManagedAgentsEnvironmentNotFoundRunError,
     type BetaManagedAgentsVaultNotFoundRunError as BetaManagedAgentsVaultNotFoundRunError,
+    type BetaManagedAgentsVaultArchivedRunError as BetaManagedAgentsVaultArchivedRunError,
+    type BetaManagedAgentsFileNotFoundRunError as BetaManagedAgentsFileNotFoundRunError,
+    type BetaManagedAgentsMemoryStoreArchivedRunError as BetaManagedAgentsMemoryStoreArchivedRunError,
+    type BetaManagedAgentsSkillNotFoundRunError as BetaManagedAgentsSkillNotFoundRunError,
+    type BetaManagedAgentsSessionResourceNotFoundRunError as BetaManagedAgentsSessionResourceNotFoundRunError,
     type BetaManagedAgentsWorkspaceArchivedRunError as BetaManagedAgentsWorkspaceArchivedRunError,
+    type BetaManagedAgentsOrganizationDisabledRunError as BetaManagedAgentsOrganizationDisabledRunError,
+    type BetaManagedAgentsSessionRateLimitedRunError as BetaManagedAgentsSessionRateLimitedRunError,
+    type BetaManagedAgentsSessionCreationRejectedRunError as BetaManagedAgentsSessionCreationRejectedRunError,
+    type BetaManagedAgentsUnknownRunError as BetaManagedAgentsUnknownRunError,
+    type BetaManagedAgentsSelfHostedResourcesUnsupportedRunError as BetaManagedAgentsSelfHostedResourcesUnsupportedRunError,
+    type BetaManagedAgentsMCPEgressBlockedRunError as BetaManagedAgentsMCPEgressBlockedRunError,
     type BetaManagedAgentsDeploymentRunsPageCursor as BetaManagedAgentsDeploymentRunsPageCursor,
     type DeploymentRunRetrieveParams as DeploymentRunRetrieveParams,
     type DeploymentRunListParams as DeploymentRunListParams,

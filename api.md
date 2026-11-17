@@ -5,33 +5,44 @@
 Types:
 
 - <code><a href="./src/resources/shared.ts">APIErrorObject</a></code>
-- <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
-- <code><a href="./src/resources/shared.ts">BillingError</a></code>
+- <code><a href="./src/resources/shared.ts">AuthenticationErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">BillingErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeVersionTooOldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKContextUnavailableErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyDisabledErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyUnreachableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">ContractSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorType</a></code>
-- <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
-- <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
-- <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
+- <code><a href="./src/resources/shared.ts">GatewayTimeoutErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">InvalidRequestErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationBillingUnavailableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">NotFoundErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
+- <code><a href="./src/resources/shared.ts">OverloadedErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">PermissionError</a></code>
+- <code><a href="./src/resources/shared.ts">PermissionErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
+- <code><a href="./src/resources/shared.ts">RateLimitErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
+- <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
+- <code><a href="./src/resources/shared.ts">BillingError</a></code>
+- <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
+- <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
+- <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
+- <code><a href="./src/resources/shared.ts">PermissionError</a></code>
+- <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberError</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeVersionTooOldError</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyDisabledError</a></code>
@@ -41,8 +52,11 @@ Types:
 - <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationBillingUnavailableError</a></code>
+- <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingError</a></code>
+- <code><a href="./src/resources/shared.ts">ContractSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededError</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKContextUnavailableError</a></code>
@@ -62,8 +76,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultBlockParam</a></code>
-- <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserClickTarget</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BrowserCloseTabConfig</a></code>
@@ -211,8 +225,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlockContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlockParamContent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CompactionBlockAmbiguousErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CompactionBlockMisplacedErrorDetails</a></code>
@@ -350,8 +364,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionStrReplaceResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultBlockParam</a></code>
-- <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionViewResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionViewResultBlockParam</a></code>
@@ -385,8 +399,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolRegex20251119</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultBlockParam</a></code>
-- <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultErrorObject</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultErrorParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolSearchResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolSearchResultBlockParam</a></code>
@@ -425,13 +439,19 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20250305</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20260209</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20260318</a></code>
-- <code><a href="./src/resources/messages/messages.ts">WebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolRequestErrorObject</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParamContent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultErrorObject</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextEditorCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolSearchToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ResponseToolUseBlockUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ResponseBrowserToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ResponseBrowserCloseTabToolUseBlock</a></code>
@@ -615,6 +635,7 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">DeletedUserProfile</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfile</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileAccessType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileBillingNotAuthorizedErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberProgram</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberRequirements</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberTier</a></code>
@@ -632,10 +653,15 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserEntityType</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrder</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrderBy</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotBillableErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileProgramStatus</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfilePrograms</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredErrorDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotFoundError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileRequiredError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileBillingNotAuthorizedError</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileNotBillableError</a></code>
 
 Methods:
 
@@ -1151,21 +1177,31 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/beta.ts">AnthropicBeta</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaAPIErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaAuthenticationErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaBillingErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaCurrency</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaErrorResponse</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaNotFoundErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaOverloadedErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaPermissionErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaRateLimitErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAuthenticationError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaBillingError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaCurrency</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaErrorResponse</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaBillingError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
-- <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetError</a></code>
 
@@ -1201,7 +1237,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorTool20260301</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAllThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAssistantMessageParam</a></code>
@@ -1213,8 +1249,10 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBillTo</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBillingPolicy</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserClickTarget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabInput</a></code>
@@ -1365,8 +1403,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockParamContent</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultErrorCode</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompact20260112Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlock</a></code>
@@ -1549,7 +1587,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionStrReplaceResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlockParam</a></code>
@@ -1592,7 +1630,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolRegex20251119</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolSearchResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolSearchResultBlockParam</a></code>
@@ -1634,14 +1672,21 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20260209</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20260318</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolRequestErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockParamContent</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolUseBlockUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseBrowserCloseTabToolUseBlock</a></code>
@@ -1991,9 +2036,9 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolUseEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64DocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64ImageSource</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCompactionLimitReachedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCompactionLimitReachedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileDocumentSource</a></code>
@@ -2001,20 +2046,20 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubricParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsImageBlock</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMaxWorkflowRunsWorkflowRunError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPAuthenticationFailedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPConnectionFailedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelOverloadedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPAuthenticationFailedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPConnectionFailedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelOverloadedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsPlainTextDocumentSource</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsProgramWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsProgramWorkflowRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRedactedBlock</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCloneError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryForbiddenError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryNotFoundError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCloneErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryForbiddenErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryNotFoundErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusRetrying</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusTerminal</a></code>
@@ -2053,11 +2098,11 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubricParams</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsToolUseLimitReachedError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownError</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsToolUseLimitReachedErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownErrorObject</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLDocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserCustomToolResultEvent</a></code>
@@ -2072,18 +2117,40 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolResultEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunCreatedEvent</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunErrorEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhase</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseEndedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseStartedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResult</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultCompleted</a></code>
-- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultErrorObject</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultStopped</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusEndedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusIdleEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusRunningEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelOverloadedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPConnectionFailedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPAuthenticationFailedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsToolUseLimitReachedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCompactionLimitReachedError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryForbiddenError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryNotFoundError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCloneError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsProgramWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMaxWorkflowRunsWorkflowRunError</a></code>
 
 Methods:
 
@@ -2139,39 +2206,54 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsAgentArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsAgentArchivedDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsCronSchedule</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsCronScheduleParams</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeployment</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentInitialEvent</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentInitialEventParams</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReason</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentStatus</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentSystemMessageEvent</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentUserDefineOutcomeEvent</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentUserMessageEvent</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsErrorDeploymentPausedReason</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileNotFoundDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileResourceConfig</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsGitHubRepositoryResourceConfig</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsManualDeploymentPausedReason</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreResourceConfig</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSchedule</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsScheduleParams</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceConfig</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsUnknownDeploymentPausedReasonError</a></code>
-- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSkillNotFoundDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsUnknownDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultArchivedDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultNotFoundDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsAgentArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError</a></code>
 - <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsUnknownDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReasonError</a></code>
 
 Methods:
 
@@ -2188,27 +2270,43 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsAgentArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsAgentArchivedRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsDeploymentRun</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentArchivedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentNotFoundRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsFileNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentArchivedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentNotFoundRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsFileNotFoundRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsManualTriggerContext</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMCPEgressBlockedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMemoryStoreArchivedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsOrganizationDisabledRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMCPEgressBlockedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMemoryStoreArchivedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsOrganizationDisabledRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsScheduleTriggerContext</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionCreationRejectedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionRateLimitedRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionResourceNotFoundRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSkillNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionCreationRejectedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionRateLimitedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionResourceNotFoundRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSkillNotFoundRunErrorObject</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsTriggerContext</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsTriggerType</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsUnknownRunError</a></code>
-- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsUnknownRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultArchivedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultNotFoundRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsWorkspaceArchivedRunErrorObject</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsAgentArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentNotFoundRunError</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsFileNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMemoryStoreArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSkillNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionResourceNotFoundRunError</a></code>
 - <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsWorkspaceArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsOrganizationDisabledRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionRateLimitedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionCreationRejectedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsUnknownRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMCPEgressBlockedRunError</a></code>
 
 Methods:
 
@@ -2301,17 +2399,21 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsConflictError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsConflictErrorObject</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsContentSha256Precondition</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsDeletedMemory</a></code>
-- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsErrorObject</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemory</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryListItem</a></code>
-- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPathConflictError</a></code>
-- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPreconditionFailedError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPathConflictErrorObject</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPreconditionFailedErrorObject</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPrefix</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryView</a></code>
 - <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsPrecondition</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPathConflictError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPreconditionFailedError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsConflictError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsError</a></code>
 
 Methods:
 
@@ -2408,6 +2510,8 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEvent</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalKeyFailedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalKeyRecoveredEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreDeletedEventData</a></code>
@@ -2481,7 +2585,7 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/dreams.ts">BetaDream</a></code>
-- <code><a href="./src/resources/beta/dreams.ts">BetaDreamError</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamErrorObject</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamInput</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamMemoryStoreInput</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamMemoryStoreOutput</a></code>
@@ -2491,11 +2595,14 @@ Types:
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamSessionsInput</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamStatus</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamUsage</a></code>
-- <code><a href="./src/resources/beta/dreams.ts">BetaDreamingError</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamingErrorObject</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehavior</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorCreateNew</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorUpdateExisting</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaTargetStoreHeldErrorObject</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamError</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaTargetStoreHeldError</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamingError</a></code>
 
 Methods:
 
@@ -3167,10 +3274,11 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplace</a></code>
-- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginError</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginErrorObject</a></code>
 - <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginWarning</a></code>
 - <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginWarnings</a></code>
 - <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationReport</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginError</a></code>
 
 Methods:
 

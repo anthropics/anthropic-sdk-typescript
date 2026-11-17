@@ -98,6 +98,8 @@ function makeFake(opts: {
   secret?: string | null;
   failStop?: boolean;
   workType?: string;
+  /** Fields of the retrieved session; defaults to a running one with no skills or resources. */
+  session?: Record<string, unknown>;
 }) {
   const calls: WorkerCalls = {
     poll: 0,
@@ -179,7 +181,12 @@ function makeFake(opts: {
       sessions: {
         retrieve: () => {
           calls.retrieve++;
-          return Promise.resolve({ agent: { skills: [] }, resources: [] });
+          return Promise.resolve({
+            status: 'running',
+            agent: { skills: [] },
+            resources: [],
+            ...opts.session,
+          });
         },
         events: {
           list: (_sessionId: string, _params: unknown, options?: unknown) => {
@@ -325,6 +332,75 @@ describe('EnvironmentWorker', () => {
     expect(calls.retrieve).toBe(0);
     expect(calls.opts['stream']).toHaveLength(0);
     // ...but the item was still stopped.
+    expect(calls.stop).toEqual([{ force: true }]);
+  });
+
+  const memoryStore = {
+    type: 'memory_store',
+    memory_store_id: 'memstore_1',
+    access: 'read_write',
+    name: 'notes',
+    mount_path: '/mnt/memory/notes',
+  };
+  test.each([
+    ['no memory store', [], {}],
+    ['a memory store and no sessions token', [memoryStore], {}],
+    [
+      'a memory store and a sessions token',
+      [memoryStore],
+      { workSecret: encodeSecret({ sessions_token: 'sessions-token-terminated' }) },
+    ],
+  ])(
+    'force-stops the item of a terminated session without running its tools: %s',
+    async (_name, resources, secretOption) => {
+      const { client, calls } = makeFake({
+        sessionStream: [{ type: 'agent.tool_use', id: 'tu_1', name: 'echo', input: {} }, TERMINATED],
+        session: {
+          status: 'terminated',
+          agent: { skills: [{ type: 'custom', skill_id: 'skill_1', version: '1' }] },
+          resources,
+        },
+      });
+
+      await new EnvironmentWorker({
+        client,
+        environmentKey: 'env_key',
+        tools: [okTool('echo')],
+        workdir: '/tmp',
+        maxIdleMs: 0,
+      }).handleItem({
+        workId: 'work_1',
+        environmentId: 'env_1',
+        sessionId: 'sesn_1',
+        ...secretOption,
+      });
+
+      expect(calls.retrieve).toBe(1);
+      expect(calls.opts['stream']).toHaveLength(0);
+      expect(calls.send).toEqual([]);
+      // The fake client serves no skills, so trying to download one logs a warning.
+      expect(calls.logs.filter(([level]) => level === 'warn' || level === 'error')).toEqual([]);
+      expect(calls.stop).toEqual([{ force: true }]);
+    },
+  );
+
+  test.each(['rescheduling', 'running', 'idle'])('runs the tools of a session that is %s', async (status) => {
+    const { client, calls } = makeFake({
+      sessionStream: [{ type: 'agent.tool_use', id: 'tu_1', name: 'echo', input: {} }, TERMINATED],
+      session: { status },
+    });
+
+    await new EnvironmentWorker({
+      client,
+      environmentKey: 'env_key',
+      tools: [okTool('echo')],
+      workdir: '/tmp',
+      maxIdleMs: 0,
+    }).handleItem({ workId: 'work_1', environmentId: 'env_1', sessionId: 'sesn_1' });
+
+    expect(calls.send.flat()).toContainEqual(
+      expect.objectContaining({ type: 'user.tool_result', tool_use_id: 'tu_1' }),
+    );
     expect(calls.stop).toEqual([{ force: true }]);
   });
 

@@ -227,8 +227,7 @@ export type ExternalKeysPageCursor = PageCursor<ExternalKey>;
 export interface AWSExternalKeyConfig {
   /**
    * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
-   * and your organization's own key must be a single-Region key in your
-   * organization's AWS account.
+   * and your organization's own key must be a single-Region key.
    */
   kms_arn: string;
 
