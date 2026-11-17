@@ -241,6 +241,28 @@ describe('MessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('settles a second iteration once the stream has ended', async () => {
+    // The `end`, `error` and `abort` events have all fired by the time a second
+    // iterator is created, so its listeners would never run and its first
+    // `next()` would wait forever. The raw Stream sibling refuses the same read
+    // outright; here a second read simply finishes.
+    const lines = (await parseSSEFixture(loadFixture('basic_response.txt'))).map((event) =>
+      JSON.stringify(event),
+    );
+    const stream = MessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    for await (const _event of stream) {
+      // consume it
+    }
+    await stream.done();
+
+    const second: MessageStreamEvent[] = [];
+    for await (const event of stream) {
+      second.push(event);
+    }
+    expect(second).toEqual([]);
+  });
+
   it('passes unknown events through with the current snapshot', async () => {
     const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
     const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
