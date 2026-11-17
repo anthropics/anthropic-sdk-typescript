@@ -25,7 +25,11 @@ import {
   BetaManagedAgentsBase64DocumentSource,
   BetaManagedAgentsBase64ImageSource,
   BetaManagedAgentsBillingError,
+  BetaManagedAgentsBillingErrorObject,
+  BetaManagedAgentsCompactionLimitReachedError,
+  BetaManagedAgentsCompactionLimitReachedErrorObject,
   BetaManagedAgentsCredentialHostUnreachableError,
+  BetaManagedAgentsCredentialHostUnreachableErrorObject,
   BetaManagedAgentsDocumentBlock,
   BetaManagedAgentsEventParams,
   BetaManagedAgentsFileDocumentSource,
@@ -34,19 +38,31 @@ import {
   BetaManagedAgentsFileRubricParams,
   BetaManagedAgentsImageBlock,
   BetaManagedAgentsMCPAuthenticationFailedError,
+  BetaManagedAgentsMCPAuthenticationFailedErrorObject,
   BetaManagedAgentsMCPConnectionFailedError,
+  BetaManagedAgentsMCPConnectionFailedErrorObject,
   BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
+  BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject,
   BetaManagedAgentsModelOverloadedError,
+  BetaManagedAgentsModelOverloadedErrorObject,
   BetaManagedAgentsModelRateLimitedError,
+  BetaManagedAgentsModelRateLimitedErrorObject,
   BetaManagedAgentsModelRequestFailedError,
+  BetaManagedAgentsModelRequestFailedErrorObject,
   BetaManagedAgentsPlainTextDocumentSource,
   BetaManagedAgentsProgramWorkflowRunError,
+  BetaManagedAgentsProgramWorkflowRunErrorObject,
   BetaManagedAgentsRedactedBlock,
   BetaManagedAgentsRepositoryAuthenticationError,
+  BetaManagedAgentsRepositoryAuthenticationErrorObject,
   BetaManagedAgentsRepositoryCheckoutError,
+  BetaManagedAgentsRepositoryCheckoutErrorObject,
   BetaManagedAgentsRepositoryCloneError,
+  BetaManagedAgentsRepositoryCloneErrorObject,
   BetaManagedAgentsRepositoryForbiddenError,
+  BetaManagedAgentsRepositoryForbiddenErrorObject,
   BetaManagedAgentsRepositoryNotFoundError,
+  BetaManagedAgentsRepositoryNotFoundErrorObject,
   BetaManagedAgentsRetryStatusExhausted,
   BetaManagedAgentsRetryStatusRetrying,
   BetaManagedAgentsRetryStatusTerminal,
@@ -87,11 +103,17 @@ import {
   BetaManagedAgentsTextRubric,
   BetaManagedAgentsTextRubricParams,
   BetaManagedAgentsThreadLimitWorkflowRunError,
+  BetaManagedAgentsThreadLimitWorkflowRunErrorObject,
   BetaManagedAgentsTimeoutWorkflowRunError,
+  BetaManagedAgentsTimeoutWorkflowRunErrorObject,
+  BetaManagedAgentsToolUseLimitReachedError,
+  BetaManagedAgentsToolUseLimitReachedErrorObject,
   BetaManagedAgentsURLDocumentSource,
   BetaManagedAgentsURLImageSource,
   BetaManagedAgentsUnknownError,
+  BetaManagedAgentsUnknownErrorObject,
   BetaManagedAgentsUnknownWorkflowRunError,
+  BetaManagedAgentsUnknownWorkflowRunErrorObject,
   BetaManagedAgentsUserCustomToolResultEvent,
   BetaManagedAgentsUserCustomToolResultEventParams,
   BetaManagedAgentsUserDefineOutcomeEvent,
@@ -106,12 +128,14 @@ import {
   BetaManagedAgentsWorkflowRunCreatedEvent,
   BetaManagedAgentsWorkflowRunError,
   BetaManagedAgentsWorkflowRunErrorEvent,
+  BetaManagedAgentsWorkflowRunErrorObject,
   BetaManagedAgentsWorkflowRunPhase,
   BetaManagedAgentsWorkflowRunPhaseEndedEvent,
   BetaManagedAgentsWorkflowRunPhaseStartedEvent,
   BetaManagedAgentsWorkflowRunResult,
   BetaManagedAgentsWorkflowRunResultCompleted,
   BetaManagedAgentsWorkflowRunResultError,
+  BetaManagedAgentsWorkflowRunResultErrorObject,
   BetaManagedAgentsWorkflowRunResultStopped,
   BetaManagedAgentsWorkflowRunStatusEndedEvent,
   BetaManagedAgentsWorkflowRunStatusIdleEvent,
@@ -161,7 +185,7 @@ import {
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
-import { recordSessionsCreateResponse } from '../../../lib/internal/tracing';
+import { sessionsCreateSpanAttributes } from '../../../lib/internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Sessions extends APIResource {
@@ -194,36 +218,27 @@ export class Sessions extends APIResource {
    */
   create(params: SessionCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id, ...body } = params;
-    const headers = buildHeaders([
-      {
-        'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.sessions.create', options, {
-      route: '/v1/sessions',
-      attributes: {
-        // An `agent` that is no agent is for the API to refuse, not for this line to throw on.
-        'gen_ai.agent.id': typeof body.agent === 'object' ? body.agent?.id : body.agent,
-        'anthropic.session.environment.id': body.environment_id,
-      },
-      createdIDAttribute: 'anthropic.session.id',
-    });
-    const request = this._client.post<BetaManagedAgentsSession>('/v1/sessions', {
+    const request = {
       body,
       ...options,
-      headers,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
-      __span: call,
+    };
+    return this._client.post('/v1/sessions', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.create', options, {
+        route: '/v1/sessions',
+        attributes: sessionsCreateSpanAttributes(body),
+        createdIDAttribute: 'anthropic.session.id',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((session) => {
-          recordSessionsCreateResponse(this._client, call, session);
-          return session;
-        })
-      : request;
   }
 
   /**
@@ -268,6 +283,7 @@ export class Sessions extends APIResource {
    * const betaManagedAgentsSession =
    *   await client.beta.sessions.update(
    *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+   *     {},
    *   );
    * ```
    */
@@ -672,8 +688,8 @@ export interface BetaManagedAgentsGitHubRepositoryResourceParams {
  */
 export interface BetaManagedAgentsMemoryStoreResourceParam {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 
@@ -744,7 +760,7 @@ export interface BetaManagedAgentsOutcomeEvaluationResource {
   iteration: number;
 
   /**
-   * Server-generated outc\_ ID for this outcome.
+   * Server-generated outc_ ID for this outcome.
    */
   outcome_id: string;
 
@@ -1596,8 +1612,9 @@ export declare namespace Sessions {
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
-    type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
-    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
+    type BetaManagedAgentsBillingErrorObject as BetaManagedAgentsBillingErrorObject,
+    type BetaManagedAgentsCompactionLimitReachedErrorObject as BetaManagedAgentsCompactionLimitReachedErrorObject,
+    type BetaManagedAgentsCredentialHostUnreachableErrorObject as BetaManagedAgentsCredentialHostUnreachableErrorObject,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -1605,20 +1622,20 @@ export declare namespace Sessions {
     type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
     type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
-    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
-    type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
-    type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
-    type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
-    type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
-    type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject as BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject,
+    type BetaManagedAgentsMCPAuthenticationFailedErrorObject as BetaManagedAgentsMCPAuthenticationFailedErrorObject,
+    type BetaManagedAgentsMCPConnectionFailedErrorObject as BetaManagedAgentsMCPConnectionFailedErrorObject,
+    type BetaManagedAgentsModelOverloadedErrorObject as BetaManagedAgentsModelOverloadedErrorObject,
+    type BetaManagedAgentsModelRateLimitedErrorObject as BetaManagedAgentsModelRateLimitedErrorObject,
+    type BetaManagedAgentsModelRequestFailedErrorObject as BetaManagedAgentsModelRequestFailedErrorObject,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
-    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
+    type BetaManagedAgentsProgramWorkflowRunErrorObject as BetaManagedAgentsProgramWorkflowRunErrorObject,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
-    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
-    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
-    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
-    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
-    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
+    type BetaManagedAgentsRepositoryAuthenticationErrorObject as BetaManagedAgentsRepositoryAuthenticationErrorObject,
+    type BetaManagedAgentsRepositoryCheckoutErrorObject as BetaManagedAgentsRepositoryCheckoutErrorObject,
+    type BetaManagedAgentsRepositoryCloneErrorObject as BetaManagedAgentsRepositoryCloneErrorObject,
+    type BetaManagedAgentsRepositoryForbiddenErrorObject as BetaManagedAgentsRepositoryForbiddenErrorObject,
+    type BetaManagedAgentsRepositoryNotFoundErrorObject as BetaManagedAgentsRepositoryNotFoundErrorObject,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -1657,10 +1674,11 @@ export declare namespace Sessions {
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
-    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
-    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
-    type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
-    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
+    type BetaManagedAgentsThreadLimitWorkflowRunErrorObject as BetaManagedAgentsThreadLimitWorkflowRunErrorObject,
+    type BetaManagedAgentsTimeoutWorkflowRunErrorObject as BetaManagedAgentsTimeoutWorkflowRunErrorObject,
+    type BetaManagedAgentsToolUseLimitReachedErrorObject as BetaManagedAgentsToolUseLimitReachedErrorObject,
+    type BetaManagedAgentsUnknownErrorObject as BetaManagedAgentsUnknownErrorObject,
+    type BetaManagedAgentsUnknownWorkflowRunErrorObject as BetaManagedAgentsUnknownWorkflowRunErrorObject,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
@@ -1675,18 +1693,40 @@ export declare namespace Sessions {
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
     type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsWorkflowRunCreatedEvent as BetaManagedAgentsWorkflowRunCreatedEvent,
-    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
     type BetaManagedAgentsWorkflowRunErrorEvent as BetaManagedAgentsWorkflowRunErrorEvent,
+    type BetaManagedAgentsWorkflowRunErrorObject as BetaManagedAgentsWorkflowRunErrorObject,
     type BetaManagedAgentsWorkflowRunPhase as BetaManagedAgentsWorkflowRunPhase,
     type BetaManagedAgentsWorkflowRunPhaseEndedEvent as BetaManagedAgentsWorkflowRunPhaseEndedEvent,
     type BetaManagedAgentsWorkflowRunPhaseStartedEvent as BetaManagedAgentsWorkflowRunPhaseStartedEvent,
     type BetaManagedAgentsWorkflowRunResult as BetaManagedAgentsWorkflowRunResult,
     type BetaManagedAgentsWorkflowRunResultCompleted as BetaManagedAgentsWorkflowRunResultCompleted,
-    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunResultErrorObject as BetaManagedAgentsWorkflowRunResultErrorObject,
     type BetaManagedAgentsWorkflowRunResultStopped as BetaManagedAgentsWorkflowRunResultStopped,
     type BetaManagedAgentsWorkflowRunStatusEndedEvent as BetaManagedAgentsWorkflowRunStatusEndedEvent,
     type BetaManagedAgentsWorkflowRunStatusIdleEvent as BetaManagedAgentsWorkflowRunStatusIdleEvent,
     type BetaManagedAgentsWorkflowRunStatusRunningEvent as BetaManagedAgentsWorkflowRunStatusRunningEvent,
+    type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
+    type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
+    type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
+    type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
+    type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
+    type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
+    type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsToolUseLimitReachedError as BetaManagedAgentsToolUseLimitReachedError,
+    type BetaManagedAgentsCompactionLimitReachedError as BetaManagedAgentsCompactionLimitReachedError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
+    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
+    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
+    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
+    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,

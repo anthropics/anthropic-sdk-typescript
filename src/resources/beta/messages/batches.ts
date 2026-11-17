@@ -22,6 +22,11 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {EnforcedSpendLimitReachedError}
+   *
    * @example
    * ```ts
    * const betaMessageBatch =
@@ -48,7 +53,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
@@ -72,6 +77,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaMessageBatch =
@@ -90,7 +98,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -110,6 +118,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
@@ -128,7 +139,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -150,6 +161,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaDeletedMessageBatch =
@@ -168,7 +182,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -195,6 +209,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaMessageBatch =
@@ -213,7 +230,7 @@ export class Batches extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
@@ -235,6 +252,10 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -264,8 +285,8 @@ export class Batches extends APIResource {
         ...options,
         headers: buildHeaders([
           {
-            'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
             Accept: 'application/binary',
+            ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
             ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
           },
           options?.headers,
@@ -619,6 +640,17 @@ export namespace BatchCreateParams {
        * details and options.
        */
       model: MessagesApi.Model;
+
+      /**
+       * Declares which organization is billed for this request.
+       * `{"type": "billing_policy", "bill_to": "user_profile"}` bills the customer
+       * behind the user profile named in the `anthropic-user-profile-id` header, instead
+       * of your organization. If that customer has not linked an Anthropic organization
+       * to the profile, or has not allowed your organization to bill it, the request is
+       * rejected rather than billed to you. Omit the field, or send `"bill_to": "self"`
+       * (the default), to be billed as usual.
+       */
+      billing_policy?: BetaMessagesAPI.BetaBillingPolicy | null;
 
       /**
        * Top-level cache control automatically applies a cache_control marker to the last

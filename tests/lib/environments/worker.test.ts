@@ -5,7 +5,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { APIError } from '@anthropic-ai/sdk/core/error';
 
 /**
- * Build a work-item `secret` the way the control plane does: URL-safe base64
+ * Build a work-item `secret` the way the API does: URL-safe base64
  * of a JSON payload, without padding.
  */
 function encodeSecret(payload: Record<string, unknown>): string {
@@ -17,7 +17,7 @@ function loggedText(calls: WorkerCalls): string {
 }
 
 /**
- * The 412 the control plane answers a heartbeat with once the item's lease was
+ * The 412 the API answers a heartbeat with once the item's lease was
  * cleared (re-queued) or is held by another worker.
  */
 function leaseLostError(): APIError {
@@ -64,7 +64,7 @@ interface WorkerCalls {
   send: AnyEvent[][];
   retrieve: number;
   withOptions: Array<Record<string, unknown>>;
-  // The `options` (last) argument captured per control-plane / session method.
+  // The `options` (last) argument captured per work-item / session method.
   opts: Record<string, unknown[]>;
   // `[level, line]` for everything the worker logged; `line` is the message and
   // structured args flattened, so tests can assert on wording per level and on
@@ -98,6 +98,8 @@ function makeFake(opts: {
   secret?: string | null;
   failStop?: boolean;
   workType?: string;
+  /** Fields of the retrieved session; defaults to a running one with no skills or resources. */
+  session?: Record<string, unknown>;
 }) {
   const calls: WorkerCalls = {
     poll: 0,
@@ -179,7 +181,12 @@ function makeFake(opts: {
       sessions: {
         retrieve: () => {
           calls.retrieve++;
-          return Promise.resolve({ agent: { skills: [] }, resources: [] });
+          return Promise.resolve({
+            status: 'running',
+            agent: { skills: [] },
+            resources: [],
+            ...opts.session,
+          });
         },
         events: {
           list: (_sessionId: string, _params: unknown, options?: unknown) => {
@@ -325,6 +332,75 @@ describe('EnvironmentWorker', () => {
     expect(calls.retrieve).toBe(0);
     expect(calls.opts['stream']).toHaveLength(0);
     // ...but the item was still stopped.
+    expect(calls.stop).toEqual([{ force: true }]);
+  });
+
+  const memoryStore = {
+    type: 'memory_store',
+    memory_store_id: 'memstore_1',
+    access: 'read_write',
+    name: 'notes',
+    mount_path: '/mnt/memory/notes',
+  };
+  test.each([
+    ['no memory store', [], {}],
+    ['a memory store and no sessions token', [memoryStore], {}],
+    [
+      'a memory store and a sessions token',
+      [memoryStore],
+      { workSecret: encodeSecret({ sessions_token: 'sessions-token-terminated' }) },
+    ],
+  ])(
+    'force-stops the item of a terminated session without running its tools: %s',
+    async (_name, resources, secretOption) => {
+      const { client, calls } = makeFake({
+        sessionStream: [{ type: 'agent.tool_use', id: 'tu_1', name: 'echo', input: {} }, TERMINATED],
+        session: {
+          status: 'terminated',
+          agent: { skills: [{ type: 'custom', skill_id: 'skill_1', version: '1' }] },
+          resources,
+        },
+      });
+
+      await new EnvironmentWorker({
+        client,
+        environmentKey: 'env_key',
+        tools: [okTool('echo')],
+        workdir: '/tmp',
+        maxIdleMs: 0,
+      }).handleItem({
+        workId: 'work_1',
+        environmentId: 'env_1',
+        sessionId: 'sesn_1',
+        ...secretOption,
+      });
+
+      expect(calls.retrieve).toBe(1);
+      expect(calls.opts['stream']).toHaveLength(0);
+      expect(calls.send).toEqual([]);
+      // The fake client serves no skills, so trying to download one logs a warning.
+      expect(calls.logs.filter(([level]) => level === 'warn' || level === 'error')).toEqual([]);
+      expect(calls.stop).toEqual([{ force: true }]);
+    },
+  );
+
+  test.each(['rescheduling', 'running', 'idle'])('runs the tools of a session that is %s', async (status) => {
+    const { client, calls } = makeFake({
+      sessionStream: [{ type: 'agent.tool_use', id: 'tu_1', name: 'echo', input: {} }, TERMINATED],
+      session: { status },
+    });
+
+    await new EnvironmentWorker({
+      client,
+      environmentKey: 'env_key',
+      tools: [okTool('echo')],
+      workdir: '/tmp',
+      maxIdleMs: 0,
+    }).handleItem({ workId: 'work_1', environmentId: 'env_1', sessionId: 'sesn_1' });
+
+    expect(calls.send.flat()).toContainEqual(
+      expect.objectContaining({ type: 'user.tool_result', tool_use_id: 'tu_1' }),
+    );
     expect(calls.stop).toEqual([{ force: true }]);
   });
 
@@ -742,7 +818,7 @@ describe('EnvironmentWorker', () => {
       expect(logText).not.toContain('work item failed');
     });
 
-    test('a control-plane stop still force-stops the item', async () => {
+    test('a heartbeat stop still force-stops the item', async () => {
       // A heartbeat reporting `state === "stopped"` ends the run and the item is
       // still force-stopped on the way out — only a *lost* lease skips that.
       const { calls } = await runOneSession(

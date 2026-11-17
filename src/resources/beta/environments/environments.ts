@@ -2,6 +2,8 @@ import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as WorkAPI from './work';
 import {
+  BetaHeartbeatPreconditionFailedError,
+  BetaHeartbeatPreconditionFailedErrorDetails,
   BetaSelfHostedWork,
   BetaSelfHostedWorkHeartbeatResponse,
   BetaSelfHostedWorkListResponse,
@@ -10,6 +12,7 @@ import {
   BetaSelfHostedWorkUpdateRequest,
   BetaSelfHostedWorksPageCursor,
   BetaSessionWorkData,
+  BetaWorkLeaseState,
   Work,
   WorkAckParams,
   WorkHeartbeatParams,
@@ -21,17 +24,92 @@ import {
   WorkUpdateParams,
 } from './work';
 import { APIPromise } from '../../../core/api-promise';
+import { BadRequestError, NotFoundError, PermissionDeniedError } from '../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
+/**
+ * The environment is archived, so it cannot be updated.
+ */
+export class BetaEnvironmentArchivedError extends BadRequestError {
+  declare readonly errorCode: 'environment_archived';
+  declare readonly details: BetaEnvironmentArchivedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentArchivedError';
+}
+
+/**
+ * `config.type` differs from the environment's stored type, which cannot change
+ * after creation.
+ */
+export class BetaInvalidConfigTypeChangeError extends BadRequestError {
+  declare readonly errorCode: 'invalid_config_type_change';
+  declare readonly details: BetaInvalidConfigTypeChangeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidConfigTypeChangeError';
+}
+
+/**
+ * `metadata` has too many keys, a key or value that is too long, or a reserved
+ * key. The message names each problem.
+ */
+export class BetaInvalidMetadataError extends BadRequestError {
+  declare readonly errorCode: 'invalid_metadata';
+  declare readonly details: BetaInvalidMetadataErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidMetadataError';
+}
+
+/**
+ * Anthropic has turned off creating environments for this organization. Existing
+ * environments still work.
+ */
+export class BetaEnvironmentCreateDisabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'environment_create_disabled';
+  declare readonly details: BetaEnvironmentCreateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentCreateDisabledError';
+}
+
+/**
+ * Anthropic has turned off updating environments for this organization. Existing
+ * environments still work as they are.
+ */
+export class BetaEnvironmentUpdateDisabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'environment_update_disabled';
+  declare readonly details: BetaEnvironmentUpdateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentUpdateDisabledError';
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach.
+ */
+export class BetaEnvironmentNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'environment_not_found';
+  declare readonly details: BetaEnvironmentNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentNotFoundError';
+}
+
 export class Environments extends APIResource {
   work: WorkAPI.Work = new WorkAPI.Work(this._client);
 
   /**
    * Create a new environment with the specified configuration.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentCreateDisabledError}
    *
    * @example
    * ```ts
@@ -63,6 +141,9 @@ export class Environments extends APIResource {
 
   /**
    * Retrieve a specific environment by ID.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -98,11 +179,18 @@ export class Environments extends APIResource {
   /**
    * Update an existing environment's configuration.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaEnvironmentArchivedError}
+   * @throws {BetaInvalidConfigTypeChangeError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentUpdateDisabledError}
+   *
    * @example
    * ```ts
    * const betaEnvironment =
    *   await client.beta.environments.update(
    *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+   *     {},
    *   );
    * ```
    */
@@ -132,6 +220,9 @@ export class Environments extends APIResource {
 
   /**
    * List environments with pagination support.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -167,6 +258,9 @@ export class Environments extends APIResource {
   /**
    * Delete an environment by ID. Returns a confirmation of the deletion.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaEnvironmentDeleteResponse =
@@ -201,6 +295,9 @@ export class Environments extends APIResource {
   /**
    * Archive an environment by ID. Archived environments cannot be used to create new
    * sessions.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -285,7 +382,7 @@ export interface BetaCloudConfigParams {
  */
 export interface BetaEnvironment {
   /**
-   * Environment identifier (e.g., 'env\_...')
+   * Environment identifier (e.g., 'env_...')
    */
   id: string;
 
@@ -337,6 +434,21 @@ export interface BetaEnvironment {
 }
 
 /**
+ * The environment is archived, so it cannot be updated.
+ */
+export interface BetaEnvironmentArchivedErrorDetails {
+  error_code: 'environment_archived';
+}
+
+/**
+ * Anthropic has turned off creating environments for this organization. Existing
+ * environments still work.
+ */
+export interface BetaEnvironmentCreateDisabledErrorDetails {
+  error_code: 'environment_create_disabled';
+}
+
+/**
  * Response after deleting an environment.
  */
 export interface BetaEnvironmentDeleteResponse {
@@ -349,6 +461,37 @@ export interface BetaEnvironmentDeleteResponse {
    * The type of response
    */
   type: 'environment_deleted';
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach.
+ */
+export interface BetaEnvironmentNotFoundErrorDetails {
+  error_code: 'environment_not_found';
+}
+
+/**
+ * Anthropic has turned off updating environments for this organization. Existing
+ * environments still work as they are.
+ */
+export interface BetaEnvironmentUpdateDisabledErrorDetails {
+  error_code: 'environment_update_disabled';
+}
+
+/**
+ * `config.type` differs from the environment's stored type, which cannot change
+ * after creation.
+ */
+export interface BetaInvalidConfigTypeChangeErrorDetails {
+  error_code: 'invalid_config_type_change';
+}
+
+/**
+ * `metadata` has too many keys, a key or value that is too long, or a reserved
+ * key. The message names each problem.
+ */
+export interface BetaInvalidMetadataErrorDetails {
+  error_code: 'invalid_metadata';
 }
 
 /**
@@ -689,14 +832,33 @@ export interface EnvironmentArchiveParams {
   workspace_id?: string;
 }
 
+Environments.BetaEnvironmentArchivedError = BetaEnvironmentArchivedError;
+Environments.BetaInvalidConfigTypeChangeError = BetaInvalidConfigTypeChangeError;
+Environments.BetaInvalidMetadataError = BetaInvalidMetadataError;
+Environments.BetaEnvironmentCreateDisabledError = BetaEnvironmentCreateDisabledError;
+Environments.BetaEnvironmentUpdateDisabledError = BetaEnvironmentUpdateDisabledError;
+Environments.BetaEnvironmentNotFoundError = BetaEnvironmentNotFoundError;
 Environments.Work = Work;
+Environments.BetaHeartbeatPreconditionFailedError = BetaHeartbeatPreconditionFailedError;
 
 export declare namespace Environments {
   export {
+    BetaEnvironmentArchivedError as BetaEnvironmentArchivedError,
+    BetaInvalidConfigTypeChangeError as BetaInvalidConfigTypeChangeError,
+    BetaInvalidMetadataError as BetaInvalidMetadataError,
+    BetaEnvironmentCreateDisabledError as BetaEnvironmentCreateDisabledError,
+    BetaEnvironmentUpdateDisabledError as BetaEnvironmentUpdateDisabledError,
+    BetaEnvironmentNotFoundError as BetaEnvironmentNotFoundError,
     type BetaCloudConfig as BetaCloudConfig,
     type BetaCloudConfigParams as BetaCloudConfigParams,
     type BetaEnvironment as BetaEnvironment,
+    type BetaEnvironmentArchivedErrorDetails as BetaEnvironmentArchivedErrorDetails,
+    type BetaEnvironmentCreateDisabledErrorDetails as BetaEnvironmentCreateDisabledErrorDetails,
     type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
+    type BetaEnvironmentUpdateDisabledErrorDetails as BetaEnvironmentUpdateDisabledErrorDetails,
+    type BetaInvalidConfigTypeChangeErrorDetails as BetaInvalidConfigTypeChangeErrorDetails,
+    type BetaInvalidMetadataErrorDetails as BetaInvalidMetadataErrorDetails,
     type BetaLimitedNetwork as BetaLimitedNetwork,
     type BetaLimitedNetworkParams as BetaLimitedNetworkParams,
     type BetaPackages as BetaPackages,
@@ -715,6 +877,8 @@ export declare namespace Environments {
 
   export {
     Work as Work,
+    BetaHeartbeatPreconditionFailedError as BetaHeartbeatPreconditionFailedError,
+    type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,
     type BetaSelfHostedWorkHeartbeatResponse as BetaSelfHostedWorkHeartbeatResponse,
     type BetaSelfHostedWorkListResponse as BetaSelfHostedWorkListResponse,
@@ -722,6 +886,7 @@ export declare namespace Environments {
     type BetaSelfHostedWorkStopRequest as BetaSelfHostedWorkStopRequest,
     type BetaSelfHostedWorkUpdateRequest as BetaSelfHostedWorkUpdateRequest,
     type BetaSessionWorkData as BetaSessionWorkData,
+    type BetaWorkLeaseState as BetaWorkLeaseState,
     type BetaSelfHostedWorksPageCursor as BetaSelfHostedWorksPageCursor,
     type WorkRetrieveParams as WorkRetrieveParams,
     type WorkUpdateParams as WorkUpdateParams,

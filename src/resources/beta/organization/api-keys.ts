@@ -31,11 +31,16 @@ export class APIKeys extends APIResource {
   /**
    * Update API Key
    *
+   * @throws {OrgAPIKeyLimitExceededError}
+   * @throws {WorkspaceAPIKeyLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaAPIKey =
    *   await client.beta.organization.apiKeys.update(
    *     'api_key_id',
+   *     {},
    *   );
    * ```
    */

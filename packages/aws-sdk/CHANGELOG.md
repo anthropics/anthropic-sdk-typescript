@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v1.1.1...aws-sdk-v1.1.2) (2026-10-26)
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
 ## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v1.1.0...aws-sdk-v1.1.1) (2026-10-23)
 
 ### Chores

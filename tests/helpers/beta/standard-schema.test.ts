@@ -64,6 +64,24 @@ describe('betaStandardSchemaOutputFormat', () => {
     parsed.conditions satisfies string[];
   });
 
+  it('keeps valibot literals and picklists as const and enum', () => {
+    const format = betaStandardSchemaOutputFormat(
+      toStandardJsonSchema(
+        v.object({
+          kind: v.literal('task'),
+          priority: v.picklist(['low', 'high']),
+          level: v.picklist(['auto', 1]),
+        }),
+      ),
+    );
+
+    expect(format.schema['properties']).toEqual({
+      kind: { const: 'task' },
+      priority: { enum: ['low', 'high'] },
+      level: { enum: ['auto', 1] },
+    });
+  });
+
   it('derives the JSON schema from zod natively (no `jsonSchema` option)', () => {
     const format = betaStandardSchemaOutputFormat(z.object({ name: z.string(), age: z.number().optional() }));
 

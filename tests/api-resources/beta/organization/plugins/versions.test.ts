@@ -24,7 +24,7 @@ describe('resource versions', () => {
     const response = await client.beta.organization.plugins.versions.create('plugin_id', {
       files: [await toFile(Buffer.from('Example data'), 'README.md')],
       release_notes: 'release_notes',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -45,7 +45,7 @@ describe('resource versions', () => {
     const response = await client.beta.organization.plugins.versions.retrieve('version', {
       plugin_id: 'plugin_id',
       organization_id: 'organization_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -69,7 +69,7 @@ describe('resource versions', () => {
           limit: 1,
           organization_id: 'organization_id',
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -80,7 +80,7 @@ describe('resource versions', () => {
     const response = await client.beta.organization.plugins.versions.download('version', {
       plugin_id: 'plugin_id',
       organization_id: 'organization_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

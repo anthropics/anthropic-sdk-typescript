@@ -5,6 +5,8 @@ import { Effective, EffectiveListParams } from './effective';
 import * as IncreaseRequestsAPI from './increase-requests';
 import {
   BetaSpendLimitIncreaseRequest,
+  BetaSpendLimitIncreaseRequestActor,
+  BetaSpendLimitIncreaseRequestResolvedBy,
   BetaSpendLimitIncreaseRequestStatus,
   BetaSpendLimitIncreaseRequestsPageCursor,
   IncreaseRequestApproveParams,
@@ -14,11 +16,24 @@ import {
   IncreaseRequests,
 } from './increase-requests';
 import { APIPromise } from '../../../../core/api-promise';
+import { PermissionDeniedError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export class BetaSpendLimitsAdminAPIWritesNotEnabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'spend_limits_admin_api_writes_not_enabled';
+  declare readonly details: BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSpendLimitsAdminAPIWritesNotEnabledError';
+}
 
 export class SpendLimits extends APIResource {
   effective: EffectiveAPI.Effective = new EffectiveAPI.Effective(this._client);
@@ -28,6 +43,8 @@ export class SpendLimits extends APIResource {
 
   /**
    * Retrieve a spend limit by ID.
+   *
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
    * ```ts
@@ -57,6 +74,8 @@ export class SpendLimits extends APIResource {
    * limits are grouped by scope type, in the order `organization`, `seat_tier`,
    * `rbac_group`, `organization_service`, `user`; within a type they come in a fixed
    * order that is not creation order.
+   *
+   * @throws {OrganizationTypeNotSupportedError}
    *
    * @example
    * ```ts
@@ -96,6 +115,9 @@ export class SpendLimits extends APIResource {
    * `usage_tier` limit. Deleting organization and workspace limits through the API
    * is in an early access preview.
    *
+   * @throws {SandboxEgressRestrictedError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
+   *
    * @example
    * ```ts
    * const spendLimit =
@@ -125,6 +147,9 @@ export class SpendLimits extends APIResource {
    * monthly and always carry an amount. Setting those limits is in an early access
    * preview. To request access, contact your Anthropic account team.
    *
+   * @throws {SandboxEgressRestrictedError}
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
+   *
    * @example
    * ```ts
    * const betaSpendLimit =
@@ -132,7 +157,7 @@ export class SpendLimits extends APIResource {
    *     amount: '50000',
    *     scope: {
    *       type: 'user',
-   *       user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+   *       user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
    *     },
    *   });
    * ```
@@ -333,6 +358,14 @@ export interface BetaSpendLimitWorkspaceScope {
 }
 
 /**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export interface BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails {
+  error_code: 'spend_limits_admin_api_writes_not_enabled';
+}
+
+/**
  * Per-member effective-limit report row (`GET /spend_limits/effective`).
  */
 export interface BetaSpendSummary {
@@ -445,11 +478,13 @@ export interface SpendLimitSetParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+SpendLimits.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 SpendLimits.Effective = Effective;
 SpendLimits.IncreaseRequests = IncreaseRequests;
 
 export declare namespace SpendLimits {
   export {
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
@@ -461,6 +496,7 @@ export declare namespace SpendLimits {
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
@@ -473,6 +509,8 @@ export declare namespace SpendLimits {
   export {
     IncreaseRequests as IncreaseRequests,
     type BetaSpendLimitIncreaseRequest as BetaSpendLimitIncreaseRequest,
+    type BetaSpendLimitIncreaseRequestActor as BetaSpendLimitIncreaseRequestActor,
+    type BetaSpendLimitIncreaseRequestResolvedBy as BetaSpendLimitIncreaseRequestResolvedBy,
     type BetaSpendLimitIncreaseRequestStatus as BetaSpendLimitIncreaseRequestStatus,
     type IncreaseRequestApproveResponse as IncreaseRequestApproveResponse,
     type BetaSpendLimitIncreaseRequestsPageCursor as BetaSpendLimitIncreaseRequestsPageCursor,

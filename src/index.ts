@@ -21,10 +21,20 @@ export {
   ConflictError,
   RateLimitError,
   BadRequestError,
+  OverloadedError,
   AuthenticationError,
+  RequestTimeoutError,
   InternalServerError,
+  NotImplementedError,
+  GatewayTimeoutError,
+  PaymentRequiredError,
+  ContentTooLargeError,
   PermissionDeniedError,
+  PreconditionFailedError,
+  ServiceUnavailableError,
   UnprocessableEntityError,
+  ClientClosedRequestError,
+  RequestHeaderFieldsTooLargeError,
 } from './core/error';
 
 export { type APIRequest } from './client';

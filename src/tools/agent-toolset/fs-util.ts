@@ -7,6 +7,7 @@
 
 import type { FileHandle } from 'node:fs/promises';
 import { crypto, fs as nodefs, path } from '../../internal/node';
+import { readEnv } from '../../internal/utils/env';
 import { ToolError } from '../../lib/tools/ToolError';
 
 const fs = nodefs.promises;
@@ -19,10 +20,25 @@ export const DIR_CREATE_MODE = 0o700;
  */
 export const FILE_CREATE_MODE = 0o600;
 
-/** True when `p` is `root` itself or lexically contained within it. */
+/** True when `p` is `root` itself or lexically contained within it, with names compared exactly. */
 export function isWithin(root: string, p: string): boolean {
+  const from = path.resolve(root);
+  const to = path.resolve(p);
+  return to === from || to.startsWith(from.endsWith(path.sep) ? from : from + path.sep);
+}
+
+/**
+ * {@link isWithin}, but on Windows also true for names that differ only by case,
+ * for checks that refuse.
+ */
+export function isWithinAnyCase(root: string, p: string): boolean {
   const rel = path.relative(root, p);
   return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
+}
+
+/** {@link isWithin} with letter case and Unicode form ignored on every platform, for checks that refuse. */
+function isWithinFolded(root: string, p: string): boolean {
+  return isWithin(root.toLowerCase().normalize('NFC'), p.toLowerCase().normalize('NFC'));
 }
 
 /**
@@ -33,9 +49,13 @@ export function isWithin(root: string, p: string): boolean {
  * and refusing writes (`readOnlyRoots`) can never resolve the same entry two
  * different ways.
  */
-export async function containingRoot(roots: readonly string[], target: string): Promise<string | undefined> {
+export async function containingRoot(
+  roots: readonly string[],
+  target: string,
+  contains = isWithin,
+): Promise<string | undefined> {
   for (const root of roots) {
-    if (isWithin(await canonicalize(path.resolve(root)), target)) return root;
+    if (contains(await canonicalize(path.resolve(root)), target)) return root;
   }
   return undefined;
 }
@@ -87,7 +107,8 @@ export async function canonicalize(abs: string): Promise<string> {
       if (++hops > MAX_SYMLINK_HOPS) {
         throw Object.assign(new Error('too many levels of symbolic links'), { code: 'ELOOP' });
       }
-      prefix = path.resolve(path.dirname(prefix), await fs.readlink(prefix));
+      const parent = await fs.realpath(path.dirname(prefix));
+      prefix = path.resolve(parent, await fs.readlink(prefix), ...tail.splice(0).reverse());
       continue;
     }
     return tail.length ? path.join(real, ...tail.reverse()) : real;
@@ -200,4 +221,82 @@ export function fsErrorMessage(err: unknown, file: string): string {
     default:
       return `${file}: ${code !== undefined ? `i/o error (${code})` : 'i/o error'}`;
   }
+}
+
+/**
+ * The first executable file called `name` in an entry of `searchPath`, or `null`. An entry that is
+ * relative to the current directory or, on Windows, to the current drive (`\bin`) is skipped.
+ * With `notInside`, so is a file that resolves to somewhere inside one of those directories,
+ * and the result is the resolved path that was checked.
+ * @internal
+ */
+export async function findExecutable(
+  name: string,
+  notInside: readonly string[] = [],
+  searchPath = readEnv('PATH') ?? '',
+): Promise<string | null> {
+  for (const dir of absolutePathEntries(searchPath)) {
+    const candidate = path.join(dir, name);
+    try {
+      await fs.access(candidate, nodefs.constants.X_OK);
+      if (!(await fs.stat(candidate)).isFile()) continue;
+      if (notInside.length === 0) return candidate;
+      const real = await fs.realpath(candidate);
+      if ((await containingRoot(notInside, real, isWithinFolded)) === undefined) return real;
+    } catch {
+      // not here, or no telling where it is
+    }
+  }
+  return null;
+}
+
+/**
+ * The resolved `PATH` entries outside the `notInside` directories, or `null` when there are none.
+ * Left out are an entry that would read as two, and one where a `helpers` name leads inside.
+ * Throws when a `notInside` directory can't be resolved, so there is no telling what is outside.
+ * @internal
+ */
+export async function searchPathOutside(
+  notInside: readonly string[],
+  helpers: readonly string[],
+): Promise<string | null> {
+  const resolve = (p: string) => fs.realpath(p).catch(() => undefined);
+  const isInside = async (real: string) =>
+    (await containingRoot(notInside, real, isWithinFolded)) !== undefined;
+  let outside: string[] | null = null;
+  nextEntry: for (const dir of absolutePathEntries(readEnv('PATH') ?? '')) {
+    const real = await resolve(dir);
+    // An entry that isn't there supplies nothing, but one outside still means `PATH` reaches outside.
+    if (await isInside(real ?? (await canonicalize(dir).catch(() => dir)))) continue;
+    outside ??= [];
+    if (real === undefined || real.includes(path.delimiter)) continue;
+    for (const name of helpers) {
+      const helper = await resolve(path.join(real, name));
+      if (helper !== undefined && (await isInside(helper))) continue nextEntry;
+    }
+    outside.push(real);
+  }
+  return outside && outside.join(path.delimiter);
+}
+
+function absolutePathEntries(searchPath: string): string[] {
+  return searchPath
+    .split(path.delimiter)
+    .filter((dir) => path.isAbsolute(dir) && path.resolve(dir) === path.join(dir, '.'));
+}
+
+/**
+ * The environment for a program the toolset starts: that of this process without the `ANTHROPIC_*`
+ * variables, in any letter case, as Windows reads them. They hold its credentials, the API key, the
+ * auth token and the per-work session token among them. Everything else (PATH, HOME, locale, …) is
+ * passed through unchanged.
+ * @internal
+ */
+export function scrubbedShellEnv(): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.toUpperCase().startsWith('ANTHROPIC_')) continue;
+    env[key] = value;
+  }
+  return env;
 }

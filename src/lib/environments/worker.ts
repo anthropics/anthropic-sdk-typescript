@@ -93,10 +93,10 @@ export interface EnvironmentWorkerOptions {
    * either bound cuts work off. `null` disables memory download and sync
    * entirely. Memory stores are only touched for work items whose `secret`
    * carries a `sessions_token`; while sync is enabled, an item without one
-   * fails when its session has memory stores attached, because those stores
-   * cannot be mounted without the token. With `null` the same item runs,
-   * without memory, and nothing is logged — turning sync off is the
-   * operator's explicit choice.
+   * fails when its session has not terminated and has memory stores attached,
+   * because those stores cannot be mounted without the token. With `null`
+   * the same item runs, without memory, and nothing is logged — turning sync
+   * off is the operator's explicit choice.
    */
   memorySyncIntervalMs?: number | null;
   /**
@@ -111,7 +111,7 @@ export interface EnvironmentWorkerOptions {
   signal?: AbortSignal;
   /**
    * Extra per-request options merged into every call this worker issues — the
-   * work poll/ack/heartbeat/stop control-plane calls and the per-session
+   * work poll/ack/heartbeat/stop calls and the per-session
    * SessionToolRunner's stream/list/send. Mirrors what
    * `client.beta.messages.toolRunner` accepts: custom `headers` (e.g. a proxy's
    * auth/routing headers) reach all of them. The worker owns the abort signals,
@@ -198,8 +198,8 @@ export function sessionsTokenFromSecret(secret: string | null | undefined): stri
 }
 
 /**
- * The self-hosted environment runner, composed from the control-plane
- * {@link WorkPoller} and the per-session {@link SessionToolRunner}.
+ * The self-hosted environment runner, composed from the {@link WorkPoller}
+ * and the per-session {@link SessionToolRunner}.
  *
  * For each claimed `session` work item it: builds the per-session
  * {@link AgentToolContext}, downloads the session agent's skills
@@ -208,7 +208,9 @@ export function sessionsTokenFromSecret(secret: string | null | undefined): stri
  * force-stops the work item (unless the lease was lost, in which case the item
  * is left to whoever holds it now), cleans up the downloaded skills, and loops
  * to the next one. The lease heartbeat reports `state === "stopping"` / a lost
- * lease back into the run by aborting the session runner.
+ * lease back into the run by aborting the session runner. The item of a
+ * session that has already terminated is force-stopped without running any
+ * tools.
  *
  * The `environmentKey` is the worker's standing credential. When a claimed
  * work item carries a per-item `secret` (a short-lived payload the poll
@@ -332,7 +334,7 @@ export class EnvironmentWorker {
    * download the session agent's skills (`setupSkills`), run a
    * {@link SessionToolRunner} for the session while heartbeating the work-item
    * lease, and force-stop the work item on exit (whether the runner finishes
-   * normally, throws, or the control plane signals shutdown). The one
+   * normally, throws, or the API signals shutdown). The one
    * exception is a lost lease: the item then belongs to the queue or another
    * worker and is left alone.
    *
@@ -351,7 +353,9 @@ export class EnvironmentWorker {
    * environment key resolved. Throws `SessionMemoryError` when the
    * session has memory stores attached but they cannot be mounted — the work
    * item carried no sessions token (unless `memorySyncIntervalMs` turned
-   * memory off), or a store failed to download.
+   * memory off), or a store failed to download. When the session has already
+   * terminated, which includes an archived one, nothing is downloaded, no tools
+   * run, and `SessionMemoryError` is not thrown.
    *
    * `workSecret` is the work item's per-item `secret` payload from the poll
    * response, falling back to `ANTHROPIC_WORK_SECRET`; unlike the others it is
@@ -399,7 +403,8 @@ export class EnvironmentWorker {
    * The per-item body shared by {@link EnvironmentWorker.run}'s poll loop and
    * {@link EnvironmentWorker.handleItem}: run a {@link SessionToolRunner} for the
    * work item's session while heartbeating its lease, force-stopping on exit
-   * unless the lease was lost. Non-session work items are ignored.
+   * unless the lease was lost. Non-session work items, and the work item of a
+   * session that has already terminated, run no tools.
    *
    * When the poll response carried a per-item `secret` (a short-lived payload
    * scoped to this work item), the sessions token extracted from it is
@@ -490,6 +495,13 @@ export class EnvironmentWorker {
       // A failed fetch fails the work item (the teardown below still stops
       // or releases it).
       const session: BetaManagedAgentsSession = await sessionClient.beta.sessions.retrieve(sessionId);
+      if (session.status === 'terminated') {
+        log.info('skipping the work item of a terminated session', {
+          session_id: sessionId,
+          work_id: work.id,
+        });
+        return;
+      }
       // Only with the session in hand can we tell one that simply has no
       // memory from one whose memory we cannot mount. Turning memory off
       // with the interval knob is a deliberate opt-out and stays quiet.
@@ -660,12 +672,7 @@ async function forceStop(
 }
 
 /** Why heartbeating of a work item ended, as recorded on its {@link Lease}. */
-type LeaseEndReason =
-  | 'runner_done'
-  | 'control_plane_stop'
-  | 'lease_lost'
-  | 'heartbeat_rejected'
-  | 'assumed_lost';
+type LeaseEndReason = 'runner_done' | 'heartbeat_stop' | 'lease_lost' | 'heartbeat_rejected' | 'assumed_lost';
 
 /**
  * This worker's view of one work-item lease: the per-item abort signal plus
@@ -713,7 +720,7 @@ function serverLeaseState(e: unknown): Record<string, unknown> {
 
 /**
  * Keep the work-item lease alive while a session is being served. Runs until
- * `lease` ends, and ends it itself when the control plane reports the work is
+ * `lease` ends, and ends it itself when the API reports the work is
  * `stopping`/`stopped` or no longer extends the lease, when a heartbeat is
  * rejected (a 412 means the lease already belongs to someone else), or when no
  * heartbeat has succeeded for longer than the lease ttl (the lease is assumed
@@ -755,11 +762,11 @@ async function heartbeatLoop(
       }
       if (resp.state === 'stopping' || resp.state === 'stopped') {
         logger.info('heartbeat signals shutdown', { work_id: work.id, state: resp.state });
-        lease.finish('control_plane_stop');
+        lease.finish('heartbeat_stop');
       }
       if (!resp.lease_extended) {
         logger.warn('lease not extended, shutting down', { work_id: work.id });
-        lease.finish('control_plane_stop');
+        lease.finish('heartbeat_stop');
       }
     } catch (e) {
       // An abort throws to unwind the caller (the `heartbeatLoop(...).catch`

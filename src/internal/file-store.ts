@@ -405,7 +405,7 @@ async function replaceViaTemp(dest: string, data: Uint8Array, isExecutable: bool
   }
 }
 
-async function openRegularFile(relPath: string, dest: string): Promise<FileHandle> {
+export async function openRegularFile(relPath: string, dest: string): Promise<FileHandle> {
   // O_NONBLOCK: a FIFO fails the fstat check below instead of blocking the open.
   let handle: FileHandle;
   try {

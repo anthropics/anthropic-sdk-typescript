@@ -27,7 +27,7 @@ describe('resource files', () => {
           limit: 1,
           page: 'page',
           scope_id: 'scope_id',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -51,7 +51,7 @@ describe('resource files', () => {
     await expect(
       client.beta.files.delete(
         'file_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -62,7 +62,7 @@ describe('resource files', () => {
     await expect(
       client.beta.files.download(
         'file_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -84,7 +84,7 @@ describe('resource files', () => {
     await expect(
       client.beta.files.retrieveMetadata(
         'file_id',
-        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { betas: ['computer-use-2024-10-22'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -107,7 +107,7 @@ describe('resource files', () => {
     const response = await client.beta.files.upload({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
       expires_in_seconds: 3600,
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

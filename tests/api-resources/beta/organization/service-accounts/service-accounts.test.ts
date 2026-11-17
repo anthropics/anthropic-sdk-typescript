@@ -23,7 +23,7 @@ describe('resource serviceAccounts', () => {
       name: 'ci-deploy-bot',
       description: 'description',
       organization_role: 'admin',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -43,7 +43,7 @@ describe('resource serviceAccounts', () => {
     await expect(
       client.beta.organization.serviceAccounts.retrieve(
         'service_account_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -79,7 +79,7 @@ describe('resource serviceAccounts', () => {
           include_archived: true,
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -102,7 +102,7 @@ describe('resource serviceAccounts', () => {
     await expect(
       client.beta.organization.serviceAccounts.archive(
         'service_account_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

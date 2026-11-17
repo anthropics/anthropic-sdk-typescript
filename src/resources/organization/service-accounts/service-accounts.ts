@@ -32,6 +32,8 @@ export class ServiceAccounts extends APIResource {
    * requires an interactive credential (a user OAuth token or a Console session) — a
    * workload may only create `developer`-role service accounts.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const serviceAccount =
@@ -90,11 +92,14 @@ export class ServiceAccounts extends APIResource {
    * `organization_role` to `admin` (even when unchanged) requires an interactive
    * credential (a user OAuth token or a Console session).
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const serviceAccount =
    *   await client.organization.serviceAccounts.update(
    *     'service_account_id',
+   *     {},
    *   );
    * ```
    */
@@ -159,6 +164,8 @@ export class ServiceAccounts extends APIResource {
    * `archived_at`. Rejected with 400 if any live (non-archived) federation rule
    * still targets this service account, same as issuer archival; archive those rules
    * first or change their target to another service account.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

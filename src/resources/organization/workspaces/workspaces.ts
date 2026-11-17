@@ -33,10 +33,48 @@ import {
   ServiceAccounts,
 } from './service-accounts';
 import { APIPromise } from '../../../core/api-promise';
+import { BadRequestError } from '../../../core/error';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
+
+/**
+ * After this request, the External Key and the Workspace would not have the same
+ * user profile. A key and its Workspace must have the same user profile, or both
+ * have none.
+ */
+export class KeyProfileMismatchError extends BadRequestError {
+  declare readonly errorCode: 'key_profile_mismatch';
+  declare readonly details: KeyProfileMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'KeyProfileMismatchError';
+}
+
+/**
+ * The workspace has reached the member limit that Anthropic set for it.
+ */
+export class WorkspaceMemberLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'workspace_member_limit_exceeded';
+  declare readonly details: WorkspaceMemberLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceMemberLimitExceededError';
+}
+
+/**
+ * The request breaks the organization's Workspace Policy. The message says which
+ * rule it broke; an organization admin can see and change the policy in the
+ * Console.
+ */
+export class WorkspacePolicyViolationError extends BadRequestError {
+  declare readonly errorCode: 'workspace_policy_violation';
+  declare readonly details: WorkspacePolicyViolationErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspacePolicyViolationError';
+}
 
 export class Workspaces extends APIResource {
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
@@ -46,11 +84,19 @@ export class Workspaces extends APIResource {
   /**
    * Create Workspace
    *
+   * @throws {ExternalKeyValidationFailedError}
+   * @throws {ExternalKeyValidationTimedOutError}
+   * @throws {KeyProfileMismatchError}
+   * @throws {UserProfileNotFoundError}
+   * @throws {WorkspacePolicyViolationError}
+   * @throws {SandboxEgressRestrictedError}
+   * @throws {ExternalKeyChangedError}
+   *
    * @example
    * ```ts
    * const workspace =
    *   await client.organization.workspaces.create({
-   *     name: 'x',
+   *     name: 'Workspace Name',
    *   });
    * ```
    */
@@ -89,11 +135,20 @@ export class Workspaces extends APIResource {
   /**
    * Update Workspace
    *
+   * @throws {ExternalKeyValidationFailedError}
+   * @throws {ExternalKeyValidationTimedOutError}
+   * @throws {KeyProfileMismatchError}
+   * @throws {UserProfileNotFoundError}
+   * @throws {WorkspacePolicyViolationError}
+   * @throws {SandboxEgressRestrictedError}
+   * @throws {ExternalKeyChangedError}
+   *
    * @example
    * ```ts
    * const workspace =
    *   await client.organization.workspaces.update(
    *     'workspace_id',
+   *     {},
    *   );
    * ```
    */
@@ -128,13 +183,15 @@ export class Workspaces extends APIResource {
       ...options,
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
         route: '/v1/organizations/workspaces',
-        queryParams: ['after_id', 'before_id', 'include_archived', 'include_default', 'limit'],
+        queryParams: ['after_id', 'before_id', 'ids', 'include_archived', 'include_default', 'limit'],
       }),
     });
   }
 
   /**
    * Archive Workspace
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -214,6 +271,15 @@ export interface DataResidencyUpdateConfig {
   default_inference_geo?: 'global' | 'us' | null;
 }
 
+/**
+ * After this request, the External Key and the Workspace would not have the same
+ * user profile. A key and its Workspace must have the same user profile, or both
+ * have none.
+ */
+export interface KeyProfileMismatchErrorDetails {
+  error_code: 'key_profile_mismatch';
+}
+
 export type NoBillingWorkspaceRole =
   | 'workspace_admin'
   | 'workspace_developer'
@@ -233,17 +299,17 @@ export interface Workspace {
   archived_at: string | null;
 
   /**
-   * Identifier for this Workspace's encryption compartment. When you configure a
-   * customer-managed encryption key (CMEK) on AWS, reference this value in your KMS
-   * key-policy condition so the key is scoped to this compartment. On GCP and Azure,
-   * Anthropic enforces the compartment binding automatically; you do not need to
-   * reference this value in your key configuration. See the CMEK integration guide
-   * for the required key configuration; unless your organization is on Claude
-   * Platform on AWS, it includes a separate value used during key validation. On
-   * Claude Platform on AWS there is no separate validation value: the key is
-   * validated against this Workspace's own value when it is attached, so if your key
-   * policy uses the compartment condition, add this value to it before attaching the
-   * key.
+   * Identifier for this Workspace's encryption compartment. When you configure an
+   * AWS KMS customer-managed encryption key (CMEK) that isn't bound to a user
+   * profile, reference this value in your KMS key-policy condition so the key is
+   * scoped to this compartment. On GCP and Azure, Anthropic enforces the compartment
+   * binding automatically; you do not need to reference this value in your key
+   * configuration. See the CMEK integration guide for the required key
+   * configuration; unless your organization is on Claude Platform on AWS, it
+   * includes a separate value used during key validation. On Claude Platform on AWS
+   * there is no separate validation value: your organization's own key is validated
+   * against this Workspace's own value when it is attached, so if its key policy
+   * uses the compartment condition, add this value to it before attaching the key.
    */
   compartment_id: string;
 
@@ -267,13 +333,14 @@ export interface Workspace {
    * Workspace. Setting this field requires CMEK to be enabled for your organization.
    * When set, data stored for this Workspace is encrypted with the referenced key.
    * Create key configurations with the External Keys API. On Claude Platform on AWS
-   * the value is the AWS KMS key ARN, and the key must be a single-Region key in the
-   * same AWS account and Region as the Workspace. On that platform the key is
-   * validated against this Workspace when it is attached, so a key-policy problem is
-   * reported as an error on this request. This field is write-once: once a key is
-   * attached to a Workspace it cannot be detached or replaced. To rotate key
-   * material, rotate the underlying key on your cloud KMS; the `external_key_id`
-   * stays the same.
+   * the value for an AWS KMS key is the key's ARN, and your organization's own key
+   * must be a single-Region key in the same Region as the Workspace. If that key is
+   * outside the Workspace's AWS account, it can be attached only by updating an
+   * active Workspace. On that platform the key is validated against this Workspace
+   * when it is attached, so a key-policy problem is reported as an error on this
+   * request. This field is write-once: once a key is attached to a Workspace it
+   * cannot be detached or replaced. To rotate key material, rotate the underlying
+   * key on your cloud KMS; the `external_key_id` stays the same.
    */
   external_key_id: string | null;
 
@@ -294,6 +361,13 @@ export interface Workspace {
    * For Workspaces, this is always `"workspace"`.
    */
   type: 'workspace';
+
+  /**
+   * ID of the user profile attached to the Workspace, or null if it has none. Every
+   * inference request through a Workspace that has a user profile must name that
+   * profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface WorkspaceMember {
@@ -318,6 +392,29 @@ export interface WorkspaceMember {
    * Role of the Workspace Member.
    */
   workspace_role: WorkspaceRole;
+}
+
+/**
+ * The workspace has reached the member limit that Anthropic set for it.
+ */
+export interface WorkspaceMemberLimitExceededErrorDetails {
+  error_code: 'workspace_member_limit_exceeded';
+}
+
+export type WorkspacePolicyField = 'external_key_id';
+
+/**
+ * The request breaks the organization's Workspace Policy. The message says which
+ * rule it broke; an organization admin can see and change the policy in the
+ * Console.
+ */
+export interface WorkspacePolicyViolationErrorDetails {
+  error_code: 'workspace_policy_violation';
+
+  /**
+   * The request field the broken rule applies to.
+   */
+  field: WorkspacePolicyField;
 }
 
 export type WorkspaceRole =
@@ -350,13 +447,14 @@ export interface WorkspaceCreateParams {
    * Workspace. Setting this field requires CMEK to be enabled for your organization.
    * When set, data stored for this Workspace is encrypted with the referenced key.
    * Create key configurations with the External Keys API. On Claude Platform on AWS
-   * the value is the AWS KMS key ARN, and the key must be a single-Region key in the
-   * same AWS account and Region as the Workspace. On that platform the key is
-   * validated against this Workspace when it is attached, so a key-policy problem is
-   * reported as an error on this request. This field is write-once: once a key is
-   * attached to a Workspace it cannot be detached or replaced. To rotate key
-   * material, rotate the underlying key on your cloud KMS; the `external_key_id`
-   * stays the same.
+   * the value for an AWS KMS key is the key's ARN, and your organization's own key
+   * must be a single-Region key in the same Region as the Workspace. If that key is
+   * outside the Workspace's AWS account, it can be attached only by updating an
+   * active Workspace. On that platform the key is validated against this Workspace
+   * when it is attached, so a key-policy problem is reported as an error on this
+   * request. This field is write-once: once a key is attached to a Workspace it
+   * cannot be detached or replaced. To rotate key material, rotate the underlying
+   * key on your cloud KMS; the `external_key_id` stays the same.
    */
   external_key_id?: string | null;
 
@@ -365,6 +463,14 @@ export interface WorkspaceCreateParams {
    * `anthropic`.
    */
   tags?: { [key: string]: string } | null;
+
+  /**
+   * ID of a user profile to attach to the Workspace. Every inference request through
+   * the Workspace must then name this user profile; the API rejects a request that
+   * names none or a different one. The user profile can't be replaced or removed
+   * later; only deleting the user profile clears it.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface WorkspaceUpdateParams {
@@ -383,13 +489,14 @@ export interface WorkspaceUpdateParams {
    * Workspace. Setting this field requires CMEK to be enabled for your organization.
    * When set, data stored for this Workspace is encrypted with the referenced key.
    * Create key configurations with the External Keys API. On Claude Platform on AWS
-   * the value is the AWS KMS key ARN, and the key must be a single-Region key in the
-   * same AWS account and Region as the Workspace. On that platform the key is
-   * validated against this Workspace when it is attached, so a key-policy problem is
-   * reported as an error on this request. This field is write-once: once a key is
-   * attached to a Workspace it cannot be detached or replaced. To rotate key
-   * material, rotate the underlying key on your cloud KMS; the `external_key_id`
-   * stays the same.
+   * the value for an AWS KMS key is the key's ARN, and your organization's own key
+   * must be a single-Region key in the same Region as the Workspace. If that key is
+   * outside the Workspace's AWS account, it can be attached only by updating an
+   * active Workspace. On that platform the key is validated against this Workspace
+   * when it is attached, so a key-policy problem is reported as an error on this
+   * request. This field is write-once: once a key is attached to a Workspace it
+   * cannot be detached or replaced. To rotate key material, rotate the underlying
+   * key on your cloud KMS; the `external_key_id` stays the same.
    */
   external_key_id?: string;
 
@@ -403,9 +510,26 @@ export interface WorkspaceUpdateParams {
    * `anthropic`.
    */
   tags?: { [key: string]: string | null } | null;
+
+  /**
+   * ID of a user profile to attach to the Workspace. Every inference request through
+   * the Workspace must then name this user profile; the API rejects a request that
+   * names none or a different one. Once set, it can't be replaced or removed
+   * (sending the same ID again changes nothing); only deleting the user profile
+   * clears it. It can't be set on a Workspace whose External Key isn't bound to this
+   * user profile. The default Workspace can't have a user profile.
+   */
+  user_profile_id?: string;
 }
 
 export interface WorkspaceListParams extends PageParams {
+  /**
+   * Only the Workspaces with these IDs, at most 100. `include_archived` and
+   * `include_default` still apply, and IDs of Workspaces the caller can't list are
+   * left out.
+   */
+  ids?: Array<string>;
+
   /**
    * Whether to include Workspaces that have been archived in the response
    */
@@ -417,19 +541,29 @@ export interface WorkspaceListParams extends PageParams {
   include_default?: boolean;
 }
 
+Workspaces.KeyProfileMismatchError = KeyProfileMismatchError;
+Workspaces.WorkspaceMemberLimitExceededError = WorkspaceMemberLimitExceededError;
+Workspaces.WorkspacePolicyViolationError = WorkspacePolicyViolationError;
 Workspaces.RateLimits = RateLimits;
 Workspaces.Members = Members;
 Workspaces.ServiceAccounts = ServiceAccounts;
 
 export declare namespace Workspaces {
   export {
+    KeyProfileMismatchError as KeyProfileMismatchError,
+    WorkspaceMemberLimitExceededError as WorkspaceMemberLimitExceededError,
+    WorkspacePolicyViolationError as WorkspacePolicyViolationError,
     type AllowedInferenceGeo as AllowedInferenceGeo,
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
+    type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,
     type WorkspaceMember as WorkspaceMember,
+    type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
+    type WorkspacePolicyField as WorkspacePolicyField,
+    type WorkspacePolicyViolationErrorDetails as WorkspacePolicyViolationErrorDetails,
     type WorkspaceRole as WorkspaceRole,
     type WorkspacesPage as WorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,

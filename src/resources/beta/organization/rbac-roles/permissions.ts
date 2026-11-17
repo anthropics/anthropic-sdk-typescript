@@ -10,6 +10,10 @@ export class Permissions extends APIResource {
    *
    * The RBAC Roles API is available to Claude Enterprise organizations only.
    *
+   * @throws {OrganizationTypeNotSupportedError}
+   * @throws {ParentOrganizationRequiredError}
+   * @throws {RBACRoleNotFoundError}
+   *
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
@@ -132,17 +136,18 @@ export interface BetaRBACRolePermission {
    * The vocabulary follows the resource: an `organization` grant carries a
    * product-feature entitlement (for example `chat`), an admin-panel permission
    * entitlement (`permission_*`), or a blanket capability-access mode —
-   * `capability_access_all` grants every product-feature entitlement, and
-   * `capability_access_all_ga` grants the generally-available subset as it stands at
-   * permission-check time; neither mode grants model-access entitlements. A consumer
-   * enumerating a role's per-feature grants should treat a blanket row as granting
-   * every product-feature entitlement it covers, or it will under-report the role's
-   * effective access. A `connector_tool` grant carries a tool-access action (`use`
-   * or `always_allow`); a `connector_scope` grant carries the scope action `grant`
-   * (the role may receive the named OAuth scope when tokens are minted for the
-   * connector); `connector` and `all_connectors` grants carry a tool-access action,
-   * the scope action, or an authentication-method action (`interactive` or
-   * `managed`).
+   * `capability_access_all` grants every product-feature entitlement except
+   * `inference_hooks_inspection`, which a role holds only through its own row, and
+   * `capability_access_all_ga` grants the subset of those for stable features as it
+   * stands at permission-check time; neither mode grants model-access entitlements.
+   * A consumer enumerating a role's per-feature grants should treat a blanket row as
+   * granting every product-feature entitlement it covers, or it will under-report
+   * the role's effective access. A `connector_tool` grant carries a tool-access
+   * action (`use` or `always_allow`); a `connector_scope` grant carries the scope
+   * action `grant` (the role may receive the named OAuth scope when tokens are
+   * minted for the connector); `connector` and `all_connectors` grants carry a
+   * tool-access action, the scope action, or an authentication-method action
+   * (`interactive` or `managed`).
    */
   action: string;
 

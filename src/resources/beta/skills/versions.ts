@@ -13,6 +13,12 @@ export class Versions extends APIResource {
   /**
    * Create Skill Version
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {CMEKContextUnavailableError}
+   *
    * @example
    * ```ts
    * const betaSkillVersion =
@@ -56,6 +62,9 @@ export class Versions extends APIResource {
   /**
    * Get Skill Version
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaSkillVersion =
@@ -89,6 +98,9 @@ export class Versions extends APIResource {
 
   /**
    * List Skill Versions
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -127,6 +139,9 @@ export class Versions extends APIResource {
 
   /**
    * Delete Skill Version
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

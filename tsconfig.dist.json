@@ -1,6 +1,26 @@
 {
-  "include": ["dist/**/*.d.ts", "dist/**/*.d.mts"],
-  "exclude": ["dist/src"],
+  "include": [
+    "dist/**/*.d.ts",
+    "dist/**/*.d.mts",
+    "packages/vertex-sdk/dist/**/*.d.ts",
+    "packages/vertex-sdk/dist/**/*.d.mts",
+    "packages/bedrock-sdk/dist/**/*.d.ts",
+    "packages/bedrock-sdk/dist/**/*.d.mts",
+    "packages/foundry-sdk/dist/**/*.d.ts",
+    "packages/foundry-sdk/dist/**/*.d.mts",
+    "packages/aws-sdk/dist/**/*.d.ts",
+    "packages/aws-sdk/dist/**/*.d.mts",
+    "packages/google-cloud-sdk/dist/**/*.d.ts",
+    "packages/google-cloud-sdk/dist/**/*.d.mts"
+  ],
+  "exclude": [
+    "dist/src",
+    "packages/vertex-sdk/dist/src",
+    "packages/bedrock-sdk/dist/src",
+    "packages/foundry-sdk/dist/src",
+    "packages/aws-sdk/dist/src",
+    "packages/google-cloud-sdk/dist/src"
+  ],
   "compilerOptions": {
     "target": "es2020",
     "lib": ["es2022"],

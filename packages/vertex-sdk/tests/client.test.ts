@@ -98,6 +98,16 @@ describe('AnthropicVertex', () => {
         }
       }
     });
+
+    test('throws error when region is empty', () => {
+      expect(() => {
+        new AnthropicVertex({
+          region: '',
+          projectId: 'test-project',
+          accessToken: 'fake-token',
+        });
+      }).toThrow('No region was given.');
+    });
   });
 
   describe('middleware order (Vertex adaptation runs inside user middleware)', () => {
@@ -121,6 +131,7 @@ describe('AnthropicVertex', () => {
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };
+    const countTokensParams = { model: createParams.model, messages: createParams.messages };
 
     test('middleware observes the canonical request without Google credentials; the wire receives the Vertex shape', async () => {
       const observed: { url?: string; body?: any; authorization?: string | null; version?: string | null } =
@@ -221,6 +232,73 @@ describe('AnthropicVertex', () => {
       expect(JSON.parse(wireInit.body).stream).toBe(true);
     });
 
+    test.each(
+      [
+        { model: 'claude-sonnet-4-5@20250929', encoded: 'claude-sonnet-4-5@20250929' },
+        { model: '../../x', encoded: '..%2F..%2Fx' },
+        { model: '..', encoded: '..' },
+        { model: '.', encoded: '.' },
+        { model: 'a;b', encoded: 'a%3Bb' },
+        { model: 'a;b;c', encoded: 'a%3Bb%3Bc' },
+        { model: 'a;', encoded: 'a%3B' },
+        { model: '...;x', encoded: '...%3Bx' },
+        { model: '..x;y', encoded: '..x%3By' },
+        { model: 'x;..', encoded: 'x%3B..' },
+        { model: 'a/b;c', encoded: 'a%2Fb%3Bc' },
+        { model: 'm:otherVerb;x', encoded: 'm:otherVerb%3Bx' },
+      ].flatMap(({ model, encoded }) => [
+        { model, stream: false, sent: `${encoded}:rawPredict` },
+        { model, stream: true, sent: `${encoded}:streamRawPredict` },
+      ]),
+    )('model $model is sent as $sent', async ({ model, stream, sent }) => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create({ ...createParams, model, stream });
+
+      const [wireUrl] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(
+        `https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/${sent}`,
+      );
+    });
+
+    test('an empty model throws before any request is sent', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await expect(client.messages.create({ ...createParams, model: '' })).rejects.toThrow(
+        'Value "" can\'t be safely passed as a path parameter',
+      );
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test.each(
+      [';', ';x', '.;', '.;x', '..;', '..;x'].flatMap((model) => [
+        { model, stream: false },
+        { model, stream: true },
+      ]),
+    )('model $model with stream $stream throws before any request is sent', async ({ model, stream }) => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      // The method name shares the model's path segment, so the error can quote both.
+      await expect(client.messages.create({ ...createParams, model, stream })).rejects.toThrow(
+        `Path parameters result in path with invalid segments:\nValue "${model}`,
+      );
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     test('rewrites count_tokens requests to the count-tokens endpoint', async () => {
       const client = new AnthropicVertex({
         region: 'us-east5',
@@ -237,6 +315,85 @@ describe('AnthropicVertex', () => {
       expect(wireUrl).toBe(
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
+    });
+
+    test.each([
+      { name: 'the usual project ID and region', sent: 'projects/test-project/locations/us-east5' },
+      { name: 'a "/" in the project ID', projectId: 'a/b', sent: 'projects/a%2Fb/locations/us-east5' },
+      { name: 'a "/" in the region', region: 'a/b', sent: 'projects/test-project/locations/a%2Fb' },
+      { name: 'a ";" in the project ID', projectId: 'a;b', sent: 'projects/a;b/locations/us-east5' },
+      { name: 'a ";" in the region', region: 'a;b', sent: 'projects/test-project/locations/a;b' },
+    ])('$name is sent as $sent', async ({ projectId = 'test-project', region = 'us-east5', sent }) => {
+      const client = new AnthropicVertex({
+        region,
+        projectId,
+        // The default host is built from the region.
+        baseURL: 'https://vertex.test/v1',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create(createParams);
+      await client.messages.countTokens(countTokensParams);
+
+      const modelsURL = `https://vertex.test/v1/${sent}/publishers/anthropic/models`;
+      expect(mockFetch.mock.calls.map(([wireUrl]) => wireUrl)).toEqual([
+        `${modelsURL}/${createParams.model}:rawPredict`,
+        `${modelsURL}/count-tokens:rawPredict`,
+      ]);
+    });
+
+    test('a ";" in the project ID and region is sent as it is when the model has one too', async () => {
+      const client = new AnthropicVertex({
+        region: 'c;d',
+        projectId: 'a;b',
+        baseURL: 'https://vertex.test/v1',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create({ ...createParams, model: 'e;f' });
+
+      const [wireUrl] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(
+        'https://vertex.test/v1/projects/a;b/locations/c;d/publishers/anthropic/models/e%3Bf:rawPredict',
+      );
+    });
+
+    test.each(
+      ['..', ';x', '.;x', '..;x'].flatMap((value) => [
+        { name: 'project ID', value, override: { projectId: value } },
+        { name: 'region', value, override: { region: value } },
+      ]),
+    )('a $name of $value throws before any request is sent', async ({ value, override }) => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        ...override,
+        baseURL: 'https://vertex.test/v1',
+        fetch: mockFetch as any,
+      });
+
+      const message = `Value "${value}" can't be safely passed as a path parameter`;
+      await expect(client.messages.create(createParams)).rejects.toThrow(message);
+      await expect(client.messages.countTokens(countTokensParams)).rejects.toThrow(message);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('an empty project ID that the credentials cannot fill in throws before any request is sent', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: '',
+        authClient: {
+          getRequestHeaders: async () => new Headers({ authorization: 'Bearer fake-token' }),
+        } as any,
+        fetch: mockFetch as any,
+      });
+
+      const message = 'No projectId was given and it could not be resolved from credentials.';
+      await expect(client.messages.create(createParams)).rejects.toThrow(message);
+      await expect(client.messages.countTokens(countTokensParams)).rejects.toThrow(message);
+
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 

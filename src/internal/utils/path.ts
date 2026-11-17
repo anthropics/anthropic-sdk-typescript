@@ -45,18 +45,18 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
             .slice(8, -1)} is not a valid path parameter`,
         });
       }
-      if (!postPath && encoded === '') {
+      if (!postPath && (encoded === '' || encoded.startsWith(';'))) {
         invalidSegments.push({
           start: previousValue.length + currentValue.length,
-          length: 0,
-          error: 'Value "" can\'t be safely passed as a path parameter',
+          length: encoded.length,
+          error: `Value "${encoded}" can\'t be safely passed as a path parameter`,
         });
       }
       return previousValue + currentValue + (index === params.length ? '' : encoded);
     }, '');
 
     const pathOnly = path.split(/[?#]/, 1)[0]!;
-    const invalidSegmentPattern = /(?<=^|\/)(?:\.|%2e){1,2}(?=\/|$)/gi;
+    const invalidSegmentPattern = /(?<=^|\/)(?:\.|%2e){1,2}(?:;[^/]*)?(?=\/|$)/gi;
     let match;
 
     // Find all invalid segments

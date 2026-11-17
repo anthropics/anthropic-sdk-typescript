@@ -1,4 +1,4 @@
-# Claude SDK for Claude Models on Google Cloud (Anthropic managed)
+# Anthropic SDK for Claude Models on Google Cloud (Anthropic managed)
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/google-cloud-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/google-cloud-sdk)
 
@@ -23,7 +23,7 @@ const client = new AnthropicGoogleCloud({
 });
 
 const message = await client.messages.create({
-  model: 'claude-haiku-4-5',
+  model: 'claude-haiku-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude!' }],
 });

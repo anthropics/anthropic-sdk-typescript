@@ -45,7 +45,7 @@ describe('resource rules', () => {
       description: 'description',
       token_lifetime_seconds: 60,
       workspace_id: 'workspace_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -65,7 +65,7 @@ describe('resource rules', () => {
     await expect(
       client.beta.organization.federation.rules.retrieve(
         'federation_rule_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -102,7 +102,7 @@ describe('resource rules', () => {
           issuer_id: 'issuer_id',
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -125,7 +125,7 @@ describe('resource rules', () => {
     await expect(
       client.beta.organization.federation.rules.archive(
         'federation_rule_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

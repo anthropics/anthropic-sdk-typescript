@@ -23,6 +23,7 @@ import {
   Versions,
 } from './versions';
 import { APIPromise } from '../../../../core/api-promise';
+import { BadRequestError, ConflictError, ServiceUnavailableError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
@@ -30,6 +31,66 @@ import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
+ */
+export class BetaScanFailedError extends BadRequestError {
+  declare readonly errorCode: 'scan_failed';
+  declare readonly details: BetaScanFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanFailedError';
+}
+
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export class BetaPluginNameTakenError extends ConflictError {
+  declare readonly errorCode: 'plugin_name_taken';
+  declare readonly details: BetaPluginNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaPluginNameTakenError';
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export class BetaScanPendingError extends ConflictError {
+  declare readonly errorCode: 'scan_pending';
+  declare readonly details: BetaScanPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanPendingError';
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export class BetaSkillNameTakenError extends ConflictError {
+  declare readonly errorCode: 'skill_name_taken';
+  declare readonly details: BetaSkillNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSkillNameTakenError';
+}
+
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export class BetaRegistrationPendingError extends ServiceUnavailableError {
+  declare readonly errorCode: 'registration_pending';
+  declare readonly details: BetaRegistrationPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRegistrationPendingError';
+}
 
 export class Plugins extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
@@ -54,13 +115,13 @@ export class Plugins extends APIResource {
    * 409 with `error_code` `plugin_name_taken` and, when a Plugin holds it, that
    * Plugin's ID in `details.plugin_id`. A Plugin going into the organization's
    * library marketplace is also refused with a 409 when one of its skills has the
-   * name of an organization skill (a skill an administrator uploaded for the whole
-   * organization in claude.ai): `error_code` `skill_name_taken`, with that name in
-   * `details.skill_name`; rename the skill, or remove the organization skill in
-   * claude.ai. A 503 with `error_code` `registration_pending` means the Plugin and
-   * its version were stored (their IDs are in `details`) but are not yet usable in
-   * claude.ai: do not retry the create (the retry would return `plugin_name_taken`);
-   * create a version on the stored Plugin instead, which completes it.
+   * name of an organization skill that this API does not list: `error_code`
+   * `skill_name_taken`, with that name in `details.skill_name`; rename the skill, or
+   * remove the organization skill in claude.ai. A 503 with `error_code`
+   * `registration_pending` means the Plugin and its version were stored (their IDs
+   * are in `details`) but are not yet usable in claude.ai: do not retry the create
+   * (the retry would return `plugin_name_taken`); create a version on the stored
+   * Plugin instead, which completes it.
    *
    * For a worked example, see
    * [Create a plugin](/docs/en/manage-claude/plugins-api#create-a-plugin) in the
@@ -74,6 +135,13 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaUnsupportedCharsetError}
+   * @throws {BetaPluginNameTakenError}
+   * @throws {BetaSkillNameTakenError}
+   * @throws {BetaRegistrationPendingError}
    *
    * @example
    * ```ts
@@ -153,8 +221,12 @@ export class Plugins extends APIResource {
   /**
    * Change which stored version of an organization-owned Plugin is served to
    * members, for example to roll back to an earlier one. This pins the served
-   * version: later uploads are stored but no longer change what is served, and
-   * pinning cannot currently be undone, here or in claude.ai.
+   * version: later uploads through this API are stored but no longer change what is
+   * served, and pinning cannot currently be undone, here or in claude.ai.
+   *
+   * A version from claude.ai might still change what is served: see
+   * [Versions and the served version](/docs/en/manage-claude/plugins-api#versions-and-the-served-version)
+   * in the Plugins API guide.
    *
    * Pass the version as `served_version_id`: an earlier one to roll back, a later
    * one to start serving a version that was stored without being served, or the one
@@ -169,10 +241,9 @@ export class Plugins extends APIResource {
    * accepted. If the scan outcome cannot be read at that moment, the request fails
    * with a retryable 503 instead. When the Plugin is in the organization's library
    * marketplace, a version other than the one served is also refused with a 409 when
-   * one of its skills has a name that an organization skill (one an administrator
-   * uploaded for the whole organization in claude.ai) has since taken: `error_code`
-   * `skill_name_taken`, with that name in `details.skill_name`. A member-owned
-   * Plugin cannot be updated here (403).
+   * an organization skill that this API does not list has since taken the name of
+   * one of its skills: `error_code` `skill_name_taken`, with that name in
+   * `details.skill_name`. A member-owned Plugin cannot be updated here (403).
    *
    * This endpoint does not write installation settings; they are written at
    * `/v1/organizations/plugins/{plugin_id}/installation_settings/{target}`.
@@ -185,6 +256,12 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaScanFailedError}
+   * @throws {BetaScanPendingError}
+   * @throws {BetaSkillNameTakenError}
    *
    * @example
    * ```ts
@@ -278,7 +355,9 @@ export class Plugins extends APIResource {
   /**
    * Permanently delete a Plugin and every version it holds, exactly as when an
    * administrator deletes it in claude.ai. The Plugin may belong to the organization
-   * or to a member, including a member who has since left the organization.
+   * or to a member, including a member who has since left the organization. Do not
+   * delete a Plugin only because your pipeline did not create it: a member or an
+   * administrator might have added it in claude.ai.
    *
    * An organization-owned Plugin's installation settings go with it; a member-owned
    * Plugin's shares are withdrawn and its owner no longer has it.
@@ -297,6 +376,8 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError}
    *
    * @example
    * ```ts
@@ -425,19 +506,22 @@ export interface BetaPlugin {
   /**
    * How far the served version reaches, or `null` if it is not classified.
    *
-   * `remote` means it declares an MCP server or a CLI. `privileged` means it
-   * declares no MCP server or CLI, but declares a hook, monitor, language server, or
-   * settings, or has a skill, command, or other Markdown file whose frontmatter
-   * pre-approves tools (`allowed-tools` with any value other than an empty one or
-   * one that names only `AskUserQuestion`, `TodoWrite`, and `ToolSearch`). Otherwise
-   * it is `contained`.
+   * `remote` means it declares an MCP server or a CLI, or something that counts as
+   * one. `privileged` means it is not `remote`, but declares a hook (of any type,
+   * even one that posts to a URL), monitor, language server, Claude Code workflow
+   * (any file in a `workflows/` folder at its root counts as one), or settings, or
+   * has a skill, command, or other Markdown file whose frontmatter pre-approves
+   * tools (`allowed-tools` with any value other than an empty one or one that names
+   * only `AskUserQuestion`, `TodoWrite`, and `ToolSearch`). Otherwise it is
+   * `contained`.
    *
    * If the frontmatter of a skill, command, or other Markdown file that could change
    * the value could not be read, or was past a size limit, the version is `null` or
-   * `privileged` (or `remote`, if it declares an MCP server or a CLI), not
+   * `privileged` (or `remote`, if something else it declares makes it `remote`), not
    * `contained`. The value is normally worked out when a version is stored, under
-   * the rules of that time, so an older version can be `null`, or `contained` where
-   * the same files stored today would be `privileged` or `null`.
+   * the rules of that time, so an older version can be `null`, `contained` where the
+   * same files stored today would be `privileged`, `remote`, or `null`, or
+   * `privileged` where they would be `remote`.
    */
   reach: 'contained' | 'privileged' | 'remote' | null;
 
@@ -511,8 +595,17 @@ export interface BetaPluginContentScan {
   /**
    * The primary mechanism behind a `warn` or `fail`, such as `credential-exposure`
    * or `guardrail-tampering`; a mechanism this API does not yet name reads as
-   * `other`. Null on a `pass`, whenever `assessment` is null, and when no mechanism
-   * is reported for the verdict.
+   * `other`. Read `status` first: on an `errored` scan it is not a finding but why
+   * there is no verdict: `scan-invalid-archive`, the scan refused the version's
+   * archive, or could not process it, before checking what its files say, and
+   * running it again will not help, so change the files and store a new version;
+   * `scan-did-not-finish`, the scan did not finish or its result is no longer
+   * available, so retry the scan in claude.ai if it offers a retry;
+   * `scan-unavailable`, the scan could not run or its result cannot be read right
+   * now, so read the version again later, then retry the scan in claude.ai if it
+   * offers a retry. If these steps do not help, contact support. Null on a `pass`,
+   * while a scan runs, and when no mechanism is reported for the verdict. On an
+   * errored scan, null means that a compliance configuration ruled out the scan.
    */
   reason: string | null;
 
@@ -523,6 +616,16 @@ export interface BetaPluginContentScan {
    * scan outcome cannot be read, `status` is `errored` instead.
    */
   status: 'completed' | 'errored' | 'processing';
+}
+
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export interface BetaPluginNameTakenErrorDetails {
+  error_code: 'plugin_name_taken';
+
+  plugin_id?: string | null;
 }
 
 export interface BetaPluginOwnerOrganization {
@@ -593,6 +696,48 @@ export interface BetaPluginUserActor {
   user_id: string;
 }
 
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export interface BetaRegistrationPendingErrorDetails {
+  error_code: 'registration_pending';
+
+  plugin_id: string;
+
+  plugin_version_id: string;
+}
+
+/**
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
+ */
+export interface BetaScanFailedErrorDetails {
+  error_code: 'scan_failed';
+
+  plugin_version_id: string;
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export interface BetaScanPendingErrorDetails {
+  error_code: 'scan_pending';
+
+  plugin_version_id: string;
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export interface BetaSkillNameTakenErrorDetails {
+  error_code: 'skill_name_taken';
+
+  skill_name: string;
+}
+
 export interface PluginCreateParams {
   /**
    * Body param: The version's files: one part per file, the part's filename being
@@ -634,7 +779,8 @@ export interface PluginRetrieveParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -692,7 +838,8 @@ export interface PluginListParams extends PageCursorParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -723,23 +870,38 @@ export interface PluginDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+Plugins.BetaScanFailedError = BetaScanFailedError;
+Plugins.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Plugins.BetaScanPendingError = BetaScanPendingError;
+Plugins.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Plugins.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Plugins.Versions = Versions;
 Plugins.InstallationSettings = InstallationSettings;
 Plugins.Shares = Shares;
 
 export declare namespace Plugins {
   export {
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,

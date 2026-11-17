@@ -15,33 +15,29 @@ export class ToolsetUsageError extends AnthropicError {
 
   constructor(message: string, options?: { cause?: unknown }) {
     super(message);
-    this.name = 'ToolsetUsageError';
     if (options && 'cause' in options) this.cause = options.cause;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'ToolsetUsageError';
 }
 
 /** A construction-time mistake: an option combination the toolset cannot honour. */
 export class ToolsetConfigError extends ToolsetUsageError {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = 'ToolsetConfigError';
-  }
+  /** @internal */
+  static override readonly _errorName: string = 'ToolsetConfigError';
 }
 
 /** Misuse of the SDK's own API detected at call time (a `browserState` that threw, a misrouted `tool_use`). */
 export class ToolsetContractError extends ToolsetUsageError {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = 'ToolsetContractError';
-  }
+  /** @internal */
+  static override readonly _errorName: string = 'ToolsetContractError';
 }
 
 /** A member run on a toolset you already closed. */
 export class ToolsetClosedError extends ToolsetUsageError {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = 'ToolsetClosedError';
-  }
+  /** @internal */
+  static override readonly _errorName: string = 'ToolsetClosedError';
 }
 
 // --- the SDK's own refusals ---------------------------------------------------------------------------

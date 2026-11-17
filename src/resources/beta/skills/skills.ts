@@ -27,6 +27,12 @@ export class Skills extends APIResource {
   /**
    * Create Skill
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {CMEKContextUnavailableError}
+   *
    * @example
    * ```ts
    * const betaSkill = await client.beta.skills.create({
@@ -64,6 +70,9 @@ export class Skills extends APIResource {
   /**
    * Get Skill
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaSkill = await client.beta.skills.retrieve(
@@ -96,6 +105,9 @@ export class Skills extends APIResource {
 
   /**
    * List Skills
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -130,6 +142,9 @@ export class Skills extends APIResource {
 
   /**
    * Delete Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

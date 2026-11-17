@@ -13,7 +13,7 @@ import { MyBrowser, examplePolicy } from './my-browser'; // your driver and your
 const browser = new MyBrowser(backend, { urlPolicy: examplePolicy(['example.com', 'iana.org']) });
 try {
   const runner = new Anthropic().beta.messages.toolRunner({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1024,
     tools: [browser],
     messages: [{ role: 'user', content: 'Open example.com and tell me the page heading.' }],

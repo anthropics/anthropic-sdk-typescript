@@ -32,7 +32,7 @@ describe('resource issuers', () => {
         discovery_base: 'discovery_base',
       },
       max_jwt_lifetime_seconds: 1,
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -52,7 +52,7 @@ describe('resource issuers', () => {
     await expect(
       client.beta.organization.federation.issuers.retrieve(
         'federation_issuer_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -88,7 +88,7 @@ describe('resource issuers', () => {
           include_archived: true,
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -111,7 +111,7 @@ describe('resource issuers', () => {
     await expect(
       client.beta.organization.federation.issuers.archive(
         'federation_issuer_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

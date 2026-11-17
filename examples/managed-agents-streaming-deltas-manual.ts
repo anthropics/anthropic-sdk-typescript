@@ -19,7 +19,7 @@ async function main() {
 
   const agent = await client.beta.agents.create({
     name: 'streaming-deltas-manual-example',
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5-5',
   });
   console.log('Created agent:', agent.id);
 

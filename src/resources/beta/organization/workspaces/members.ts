@@ -42,6 +42,9 @@ export class Members extends APIResource {
   /**
    * Update Workspace Member
    *
+   * @throws {WorkspaceMemberLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaWorkspaceMember =
@@ -111,13 +114,16 @@ export class Members extends APIResource {
   /**
    * Create Workspace Member
    *
+   * @throws {WorkspaceMemberLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaWorkspaceMember =
    *   await client.beta.organization.workspaces.members.add(
    *     'workspace_id',
    *     {
-   *       user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+   *       user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
    *       workspace_role: 'workspace_admin',
    *     },
    *   );
@@ -143,6 +149,8 @@ export class Members extends APIResource {
 
   /**
    * Delete Workspace Member
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

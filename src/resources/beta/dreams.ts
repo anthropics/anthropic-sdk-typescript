@@ -224,8 +224,8 @@ export type BetaDreamsPageCursor = PageCursor<BetaDream>;
  * writes its result into the input memory store instead.
  *
  * The Dreams API is in research preview: the request and response shapes are
- * volatile and may change without the deprecation period that applies to
- * generally-available endpoints.
+ * volatile and may change without the deprecation period that applies to stable
+ * endpoints.
  *
  * See the
  * [Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#how-it-works)
@@ -258,7 +258,7 @@ export interface BetaDream {
   /**
    * Why the dream failed, or `null` if `status` isn't `failed`.
    */
-  error: BetaDreamError | null;
+  error: BetaDreamErrorObject | null;
 
   /**
    * The sources that the dream reads, from the request that created it.
@@ -336,7 +336,7 @@ export interface BetaDream {
 /**
  * Failure detail for a Dream whose `status` is `failed`.
  */
-export interface BetaDreamError {
+export interface BetaDreamErrorObject {
   /**
    * A human-readable explanation of why the dream failed.
    */
@@ -419,7 +419,7 @@ export interface BetaDreamModelConfigParam {
    * The ID can be 1 to 256 characters long.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   id: string;
@@ -457,10 +457,6 @@ export interface BetaDreamSessionsInput {
    *
    * Give 1 to 100 IDs, with no duplicates. Each session must be in the same
    * workspace as the dream. Responses list the IDs in sorted order.
-   *
-   * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
-   * lists all the limits on a dream.
    */
   session_ids: Array<string>;
 
@@ -480,18 +476,15 @@ export interface BetaDreamSessionsInput {
  * - `pending` - The dream is waiting to start and hasn't read its inputs yet.
  *
  *   `outputs` is empty and every `usage` count is zero.
- *
  * - `running` - The dream is reading its inputs and writing its result.
  *
  *   `usage` updates while the dream has this status.
- *
  * - `completed` - The dream finished and its output memory store holds the
  *   complete result.
  * - `failed` - The dream stopped with an error, which `error` describes.
  *
  *   If `outputs` references a memory store, that memory store keeps what the dream
  *   wrote before it stopped.
- *
  * - `canceled` - A cancel request stopped the dream before it reached `completed`
  *   or `failed`.
  *
@@ -535,17 +528,17 @@ export interface BetaDreamUsage {
   output_tokens: number;
 }
 
-export type BetaDreamingError =
-  | BetaAPI.BetaInvalidRequestError
-  | BetaAPI.BetaAuthenticationError
-  | BetaAPI.BetaBillingError
-  | BetaAPI.BetaPermissionError
-  | BetaAPI.BetaNotFoundError
-  | BetaAPI.BetaRateLimitError
-  | BetaAPI.BetaGatewayTimeoutError
-  | BetaAPI.BetaAPIError
-  | BetaAPI.BetaOverloadedError
-  | BetaTargetStoreHeldError;
+export type BetaDreamingErrorObject =
+  | BetaAPI.BetaInvalidRequestErrorObject
+  | BetaAPI.BetaAuthenticationErrorObject
+  | BetaAPI.BetaBillingErrorObject
+  | BetaAPI.BetaPermissionErrorObject
+  | BetaAPI.BetaNotFoundErrorObject
+  | BetaAPI.BetaRateLimitErrorObject
+  | BetaAPI.BetaGatewayTimeoutErrorObject
+  | BetaAPI.BetaAPIErrorObject
+  | BetaAPI.BetaOverloadedErrorObject
+  | BetaTargetStoreHeldErrorObject;
 
 /**
  * Which memory store a dream writes its result to. Defaults to `create_new` when
@@ -594,15 +587,26 @@ export interface BetaOutputBehaviorUpdateExisting {
  * end or cancel it, then retry. The response sets the `x-should-retry` header to
  * `false`.
  */
-export interface BetaTargetStoreHeldError {
+export interface BetaTargetStoreHeldErrorObject {
   type: 'conflict_error';
 
-  /**
-   * A human-readable explanation of why the memory store can't be used yet, with the
-   * ID of the dream that is using it when the server can identify it.
-   */
   message?: string;
 }
+
+/**
+ * @deprecated BetaDreamError has been renamed to BetaDreamErrorObject
+ */
+export type BetaDreamError = BetaDreamErrorObject;
+
+/**
+ * @deprecated BetaTargetStoreHeldError has been renamed to BetaTargetStoreHeldErrorObject
+ */
+export type BetaTargetStoreHeldError = BetaTargetStoreHeldErrorObject;
+
+/**
+ * @deprecated BetaDreamingError has been renamed to BetaDreamingErrorObject
+ */
+export type BetaDreamingError = BetaDreamingErrorObject;
 
 export interface DreamCreateParams {
   /**
@@ -618,7 +622,7 @@ export interface DreamCreateParams {
    * In the object form, `speed` can only be `standard`.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   model: string | BetaDreamModelConfigParam;
@@ -756,7 +760,7 @@ export interface DreamCancelParams {
 export declare namespace Dreams {
   export {
     type BetaDream as BetaDream,
-    type BetaDreamError as BetaDreamError,
+    type BetaDreamErrorObject as BetaDreamErrorObject,
     type BetaDreamInput as BetaDreamInput,
     type BetaDreamMemoryStoreInput as BetaDreamMemoryStoreInput,
     type BetaDreamMemoryStoreOutput as BetaDreamMemoryStoreOutput,
@@ -766,11 +770,14 @@ export declare namespace Dreams {
     type BetaDreamSessionsInput as BetaDreamSessionsInput,
     type BetaDreamStatus as BetaDreamStatus,
     type BetaDreamUsage as BetaDreamUsage,
-    type BetaDreamingError as BetaDreamingError,
+    type BetaDreamingErrorObject as BetaDreamingErrorObject,
     type BetaOutputBehavior as BetaOutputBehavior,
     type BetaOutputBehaviorCreateNew as BetaOutputBehaviorCreateNew,
     type BetaOutputBehaviorUpdateExisting as BetaOutputBehaviorUpdateExisting,
+    type BetaTargetStoreHeldErrorObject as BetaTargetStoreHeldErrorObject,
+    type BetaDreamError as BetaDreamError,
     type BetaTargetStoreHeldError as BetaTargetStoreHeldError,
+    type BetaDreamingError as BetaDreamingError,
     type BetaDreamsPageCursor as BetaDreamsPageCursor,
     type DreamCreateParams as DreamCreateParams,
     type DreamRetrieveParams as DreamRetrieveParams,

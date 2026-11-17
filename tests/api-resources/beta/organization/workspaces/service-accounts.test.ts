@@ -24,7 +24,7 @@ describe('resource serviceAccounts', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.organization.workspaces.serviceAccounts.retrieve(
       'service_account_id',
-      { workspace_id: 'workspace_id', betas: ['message-batches-2024-09-24'] },
+      { workspace_id: 'workspace_id', betas: ['computer-use-2024-10-22'] },
     );
   });
 
@@ -46,7 +46,7 @@ describe('resource serviceAccounts', () => {
     const response = await client.beta.organization.workspaces.serviceAccounts.update('service_account_id', {
       workspace_id: 'workspace_id',
       workspace_role: 'workspace_admin',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -69,7 +69,7 @@ describe('resource serviceAccounts', () => {
         {
           limit: 1,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -94,7 +94,7 @@ describe('resource serviceAccounts', () => {
     const response = await client.beta.organization.workspaces.serviceAccounts.add('workspace_id', {
       service_account_id: 'service_account_id',
       workspace_role: 'workspace_admin',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -114,7 +114,7 @@ describe('resource serviceAccounts', () => {
   test('remove: required and optional params', async () => {
     const response = await client.beta.organization.workspaces.serviceAccounts.remove('service_account_id', {
       workspace_id: 'workspace_id',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
     });
   });
 });

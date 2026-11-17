@@ -26,7 +26,7 @@ describe('resource targets', () => {
       'capp_011CZkZjLP1cWxj5EtMmdgbq',
       {
         target: { slack_channel_id: 'xxxxxxxx', type: 'slack_channel' },
-        betas: ['message-batches-2024-09-24'],
+        betas: ['computer-use-2024-10-22'],
       },
     );
   });
@@ -48,7 +48,7 @@ describe('resource targets', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.organization.claudeTag.bundles.targets.retrieve(
       'btgt_01SvpyRQK3nN6eH9uhRA7n1qHq8TzW5mKc2YbX7vNd4RfJ',
-      { bundle_id: 'capp_011CZkZjLP1cWxj5EtMmdgbq', betas: ['message-batches-2024-09-24'] },
+      { bundle_id: 'capp_011CZkZjLP1cWxj5EtMmdgbq', betas: ['computer-use-2024-10-22'] },
     );
   });
 
@@ -73,7 +73,7 @@ describe('resource targets', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -97,7 +97,7 @@ describe('resource targets', () => {
   test('delete: required and optional params', async () => {
     const response = await client.beta.organization.claudeTag.bundles.targets.delete(
       'btgt_01SvpyRQK3nN6eH9uhRA7n1qHq8TzW5mKc2YbX7vNd4RfJ',
-      { bundle_id: 'capp_011CZkZjLP1cWxj5EtMmdgbq', betas: ['message-batches-2024-09-24'] },
+      { bundle_id: 'capp_011CZkZjLP1cWxj5EtMmdgbq', betas: ['computer-use-2024-10-22'] },
     );
   });
 });

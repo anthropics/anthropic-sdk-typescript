@@ -237,83 +237,73 @@ export async function* _iterSSEMessages(
     throw new AnthropicError(`Attempted to iterate over a response with no body`);
   }
 
-  const sseDecoder = new SSEDecoder();
-  const lineDecoder = new LineDecoder();
+  const decoder = new TextDecoder('utf-8', { ignoreBOM: true });
+  let text = '';
+  let event: string | null = null;
+  let data: string[] = [];
+  let raw: string[] = [];
 
-  const iter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-  for await (const chunk of iter) {
-    for (const line of lineDecoder.decode(chunk)) {
-      const sse = sseDecoder.decode(line);
-      if (sse) yield sse;
-    }
-  }
-
-  for (const line of lineDecoder.flush()) {
-    const sse = sseDecoder.decode(line);
-    if (sse) yield sse;
-  }
-}
-
-class SSEDecoder {
-  private data: string[];
-  private event: string | null;
-  private chunks: string[];
-
-  constructor() {
-    this.event = null;
-    this.data = [];
-    this.chunks = [];
-  }
-
-  decode(line: string) {
-    if (line.endsWith('\r')) {
-      line = line.substring(0, line.length - 1);
-    }
+  const takeLine = (line: string): ServerSentEvent | null => {
+    if (line.charCodeAt(0) === 0xfeff) line = line.slice(1);
 
     if (!line) {
       // empty line and we didn't previously encounter any messages
-      if (!this.event && !this.data.length) return null;
+      if (!event && !data.length) return null;
 
-      const sse: ServerSentEvent = {
-        event: this.event,
-        data: this.data.join('\n'),
-        raw: this.chunks,
-      };
-
-      this.event = null;
-      this.data = [];
-      this.chunks = [];
-
+      const sse: ServerSentEvent = { event, data: data.join('\n'), raw };
+      event = null;
+      data = [];
+      raw = [];
       return sse;
     }
 
-    this.chunks.push(line);
+    raw.push(line);
 
-    if (line.startsWith(':')) {
-      return null;
-    }
+    const colon = line.indexOf(':');
+    if (colon === 0) return null;
 
-    let [fieldname, _, value] = partition(line, ':');
+    const fieldname = colon === -1 ? line : line.slice(0, colon);
+    if (fieldname !== 'event' && fieldname !== 'data') return null;
 
-    if (value.startsWith(' ')) {
-      value = value.substring(1);
-    }
-
-    if (fieldname === 'event') {
-      this.event = value;
-    } else if (fieldname === 'data') {
-      this.data.push(value);
-    }
-
+    const value = colon === -1 ? '' : line.slice(line.charCodeAt(colon + 1) === 0x20 ? colon + 2 : colon + 1);
+    if (fieldname === 'event') event = value;
+    else data.push(value);
     return null;
-  }
-}
+  };
 
-function partition(str: string, delimiter: string): [string, string, string] {
-  const index = str.indexOf(delimiter);
-  if (index !== -1) {
-    return [str.substring(0, index), delimiter, str.substring(index + delimiter.length)];
+  for await (const chunk of ReadableStreamToAsyncIterable<Bytes>(response.body)) {
+    if (chunk == null) continue;
+
+    text += decoder.decode(typeof chunk === 'string' ? encodeUTF8(chunk) : chunk, { stream: true });
+
+    let start = 0;
+    if (!text.includes('\r')) {
+      let end;
+      while ((end = text.indexOf('\n', start)) !== -1) {
+        const sse = takeLine(text.slice(start, end));
+        start = end + 1;
+        if (sse) yield sse;
+      }
+    } else {
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char !== '\n' && char !== '\r') continue;
+        if (char === '\r' && i + 1 === text.length) break;
+
+        const sse = takeLine(text.slice(start, i));
+        if (char === '\r' && text[i + 1] === '\n') i++;
+        start = i + 1;
+        if (sse) yield sse;
+      }
+    }
+    text = text.slice(start);
   }
 
-  return [str, '', ''];
+  text += decoder.decode();
+  if (text) {
+    for (const line of text.replace(/\r$/, '').split(/\r\n|[\n\r]/)) {
+      const sse = takeLine(line);
+      if (sse) yield sse;
+    }
+  }
 }

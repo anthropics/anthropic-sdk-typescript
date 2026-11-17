@@ -259,8 +259,8 @@ export interface BetaManagedAgentsGitHubRepositoryResource {
  */
 export interface BetaManagedAgentsMemoryStoreResource {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 

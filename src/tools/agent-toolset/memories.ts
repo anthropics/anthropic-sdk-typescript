@@ -103,16 +103,19 @@ type MarkerScan = {
  *
  * Thrown by {@link SessionMemoryStores.download} when a store cannot be
  * materialised on disk, and by the environment worker when a work item for a
- * session that has memory stores carried no sessions token to reach them with.
+ * session that has memory stores and has not terminated carried no sessions
+ * token to reach them with.
  */
 export class SessionMemoryError extends AnthropicError {
   constructor(message: string, cause?: unknown) {
     super(message);
-    this.name = 'SessionMemoryError';
     // in some environments the 'cause' property is already declared
     // @ts-ignore
     if (cause !== undefined) this.cause = cause;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'SessionMemoryError';
 }
 
 /** One attached store: its {@link FileStore} on disk plus the sync baseline. */

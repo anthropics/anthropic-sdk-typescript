@@ -6,11 +6,9 @@ import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import {
   messagesCreateSpanSettings,
-  recordCountTokensResponse,
   recordMessagesCreateRequest,
   recordMessagesCreateResponse,
 } from '../../lib/internal/tracing';
-import { ATTR_GEN_AI_REQUEST_MODEL } from '../../lib/internal/tracing/attributes';
 import { messagesCreateHeaders } from '../../lib/internal/messages-request';
 import { MessageStream } from '../../lib/MessageStream';
 import {
@@ -39,9 +37,216 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
+import { BadRequestError, NotFoundError, OverloadedError } from '../../core/error';
 import * as MessagesAPI from './messages';
 
 import { MODEL_NONSTREAMING_TOKENS } from '../../internal/constants';
+
+/**
+ * The tools available after a message exceed a limit on their number or their
+ * size.
+ */
+export class AvailableToolsLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'available_tools_limit_exceeded';
+  declare readonly details: AvailableToolsLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'AvailableToolsLimitExceededError';
+}
+
+/**
+ * `messages` holds more than one `compaction` block with content. Send only the
+ * block the conversation returned last.
+ */
+export class CompactionBlockAmbiguousError extends BadRequestError {
+  declare readonly errorCode: 'compaction_block_ambiguous';
+  declare readonly details: CompactionBlockAmbiguousErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionBlockAmbiguousError';
+}
+
+/**
+ * The `compaction` block is not the first block of the conversation, or is in a
+ * `system` message.
+ */
+export class CompactionBlockMisplacedError extends BadRequestError {
+  declare readonly errorCode: 'compaction_block_misplaced';
+  declare readonly details: CompactionBlockMisplacedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionBlockMisplacedError';
+}
+
+/**
+ * The `compaction` block's `content` differs from the text its `signature`
+ * recorded.
+ */
+export class CompactionContentMismatchError extends BadRequestError {
+  declare readonly errorCode: 'compaction_content_mismatch';
+  declare readonly details: CompactionContentMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionContentMismatchError';
+}
+
+/**
+ * The compaction request ends on an `assistant` turn that is not finished.
+ */
+export class CompactionIncompleteTurnError extends BadRequestError {
+  declare readonly errorCode: 'compaction_incomplete_turn';
+  declare readonly details: CompactionIncompleteTurnErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionIncompleteTurnError';
+}
+
+/**
+ * `messages` holds no `user` or `assistant` content to summarize or adopt.
+ */
+export class CompactionNothingToSummarizeError extends BadRequestError {
+  declare readonly errorCode: 'compaction_nothing_to_summarize';
+  declare readonly details: CompactionNothingToSummarizeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionNothingToSummarizeError';
+}
+
+/**
+ * The `compaction` block's `signature` does not verify.
+ */
+export class CompactionSignatureInvalidError extends BadRequestError {
+  declare readonly errorCode: 'compaction_signature_invalid';
+  declare readonly details: CompactionSignatureInvalidErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionSignatureInvalidError';
+}
+
+/**
+ * The conversation references more distinct tools than a `compaction` block can
+ * record.
+ */
+export class CompactionTooManyToolReferencesError extends BadRequestError {
+  declare readonly errorCode: 'compaction_too_many_tool_references';
+  declare readonly details: CompactionTooManyToolReferencesErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionTooManyToolReferencesError';
+}
+
+/**
+ * The `compaction` block's `tool_changes` differs from what was returned with the
+ * block.
+ */
+export class CompactionToolChangesMismatchError extends BadRequestError {
+  declare readonly errorCode: 'compaction_tool_changes_mismatch';
+  declare readonly details: CompactionToolChangesMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionToolChangesMismatchError';
+}
+
+/**
+ * The response that `previous_message_id` names has already been continued, and
+ * each response can be continued only once. Continue from the Thread's most recent
+ * response `id`.
+ */
+export class ThreadAlreadyContinuedError extends BadRequestError {
+  declare readonly errorCode: 'thread_already_continued';
+  declare readonly details: ThreadAlreadyContinuedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadAlreadyContinuedError';
+}
+
+/**
+ * Another request is still continuing from the same `previous_message_id`. Wait
+ * for it to complete and continue from its response `id`, or replay the full
+ * conversation with `thread: {"type": "create"}`.
+ */
+export class ThreadContinueInFlightError extends BadRequestError {
+  declare readonly errorCode: 'thread_continue_in_flight';
+  declare readonly details: ThreadContinueInFlightErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadContinueInFlightError';
+}
+
+/**
+ * A field that must stay the same across a Thread's turns differs from the value
+ * stored with the Thread; the message names each such field. Send the stored
+ * values, or replay the full conversation with `thread: {"type": "create"}` to
+ * change them.
+ */
+export class ThreadFingerprintMismatchError extends BadRequestError {
+  declare readonly errorCode: 'thread_fingerprint_mismatch';
+  declare readonly details: ThreadFingerprintMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadFingerprintMismatchError';
+}
+
+/**
+ * The request combines `thread` with a request field or an organization setting
+ * that Threads do not support; `unsupported`, when present, names it. Send the
+ * full conversation without `thread`, or change that field.
+ */
+export class ThreadUnsupportedRequestError extends BadRequestError {
+  declare readonly errorCode: 'thread_unsupported_request';
+  declare readonly details: ThreadUnsupportedRequestErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadUnsupportedRequestError';
+}
+
+/**
+ * A tool made available in `messages` takes a name that an available tool of
+ * another kind, or of another MCP server, already holds.
+ */
+export class ToolNameConflictError extends BadRequestError {
+  declare readonly errorCode: 'tool_name_conflict';
+  declare readonly details: ToolNameConflictErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ToolNameConflictError';
+}
+
+/**
+ * A tool change or MCP tool listing references a tool or MCP server that is not
+ * defined at that position in the conversation.
+ */
+export class ToolReferenceUnresolvedError extends BadRequestError {
+  declare readonly errorCode: 'tool_reference_unresolved';
+  declare readonly details: ToolReferenceUnresolvedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ToolReferenceUnresolvedError';
+}
+
+/**
+ * No usable Thread state was found for `previous_message_id`. Replay the full
+ * conversation with `thread: {"type": "create"}` to start a new Thread.
+ */
+export class ThreadNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'thread_not_found';
+  declare readonly details: ThreadNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadNotFoundError';
+}
+
+/**
+ * The compaction could not be completed for a transient server reason. Retry the
+ * request.
+ */
+export class CompactionUnavailableError extends OverloadedError {
+  declare readonly errorCode: 'compaction_unavailable';
+  declare readonly details: CompactionUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionUnavailableError';
+}
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -55,6 +260,42 @@ export class Messages extends APIResource {
    *
    * Learn more about the Messages API in our
    * [user guide](https://platform.claude.com/docs/en/get-started)
+   *
+   * @throws {AvailableToolsLimitExceededError}
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {ClaudeCodeVersionTooOldError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {CompactionBlockAmbiguousError}
+   * @throws {CompactionBlockMisplacedError}
+   * @throws {CompactionContentMismatchError}
+   * @throws {CompactionIncompleteTurnError}
+   * @throws {CompactionNothingToSummarizeError}
+   * @throws {CompactionSignatureInvalidError}
+   * @throws {CompactionTooManyToolReferencesError}
+   * @throws {CompactionToolChangesMismatchError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {RequestBodyEncodingInvalidError}
+   * @throws {RequestBodyEncodingUnsupportedError}
+   * @throws {ThreadAlreadyContinuedError}
+   * @throws {ThreadContinueInFlightError}
+   * @throws {ThreadFingerprintMismatchError}
+   * @throws {ThreadUnsupportedRequestError}
+   * @throws {ToolNameConflictError}
+   * @throws {ToolReferenceUnresolvedError}
+   * @throws {UserProfileRequiredError}
+   * @throws {LinkedOrganizationBillingUnavailableError}
+   * @throws {LinkedOrganizationSpendLimitReachedError}
+   * @throws {UserProfileBillingNotAuthorizedError}
+   * @throws {UserProfileNotBillableError}
+   * @throws {ThreadNotFoundError}
+   * @throws {SkillReadBlockedUndecryptableError}
+   * @throws {RequestBodyTooLargeAfterDecodingError}
+   * @throws {ContractSpendLimitReachedError}
+   * @throws {EnforcedSpendLimitReachedError}
+   * @throws {RampLimitExceededError}
+   * @throws {CMEKKeyUnreachableError}
+   * @throws {CompactionUnavailableError}
    *
    * @example
    * ```ts
@@ -102,7 +343,13 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    const headers = messagesCreateHeaders(params, options);
+    const request = {
+      body,
+      timeout: timeout ?? 600000,
+      ...options,
+      headers: messagesCreateHeaders(params, options),
+      stream: params.stream ?? false,
+    };
     // A client whose spans are disabled computes nothing for one, and returns its request as it is.
     const call =
       this._client._tracer &&
@@ -110,24 +357,20 @@ export class Messages extends APIResource {
         this._client,
         'anthropic.messages.create',
         options,
-        messagesCreateSpanSettings(this._client, body, headers),
+        messagesCreateSpanSettings(this._client, request),
       );
     recordMessagesCreateRequest(this._client, call, body);
-    const request = this._client.post<Message | Stream<unknown>>('/v1/messages', {
-      body,
-      timeout: timeout ?? 600000,
-      ...options,
+    const promise = this._client.post<Message | Stream<unknown>>('/v1/messages', {
+      ...request,
       __span: call,
-      headers,
-      stream: params.stream ?? false,
     });
     return (
       call ?
-        request._thenUnwrap((data) => {
+        promise._thenUnwrap((data) => {
           recordMessagesCreateResponse(this._client, call, body, data);
           return data;
         })
-      : request) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+      : promise) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -198,6 +441,23 @@ export class Messages extends APIResource {
    * Learn more about token counting in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
    *
+   * @throws {AvailableToolsLimitExceededError}
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CompactionBlockAmbiguousError}
+   * @throws {CompactionBlockMisplacedError}
+   * @throws {CompactionContentMismatchError}
+   * @throws {CompactionNothingToSummarizeError}
+   * @throws {CompactionSignatureInvalidError}
+   * @throws {CompactionToolChangesMismatchError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {RequestBodyEncodingInvalidError}
+   * @throws {RequestBodyEncodingUnsupportedError}
+   * @throws {ToolNameConflictError}
+   * @throws {ToolReferenceUnresolvedError}
+   * @throws {RequestBodyTooLargeAfterDecodingError}
+   * @throws {EnforcedSpendLimitReachedError}
+   * @throws {CompactionUnavailableError}
+   *
    * @example
    * ```ts
    * const messageTokensCount =
@@ -209,30 +469,24 @@ export class Messages extends APIResource {
    */
   countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     const { user_profile_id, workspace_id, ...body } = params;
-    const headers = buildHeaders([
-      {
-        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-      route: '/v1/messages/count_tokens',
-      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
-    });
-    const request = this._client.post<MessageTokensCount>('/v1/messages/count_tokens', {
+    const request = {
       body,
       ...options,
-      __span: call,
-      headers,
+      headers: buildHeaders([
+        {
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+    };
+    return this._client.post('/v1/messages/count_tokens', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((count) => {
-          recordCountTokensResponse(this._client, call, count);
-          return count;
-        })
-      : request;
   }
 }
 
@@ -240,6 +494,14 @@ export interface AssistantMessageParam {
   content: MessageContentParam;
 
   role: 'assistant';
+}
+
+/**
+ * The tools available after a message exceed a limit on their number or their
+ * size.
+ */
+export interface AvailableToolsLimitExceededErrorDetails {
+  error_code: 'available_tools_limit_exceeded';
 }
 
 export interface Base64ImageSource {
@@ -295,7 +557,7 @@ export interface BashCodeExecutionResultBlockParam {
 }
 
 export interface BashCodeExecutionToolResultBlock {
-  content: BashCodeExecutionToolResultError | BashCodeExecutionResultBlock;
+  content: BashCodeExecutionToolResultErrorObject | BashCodeExecutionResultBlock;
 
   tool_use_id: string;
 
@@ -315,18 +577,18 @@ export interface BashCodeExecutionToolResultBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export interface BashCodeExecutionToolResultError {
-  error_code: BashCodeExecutionToolResultErrorCode;
-
-  type: 'bash_code_execution_tool_result_error';
-}
-
 export type BashCodeExecutionToolResultErrorCode =
   | 'invalid_tool_input'
   | 'unavailable'
   | 'too_many_requests'
   | 'execution_time_exceeded'
   | 'output_file_too_large';
+
+export interface BashCodeExecutionToolResultErrorObject {
+  error_code: BashCodeExecutionToolResultErrorCode;
+
+  type: 'bash_code_execution_tool_result_error';
+}
 
 export interface BashCodeExecutionToolResultErrorParam {
   error_code: BashCodeExecutionToolResultErrorCode;
@@ -3209,7 +3471,7 @@ export interface CodeExecutionToolResultBlock {
 }
 
 export type CodeExecutionToolResultBlockContent =
-  | CodeExecutionToolResultError
+  | CodeExecutionToolResultErrorObject
   | CodeExecutionResultBlock
   | EncryptedCodeExecutionResultBlock;
 
@@ -3231,22 +3493,91 @@ export type CodeExecutionToolResultBlockParamContent =
   | CodeExecutionResultBlockParam
   | EncryptedCodeExecutionResultBlockParam;
 
-export interface CodeExecutionToolResultError {
-  error_code: CodeExecutionToolResultErrorCode;
-
-  type: 'code_execution_tool_result_error';
-}
-
 export type CodeExecutionToolResultErrorCode =
   | 'invalid_tool_input'
   | 'unavailable'
   | 'too_many_requests'
   | 'execution_time_exceeded';
 
+export interface CodeExecutionToolResultErrorObject {
+  error_code: CodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
+
 export interface CodeExecutionToolResultErrorParam {
   error_code: CodeExecutionToolResultErrorCode;
 
   type: 'code_execution_tool_result_error';
+}
+
+/**
+ * `messages` holds more than one `compaction` block with content. Send only the
+ * block the conversation returned last.
+ */
+export interface CompactionBlockAmbiguousErrorDetails {
+  error_code: 'compaction_block_ambiguous';
+}
+
+/**
+ * The `compaction` block is not the first block of the conversation, or is in a
+ * `system` message.
+ */
+export interface CompactionBlockMisplacedErrorDetails {
+  error_code: 'compaction_block_misplaced';
+}
+
+/**
+ * The `compaction` block's `content` differs from the text its `signature`
+ * recorded.
+ */
+export interface CompactionContentMismatchErrorDetails {
+  error_code: 'compaction_content_mismatch';
+}
+
+/**
+ * The compaction request ends on an `assistant` turn that is not finished.
+ */
+export interface CompactionIncompleteTurnErrorDetails {
+  error_code: 'compaction_incomplete_turn';
+}
+
+/**
+ * `messages` holds no `user` or `assistant` content to summarize or adopt.
+ */
+export interface CompactionNothingToSummarizeErrorDetails {
+  error_code: 'compaction_nothing_to_summarize';
+}
+
+/**
+ * The `compaction` block's `signature` does not verify.
+ */
+export interface CompactionSignatureInvalidErrorDetails {
+  error_code: 'compaction_signature_invalid';
+}
+
+/**
+ * The conversation references more distinct tools than a `compaction` block can
+ * record.
+ */
+export interface CompactionTooManyToolReferencesErrorDetails {
+  error_code: 'compaction_too_many_tool_references';
+}
+
+/**
+ * The `compaction` block's `tool_changes` differs from what was returned with the
+ * block.
+ */
+export interface CompactionToolChangesMismatchErrorDetails {
+  error_code: 'compaction_tool_changes_mismatch';
+}
+
+/**
+ * The compaction could not be completed for a transient server reason. Retry the
+ * request.
+ */
+export interface CompactionUnavailableErrorDetails {
+  error_code: 'compaction_unavailable';
 }
 
 /**
@@ -4910,6 +5241,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-fable-5-2'
+  | 'claude-mythos-5-2'
   | 'claude-haiku-5-5'
   | 'claude-sonnet-5-5'
   | 'claude-fable-5-1'
@@ -4954,10 +5287,10 @@ export interface OutputTokensDetails {
    * thinking-block delimiter tokens.
    *
    * Reflects the raw reasoning the model produced, not the (possibly shorter)
-   * summarized thinking text returned in the response body. Computed by
-   * re-tokenizing the raw reasoning text, so it may differ from the model's exact
-   * generation count by a small number of tokens. Always ≤ `output_tokens`;
-   * `output_tokens - thinking_tokens` approximates the non-reasoning output.
+   * summarized thinking text returned in the response body. It may differ from the
+   * model's exact generation count by a small number of tokens. Always ≤
+   * `output_tokens`; `output_tokens - thinking_tokens` approximates the
+   * non-reasoning output.
    */
   thinking_tokens: number;
 }
@@ -5372,7 +5705,7 @@ export interface TextEditorCodeExecutionStrReplaceResultBlockParam {
 
 export interface TextEditorCodeExecutionToolResultBlock {
   content:
-    | TextEditorCodeExecutionToolResultError
+    | TextEditorCodeExecutionToolResultErrorObject
     | TextEditorCodeExecutionViewResultBlock
     | TextEditorCodeExecutionCreateResultBlock
     | TextEditorCodeExecutionStrReplaceResultBlock;
@@ -5399,20 +5732,20 @@ export interface TextEditorCodeExecutionToolResultBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export interface TextEditorCodeExecutionToolResultError {
-  error_code: TextEditorCodeExecutionToolResultErrorCode;
-
-  error_message: string | null;
-
-  type: 'text_editor_code_execution_tool_result_error';
-}
-
 export type TextEditorCodeExecutionToolResultErrorCode =
   | 'invalid_tool_input'
   | 'unavailable'
   | 'too_many_requests'
   | 'execution_time_exceeded'
   | 'file_not_found';
+
+export interface TextEditorCodeExecutionToolResultErrorObject {
+  error_code: TextEditorCodeExecutionToolResultErrorCode;
+
+  error_message: string | null;
+
+  type: 'text_editor_code_execution_tool_result_error';
+}
 
 export interface TextEditorCodeExecutionToolResultErrorParam {
   error_code: TextEditorCodeExecutionToolResultErrorCode;
@@ -5565,6 +5898,66 @@ export interface ThinkingDelta {
   thinking: string;
 
   type: 'thinking_delta';
+}
+
+/**
+ * The response that `previous_message_id` names has already been continued, and
+ * each response can be continued only once. Continue from the Thread's most recent
+ * response `id`.
+ */
+export interface ThreadAlreadyContinuedErrorDetails {
+  error_code: 'thread_already_continued';
+}
+
+/**
+ * Another request is still continuing from the same `previous_message_id`. Wait
+ * for it to complete and continue from its response `id`, or replay the full
+ * conversation with `thread: {"type": "create"}`.
+ */
+export interface ThreadContinueInFlightErrorDetails {
+  error_code: 'thread_continue_in_flight';
+}
+
+/**
+ * A field that must stay the same across a Thread's turns differs from the value
+ * stored with the Thread; the message names each such field. Send the stored
+ * values, or replay the full conversation with `thread: {"type": "create"}` to
+ * change them.
+ */
+export interface ThreadFingerprintMismatchErrorDetails {
+  error_code: 'thread_fingerprint_mismatch';
+}
+
+/**
+ * No usable Thread state was found for `previous_message_id`. Replay the full
+ * conversation with `thread: {"type": "create"}` to start a new Thread.
+ */
+export interface ThreadNotFoundErrorDetails {
+  error_code: 'thread_not_found';
+}
+
+export type ThreadUnsupportedFeatureName =
+  | 'cache_control'
+  | 'context_management'
+  | 'fallbacks'
+  | 'hipaa'
+  | 'inference_hooks'
+  | 'thinking';
+
+/**
+ * The request combines `thread` with a request field or an organization setting
+ * that Threads do not support; `unsupported`, when present, names it. Send the
+ * full conversation without `thread`, or change that field.
+ */
+export interface ThreadUnsupportedRequestErrorDetails {
+  error_code: 'thread_unsupported_request';
+
+  /**
+   * Each entry names a request field or an organization setting that Threads do not
+   * support. On a value you do not recognize, send the full conversation without
+   * `thread`.
+   */
+  unsupported?: Array<ThreadUnsupportedFeatureName> | null;
 }
 
 export interface Tool {
@@ -5741,6 +6134,14 @@ export interface ToolChoiceTool {
   disable_parallel_tool_use?: boolean;
 }
 
+/**
+ * A tool made available in `messages` takes a name that an available tool of
+ * another kind, or of another MCP server, already holds.
+ */
+export interface ToolNameConflictErrorDetails {
+  error_code: 'tool_name_conflict';
+}
+
 export interface ToolReferenceBlock {
   tool_name: string;
 
@@ -5759,6 +6160,14 @@ export interface ToolReferenceBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+}
+
+/**
+ * A tool change or MCP tool listing references a tool or MCP server that is not
+ * defined at that position in the conversation.
+ */
+export interface ToolReferenceUnresolvedErrorDetails {
+  error_code: 'tool_reference_unresolved';
 }
 
 export interface ToolResultBlockParam {
@@ -5853,7 +6262,7 @@ export interface ToolSearchToolRegex20251119 {
 }
 
 export interface ToolSearchToolResultBlock {
-  content: ToolSearchToolResultError | ToolSearchToolSearchResultBlock;
+  content: ToolSearchToolResultErrorObject | ToolSearchToolSearchResultBlock;
 
   tool_use_id: string;
 
@@ -5873,19 +6282,19 @@ export interface ToolSearchToolResultBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export interface ToolSearchToolResultError {
+export type ToolSearchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded';
+
+export interface ToolSearchToolResultErrorObject {
   error_code: ToolSearchToolResultErrorCode;
 
   error_message: string | null;
 
   type: 'tool_search_tool_result_error';
 }
-
-export type ToolSearchToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'too_many_requests'
-  | 'execution_time_exceeded';
 
 export interface ToolSearchToolResultErrorParam {
   error_code: ToolSearchToolResultErrorCode;
@@ -6842,7 +7251,7 @@ export interface WebSearchTool20260318 {
   user_location?: UserLocation | null;
 }
 
-export interface WebSearchToolRequestError {
+export interface WebSearchToolRequestErrorObject {
   error_code: WebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
@@ -6858,7 +7267,7 @@ export interface WebSearchToolResultBlock {
   type: 'web_search_tool_result';
 }
 
-export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>;
+export type WebSearchToolResultBlockContent = WebSearchToolResultErrorObject | Array<WebSearchResultBlock>;
 
 export interface WebSearchToolResultBlockParam {
   content: WebSearchToolResultBlockParamContent;
@@ -6877,13 +7286,7 @@ export interface WebSearchToolResultBlockParam {
 
 export type WebSearchToolResultBlockParamContent =
   | Array<WebSearchResultBlockParam>
-  | WebSearchToolRequestError;
-
-export interface WebSearchToolResultError {
-  error_code: WebSearchToolResultErrorCode;
-
-  type: 'web_search_tool_result_error';
-}
+  | WebSearchToolRequestErrorObject;
 
 export type WebSearchToolResultErrorCode =
   | 'invalid_tool_input'
@@ -6892,6 +7295,42 @@ export type WebSearchToolResultErrorCode =
   | 'too_many_requests'
   | 'query_too_long'
   | 'request_too_large';
+
+export interface WebSearchToolResultErrorObject {
+  error_code: WebSearchToolResultErrorCode;
+
+  type: 'web_search_tool_result_error';
+}
+
+/**
+ * @deprecated WebSearchToolResultError has been renamed to WebSearchToolResultErrorObject
+ */
+export type WebSearchToolResultError = WebSearchToolResultErrorObject;
+
+/**
+ * @deprecated WebSearchToolRequestError has been renamed to WebSearchToolRequestErrorObject
+ */
+export type WebSearchToolRequestError = WebSearchToolRequestErrorObject;
+
+/**
+ * @deprecated CodeExecutionToolResultError has been renamed to CodeExecutionToolResultErrorObject
+ */
+export type CodeExecutionToolResultError = CodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated BashCodeExecutionToolResultError has been renamed to BashCodeExecutionToolResultErrorObject
+ */
+export type BashCodeExecutionToolResultError = BashCodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated TextEditorCodeExecutionToolResultError has been renamed to TextEditorCodeExecutionToolResultErrorObject
+ */
+export type TextEditorCodeExecutionToolResultError = TextEditorCodeExecutionToolResultErrorObject;
+
+/**
+ * @deprecated ToolSearchToolResultError has been renamed to ToolSearchToolResultErrorObject
+ */
+export type ToolSearchToolResultError = ToolSearchToolResultErrorObject;
 
 /**
  * @deprecated ResponseToolUseBlockUnion has been renamed to ToolsetToolUseBlock
@@ -7737,11 +8176,46 @@ export interface MessageCountTokensParams {
   workspace_id?: string;
 }
 
+Messages.AvailableToolsLimitExceededError = AvailableToolsLimitExceededError;
+Messages.CompactionBlockAmbiguousError = CompactionBlockAmbiguousError;
+Messages.CompactionBlockMisplacedError = CompactionBlockMisplacedError;
+Messages.CompactionContentMismatchError = CompactionContentMismatchError;
+Messages.CompactionIncompleteTurnError = CompactionIncompleteTurnError;
+Messages.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
+Messages.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
+Messages.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
+Messages.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Messages.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
+Messages.ThreadContinueInFlightError = ThreadContinueInFlightError;
+Messages.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
+Messages.ThreadUnsupportedRequestError = ThreadUnsupportedRequestError;
+Messages.ToolNameConflictError = ToolNameConflictError;
+Messages.ToolReferenceUnresolvedError = ToolReferenceUnresolvedError;
+Messages.ThreadNotFoundError = ThreadNotFoundError;
+Messages.CompactionUnavailableError = CompactionUnavailableError;
 Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    AvailableToolsLimitExceededError as AvailableToolsLimitExceededError,
+    CompactionBlockAmbiguousError as CompactionBlockAmbiguousError,
+    CompactionBlockMisplacedError as CompactionBlockMisplacedError,
+    CompactionContentMismatchError as CompactionContentMismatchError,
+    CompactionIncompleteTurnError as CompactionIncompleteTurnError,
+    CompactionNothingToSummarizeError as CompactionNothingToSummarizeError,
+    CompactionSignatureInvalidError as CompactionSignatureInvalidError,
+    CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
+    CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
+    ThreadContinueInFlightError as ThreadContinueInFlightError,
+    ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
+    ThreadUnsupportedRequestError as ThreadUnsupportedRequestError,
+    ToolNameConflictError as ToolNameConflictError,
+    ToolReferenceUnresolvedError as ToolReferenceUnresolvedError,
+    ThreadNotFoundError as ThreadNotFoundError,
+    CompactionUnavailableError as CompactionUnavailableError,
     type AssistantMessageParam as AssistantMessageParam,
+    type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -7750,8 +8224,8 @@ export declare namespace Messages {
     type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
     type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
     type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
-    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
     type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
+    type BashCodeExecutionToolResultErrorObject as BashCodeExecutionToolResultErrorObject,
     type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
     type BrowserClickTarget as BrowserClickTarget,
     type BrowserCloseTabConfig as BrowserCloseTabConfig,
@@ -7899,9 +8373,18 @@ export declare namespace Messages {
     type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
     type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
     type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
-    type CodeExecutionToolResultError as CodeExecutionToolResultError,
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
+    type CodeExecutionToolResultErrorObject as CodeExecutionToolResultErrorObject,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type CompactionBlockAmbiguousErrorDetails as CompactionBlockAmbiguousErrorDetails,
+    type CompactionBlockMisplacedErrorDetails as CompactionBlockMisplacedErrorDetails,
+    type CompactionContentMismatchErrorDetails as CompactionContentMismatchErrorDetails,
+    type CompactionIncompleteTurnErrorDetails as CompactionIncompleteTurnErrorDetails,
+    type CompactionNothingToSummarizeErrorDetails as CompactionNothingToSummarizeErrorDetails,
+    type CompactionSignatureInvalidErrorDetails as CompactionSignatureInvalidErrorDetails,
+    type CompactionTooManyToolReferencesErrorDetails as CompactionTooManyToolReferencesErrorDetails,
+    type CompactionToolChangesMismatchErrorDetails as CompactionToolChangesMismatchErrorDetails,
+    type CompactionUnavailableErrorDetails as CompactionUnavailableErrorDetails,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
     type ComputerCursorPositionInput as ComputerCursorPositionInput,
     type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
@@ -8029,8 +8512,8 @@ export declare namespace Messages {
     type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
     type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
     type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
-    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
     type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
+    type TextEditorCodeExecutionToolResultErrorObject as TextEditorCodeExecutionToolResultErrorObject,
     type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
     type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
     type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
@@ -8042,6 +8525,12 @@ export declare namespace Messages {
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
     type ThinkingDelta as ThinkingDelta,
+    type ThreadAlreadyContinuedErrorDetails as ThreadAlreadyContinuedErrorDetails,
+    type ThreadContinueInFlightErrorDetails as ThreadContinueInFlightErrorDetails,
+    type ThreadFingerprintMismatchErrorDetails as ThreadFingerprintMismatchErrorDetails,
+    type ThreadNotFoundErrorDetails as ThreadNotFoundErrorDetails,
+    type ThreadUnsupportedFeatureName as ThreadUnsupportedFeatureName,
+    type ThreadUnsupportedRequestErrorDetails as ThreadUnsupportedRequestErrorDetails,
     type Tool as Tool,
     type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
@@ -8049,15 +8538,17 @@ export declare namespace Messages {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolNameConflictErrorDetails as ToolNameConflictErrorDetails,
     type ToolReferenceBlock as ToolReferenceBlock,
     type ToolReferenceBlockParam as ToolReferenceBlockParam,
+    type ToolReferenceUnresolvedErrorDetails as ToolReferenceUnresolvedErrorDetails,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
     type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
     type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
     type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
-    type ToolSearchToolResultError as ToolSearchToolResultError,
     type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
+    type ToolSearchToolResultErrorObject as ToolSearchToolResultErrorObject,
     type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
     type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
     type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
@@ -8096,12 +8587,19 @@ export declare namespace Messages {
     type WebSearchTool20250305 as WebSearchTool20250305,
     type WebSearchTool20260209 as WebSearchTool20260209,
     type WebSearchTool20260318 as WebSearchTool20260318,
-    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type WebSearchToolRequestErrorObject as WebSearchToolRequestErrorObject,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
+    type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
+    type WebSearchToolResultErrorObject as WebSearchToolResultErrorObject,
+    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type CodeExecutionToolResultError as CodeExecutionToolResultError,
+    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
+    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
+    type ToolSearchToolResultError as ToolSearchToolResultError,
     type ResponseToolUseBlockUnion as ResponseToolUseBlockUnion,
     type ResponseBrowserToolUseBlock as ResponseBrowserToolUseBlock,
     type ResponseBrowserCloseTabToolUseBlock as ResponseBrowserCloseTabToolUseBlock,

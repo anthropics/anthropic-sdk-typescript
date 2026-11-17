@@ -31,6 +31,7 @@ describe('resource externalKeys', () => {
       },
       display_name: 'x',
       geo: 'us',
+      user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
     });
   });
 

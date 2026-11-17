@@ -209,6 +209,22 @@ describe('beta zod helpers', () => {
       }
     });
 
+    it('keeps z.enum and z.literal as enum and const', () => {
+      const format = betaZodOutputFormat(
+        z.object({
+          priority: z.enum(['low', 'high']),
+          kind: z.literal('task'),
+          level: z.literal([1, 2]),
+        }),
+      );
+
+      expect(format.schema['properties']).toEqual({
+        priority: { enum: ['low', 'high'] },
+        kind: { const: 'task' },
+        level: { enum: [1, 2] },
+      });
+    });
+
     it('handles recursive schemas', () => {
       const CategorySchema: any = z.lazy(() =>
         z.object({
@@ -459,6 +475,22 @@ describe('GA zod helpers', () => {
       if (errorParsed.result.type === 'error') {
         expect(errorParsed.result.message).toBe('Something went wrong');
       }
+    });
+
+    it('keeps z.enum and z.literal as enum and const', () => {
+      const format = zodOutputFormat(
+        z.object({
+          priority: z.enum(['low', 'high']),
+          kind: z.literal('task'),
+          level: z.literal([1, 2]),
+        }),
+      );
+
+      expect(format.schema['properties']).toEqual({
+        priority: { enum: ['low', 'high'] },
+        kind: { const: 'task' },
+        level: { enum: [1, 2] },
+      });
     });
 
     it('handles recursive schemas', () => {

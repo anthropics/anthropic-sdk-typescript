@@ -13,6 +13,9 @@ export class Models extends APIResource {
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const modelInfo = await client.models.retrieve('model_id');
@@ -42,6 +45,9 @@ export class Models extends APIResource {
    *
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

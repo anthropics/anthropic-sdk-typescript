@@ -33,6 +33,8 @@ const getRequestHeaders = (): Headers => {
   return options.headers as Headers;
 };
 
+const requestedURLs = (): string[] => mockFetch.mock.calls.map(([url]) => url);
+
 describe('AnthropicGoogleCloud', () => {
   const originalEnv = process.env;
 
@@ -98,6 +100,100 @@ describe('AnthropicGoogleCloud', () => {
 
       expect(client.baseURL).toBe('https://my-gateway.example.com');
     });
+
+    const options = {
+      project: 'my-project',
+      location: 'us-central1',
+      workspaceId: 'wrkspc_test',
+      bearerTokenProvider: async () => 'my-google-token',
+      maxRetries: 0,
+    };
+
+    test.each([
+      { project: 'my-project', location: 'global' },
+      { project: 'example.com:my-project', location: 'us-central1' },
+    ])('project $project and location $location are sent as they are', async ({ project, location }) => {
+      const client = new AnthropicGoogleCloud({
+        ...options,
+        project,
+        location,
+        workspaceId: 'wrkspc_01AbCdEf',
+      });
+
+      await makeRequest(client);
+      await client.beta.organization.workspaces.list();
+
+      const locationURL = `https://claude.googleapis.com/v1/projects/${project}/locations/${location}`;
+      expect(requestedURLs()).toEqual([
+        `${locationURL}/workspaces/wrkspc_01AbCdEf/invoke/v1/messages`,
+        `${locationURL}/claudeOrganization/invoke/v1/organizations/workspaces`,
+      ]);
+    });
+
+    test.each([
+      { override: { project: 'a/b' }, sent: 'projects/a%2Fb/locations/us-central1' },
+      { override: { location: 'a/b' }, sent: 'projects/my-project/locations/a%2Fb' },
+      { override: { project: 'a;b' }, sent: 'projects/a;b/locations/us-central1' },
+      { override: { location: 'a;b' }, sent: 'projects/my-project/locations/a;b' },
+    ])('$override is sent as $sent', async ({ override, sent }) => {
+      const client = new AnthropicGoogleCloud({ ...options, ...override });
+
+      await makeRequest(client);
+      await client.beta.organization.workspaces.list();
+
+      const locationURL = `https://claude.googleapis.com/v1/${sent}`;
+      expect(requestedURLs()).toEqual([
+        `${locationURL}/workspaces/wrkspc_test/invoke/v1/messages`,
+        `${locationURL}/claudeOrganization/invoke/v1/organizations/workspaces`,
+      ]);
+    });
+
+    test.each([
+      { workspaceId: 'a/b', sent: 'a%2Fb' },
+      { workspaceId: 'a;b', sent: 'a;b' },
+    ])('workspace ID $workspaceId is sent as $sent', async ({ workspaceId, sent }) => {
+      const client = new AnthropicGoogleCloud({ ...options, workspaceId });
+
+      await makeRequest(client);
+
+      expect(requestedURLs()).toEqual([
+        `https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/${sent}/invoke/v1/messages`,
+      ]);
+    });
+
+    test.each(
+      ['.', '..', ';x', '.;x', '..;x'].flatMap((value) => [
+        { name: 'project', value, override: { project: value } },
+        { name: 'project with no workspace ID', value, override: { project: value, workspaceId: undefined } },
+        { name: 'location', value, override: { location: value } },
+        { name: 'workspace ID', value, override: { workspaceId: value } },
+      ]),
+    )('a $name of $value throws from the constructor', ({ value, override }) => {
+      expect(() => new AnthropicGoogleCloud({ ...options, ...override })).toThrow(
+        `Value "${value}" can't be safely passed as a path parameter`,
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test.each(
+      ['..', ';x', '.;x', '..;x'].flatMap((value) => [
+        { name: 'resolved project', value, resolved: value, override: {} },
+        { name: 'location', value, resolved: 'adc-project', override: { location: value } },
+        { name: 'workspace ID', value, resolved: 'adc-project', override: { workspaceId: value } },
+      ]),
+    )(
+      'when the project is resolved lazily, a $name of $value rejects ready and the first request',
+      async ({ value, resolved, override }) => {
+        const getProjectIdSpy: MockInstance = vi.spyOn(GoogleAuth.prototype, 'getProjectId');
+        getProjectIdSpy.mockResolvedValue(resolved);
+        const client = new AnthropicGoogleCloud({ ...options, project: undefined, ...override });
+
+        const message = `Value "${value}" can't be safely passed as a path parameter`;
+        await expect(client.ready).rejects.toThrow(message);
+        await expect(makeRequest(client)).rejects.toThrow(message);
+        expect(mockFetch).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('environment resolution', () => {
@@ -608,8 +704,6 @@ describe('AnthropicGoogleCloud', () => {
   describe('organization routes', () => {
     const ORGANIZATION_BASE_URL =
       'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/claudeOrganization/invoke';
-
-    const requestedURLs = (): string[] => mockFetch.mock.calls.map(([url]) => url);
 
     test('go to the organization base, with auth attached as usual', async () => {
       const client = new AnthropicGoogleCloud({

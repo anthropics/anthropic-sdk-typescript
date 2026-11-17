@@ -79,6 +79,7 @@ async function realpathLenient(candidate: string, depth = 0): Promise<string> {
   }
 }
 
+/** Only for the check on the text, which refuses: lowercasing merges names that a Windows disk keeps apart. */
 function comparable(p: string): string {
   return process.platform === 'win32' ? p.toLowerCase() : p;
 }
@@ -113,7 +114,7 @@ export async function resolvesUnder(candidate: string, root: string): Promise<bo
   // not resolve is not under the root, and neither is one that names a network location or a device.
   if (namesNetworkOrDevice(candidate)) return false;
   try {
-    return sameOrUnder(comparable(await realpathLenient(candidate)), comparable(await realpathLenient(root)));
+    return sameOrUnder(await realpathLenient(candidate), await realpathLenient(root));
   } catch {
     return false;
   }
@@ -185,7 +186,7 @@ export async function betaCheckUploadPath(candidate: string, roots: Iterable<str
     } catch {
       continue;
     }
-    if (sameOrUnder(comparable(resolved), comparable(resolvedRoot))) return resolved;
+    if (sameOrUnder(resolved, resolvedRoot)) return resolved;
   }
 
   throw new UploadOutsideRootsError();

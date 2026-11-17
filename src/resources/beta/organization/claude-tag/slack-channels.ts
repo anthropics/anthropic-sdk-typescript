@@ -21,6 +21,15 @@ export class SlackChannels extends APIResource {
    * stays set up with every setting unset, and the error's
    * `details.slack_channel_id` holds the channel's identifier.
    *
+   * @throws {BetaSlackChannelSetUpSettingsRefusedError}
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
+   * @throws {BetaEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpSettingsConflictError}
+   *
    * @example
    * ```ts
    * const betaClaudeTagSlackChannel =
@@ -60,6 +69,11 @@ export class SlackChannels extends APIResource {
    * not be read. Either way `sources` names the settings level each value comes
    * from, so a caller tells the channel's own value from an inherited one by its
    * source, not by whether it is null.
+   *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
    *
    * @example
    * ```ts
@@ -101,6 +115,14 @@ export class SlackChannels extends APIResource {
    * left out is unchanged, and a setting sent as null is cleared, so the channel
    * inherits it. If any value is refused, no setting in the request is stored. A
    * group direct message takes no settings and returns 400.
+   *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
+   * @throws {BetaEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpSettingsConflictError}
    *
    * @example
    * ```ts
@@ -148,6 +170,11 @@ export class SlackChannels extends APIResource {
    * applies in it, and the request fails with 503 rather than resolve against a
    * settings level that could not be read. A `page` cursor resumes only a request
    * with the same `include_inherited`.
+   *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
    *
    * @example
    * ```ts
@@ -204,6 +231,12 @@ export class SlackChannels extends APIResource {
    * returns, so a repeated removal returns 404. A group direct message returns 400,
    * and so does a channel that holds configuration this API does not manage.
    *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
+   * @throws {BetaSlackChannelSetUpSettingsConflictError}
+   *
    * @example
    * ```ts
    * const betaClaudeTagDeletedSlackChannel =
@@ -259,11 +292,10 @@ export interface BetaClaudeTagDeletedSlackChannel {
 export interface BetaClaudeTagSlackChannel {
   /**
    * The channel's identifier. Starts with `slch_`. It does not change for as long as
-   * the channel is set up, with one exception: a channel that is not configured gets
-   * a new one when claude.ai replaces its record, which happens only while the
-   * organization's read-only mode is off. A channel that is removed and set up again
-   * also has a new one. The old one keeps returning 404; look the channel up by its
-   * Slack identifiers for the new one.
+   * the channel is set up, with one exception: a channel that is not configured can
+   * get a new one. A channel that is removed and set up again also has a new one.
+   * The old one keeps returning 404; look the channel up by its Slack identifiers
+   * for the new one.
    */
   id: string;
 

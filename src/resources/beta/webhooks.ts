@@ -312,7 +312,32 @@ export type BetaWebhookEventData =
   | BetaWebhookMemoryStoreDeletedEventData
   | BetaWebhookSessionBudgetReachedEventData
   | BetaWebhookUserProfileEnforcementActionOpenedEventData
-  | BetaWebhookUserProfileEnforcementActionResolvedEventData;
+  | BetaWebhookUserProfileEnforcementActionResolvedEventData
+  | BetaWebhookUserProfileProgramStatusUpdatedEventData
+  | BetaWebhookExternalKeyFailedEventData
+  | BetaWebhookExternalKeyRecoveredEventData;
+
+export interface BetaWebhookExternalKeyFailedEventData {
+  /**
+   * ID (`ekey_...`) of the external key that stopped working or works again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_key.failed';
+}
+
+export interface BetaWebhookExternalKeyRecoveredEventData {
+  /**
+   * ID (`ekey_...`) of the external key that stopped working or works again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_key.recovered';
+}
 
 export interface BetaWebhookMemoryStoreArchivedEventData {
   /**
@@ -621,6 +646,17 @@ export interface BetaWebhookUserProfileEnforcementActionResolvedEventData {
   type: 'user_profile.enforcement_action_resolved';
 }
 
+export interface BetaWebhookUserProfileProgramStatusUpdatedEventData {
+  /**
+   * ID of the user profile that triggered the event.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'user_profile.program_status_updated';
+}
+
 export interface BetaWebhookVaultArchivedEventData {
   /**
    * ID of the vault that triggered the event.
@@ -758,6 +794,8 @@ export declare namespace Webhooks {
     type BetaWebhookEnvironmentUpdatedEventData as BetaWebhookEnvironmentUpdatedEventData,
     type BetaWebhookEvent as BetaWebhookEvent,
     type BetaWebhookEventData as BetaWebhookEventData,
+    type BetaWebhookExternalKeyFailedEventData as BetaWebhookExternalKeyFailedEventData,
+    type BetaWebhookExternalKeyRecoveredEventData as BetaWebhookExternalKeyRecoveredEventData,
     type BetaWebhookMemoryStoreArchivedEventData as BetaWebhookMemoryStoreArchivedEventData,
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
@@ -780,6 +818,7 @@ export declare namespace Webhooks {
     type BetaWebhookSessionUpdatedEventData as BetaWebhookSessionUpdatedEventData,
     type BetaWebhookUserProfileEnforcementActionOpenedEventData as BetaWebhookUserProfileEnforcementActionOpenedEventData,
     type BetaWebhookUserProfileEnforcementActionResolvedEventData as BetaWebhookUserProfileEnforcementActionResolvedEventData,
+    type BetaWebhookUserProfileProgramStatusUpdatedEventData as BetaWebhookUserProfileProgramStatusUpdatedEventData,
     type BetaWebhookVaultArchivedEventData as BetaWebhookVaultArchivedEventData,
     type BetaWebhookVaultCreatedEventData as BetaWebhookVaultCreatedEventData,
     type BetaWebhookVaultCredentialArchivedEventData as BetaWebhookVaultCredentialArchivedEventData,

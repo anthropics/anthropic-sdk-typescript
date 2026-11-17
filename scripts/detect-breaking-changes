@@ -32,6 +32,23 @@ TEST_PATHS=(
 	tests/api-resources/organization/workspaces/service-accounts.test.ts
 	tests/api-resources/organization/rate-limits.test.ts
 	tests/api-resources/organization/compliance-settings.test.ts
+	tests/api-resources/organization/analytics/analytics.test.ts
+	tests/api-resources/organization/analytics/summaries.test.ts
+	tests/api-resources/organization/analytics/users.test.ts
+	tests/api-resources/organization/analytics/apps/apps.test.ts
+	tests/api-resources/organization/analytics/apps/chat/chat.test.ts
+	tests/api-resources/organization/analytics/apps/chat/projects.test.ts
+	tests/api-resources/organization/analytics/connectors.test.ts
+	tests/api-resources/organization/analytics/plugins.test.ts
+	tests/api-resources/organization/analytics/skills.test.ts
+	tests/api-resources/organization/analytics/artifacts.test.ts
+	tests/api-resources/organization/spend-limits/spend-limits.test.ts
+	tests/api-resources/organization/spend-limits/effective.test.ts
+	tests/api-resources/organization/spend-limits/increase-requests.test.ts
+	tests/api-resources/organization/rbac-groups/rbac-groups.test.ts
+	tests/api-resources/organization/rbac-groups/members.test.ts
+	tests/api-resources/organization/rbac-roles/rbac-roles.test.ts
+	tests/api-resources/organization/rbac-roles/permissions.test.ts
 	tests/api-resources/beta/beta.test.ts
 	tests/api-resources/beta/models.test.ts
 	tests/api-resources/beta/messages/messages.test.ts

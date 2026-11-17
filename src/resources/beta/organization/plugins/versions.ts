@@ -24,11 +24,10 @@ export class Versions extends APIResource {
    * Only a Plugin in a `manual` marketplace takes uploads; a Plugin synchronized
    * from a repository gets its versions from the repository. When the Plugin is in
    * the organization's library marketplace, a version that adds a skill with the
-   * name of an organization skill (a skill an administrator uploaded for the whole
-   * organization in claude.ai) is refused with a 409: `error_code`
-   * `skill_name_taken`, with that name in `details.skill_name`. A 503 with
-   * `error_code` `registration_pending` means the version was stored but is not yet
-   * usable; a later version create on the Plugin completes it.
+   * name of an organization skill that this API does not list is refused with a 409:
+   * `error_code` `skill_name_taken`, with that name in `details.skill_name`. A 503
+   * with `error_code` `registration_pending` means the version was stored but is not
+   * yet usable; a later version create on the Plugin completes it.
    *
    * For a worked example, see
    * [Create a version](/docs/en/manage-claude/plugins-api#create-a-version) in the
@@ -42,6 +41,12 @@ export class Versions extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {BetaUnsupportedCharsetError}
+   * @throws {BetaSkillNameTakenError}
+   * @throws {BetaRegistrationPendingError}
    *
    * @example
    * ```ts
@@ -211,6 +216,9 @@ export class Versions extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -278,7 +286,12 @@ export interface BetaPluginVersion {
   created_by: PluginsAPI.BetaPluginUserActor | PluginsAPI.BetaPluginAPIActor | null;
 
   /**
-   * The manifest's description; null when it declares none.
+   * The manifest's description; null when it declares none. The value can be longer
+   * than 500 characters, the limit on `description` in an uploaded manifest. A
+   * description that the manifest takes from a `SKILL.md` is cut to its first 500
+   * characters. So if the manifest's description is the first 500 characters of
+   * exactly one distinct skill `description` in `components`, that skill
+   * `description` is returned instead.
    */
   description: string | null;
 
@@ -357,7 +370,8 @@ export interface VersionRetrieveParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -376,7 +390,8 @@ export interface VersionListParams extends PageCursorParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -400,7 +415,8 @@ export interface VersionDownloadParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 

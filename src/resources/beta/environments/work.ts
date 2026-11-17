@@ -2,6 +2,7 @@ import type { Anthropic } from '../../../client';
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import { APIPromise } from '../../../core/api-promise';
+import { PreconditionFailedError } from '../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
@@ -16,14 +17,31 @@ import {
   type EnvironmentWorkerOptions as RunnerEnvironmentWorkerOptions,
 } from '../../../lib/environments/worker';
 
+/**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export class BetaHeartbeatPreconditionFailedError extends PreconditionFailedError {
+  declare readonly errorCode: 'heartbeat_precondition_failed';
+  declare readonly details: BetaHeartbeatPreconditionFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaHeartbeatPreconditionFailedError';
+}
+
 export class Work extends APIResource {
   /**
-   * Note: these endpoints are called automatically by the pre-built environment
-   * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
-   * sandbox environments. They are included here as a reference; you do not need to
-   * invoke them directly.
-   *
    * Retrieve detailed information about a specific work item.
+   *
+   * This endpoint accepts a Claude API key. It rejects the environment key and the
+   * work item's `secret`. On
+   * [Claude Platform on AWS](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws)
+   * or
+   * [Claude Models on Google Cloud (Anthropic managed)](https://platform.claude.com/docs/en/build-with-claude/claude-models-on-google-cloud/anthropic-managed),
+   * use that platform's credentials instead.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -57,12 +75,18 @@ export class Work extends APIResource {
   }
 
   /**
-   * Note: these endpoints are called automatically by the pre-built environment
-   * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
-   * sandbox environments. They are included here as a reference; you do not need to
-   * invoke them directly.
-   *
    * Update work item metadata with merge semantics.
+   *
+   * This endpoint accepts a Claude API key. It rejects the environment key and the
+   * work item's `secret`. On
+   * [Claude Platform on AWS](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws)
+   * or
+   * [Claude Models on Google Cloud (Anthropic managed)](https://platform.claude.com/docs/en/build-with-claude/claude-models-on-google-cloud/anthropic-managed),
+   * use that platform's credentials instead.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaInvalidMetadataError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -94,12 +118,14 @@ export class Work extends APIResource {
   }
 
   /**
-   * Note: these endpoints are called automatically by the pre-built environment
-   * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
-   * sandbox environments. They are included here as a reference; you do not need to
-   * invoke them directly.
-   *
    * List work items in an environment.
+   *
+   * This endpoint accepts the environment key as a bearer token. It rejects a Claude
+   * API key. On
+   * [Claude Platform on AWS](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws)
+   * or
+   * [Claude Models on Google Cloud (Anthropic managed)](https://platform.claude.com/docs/en/build-with-claude/claude-models-on-google-cloud/anthropic-managed),
+   * use that platform's credentials instead.
    *
    * @example
    * ```ts
@@ -178,6 +204,8 @@ export class Work extends APIResource {
    *
    * Record a heartbeat for a work item to maintain the lease.
    *
+   * @throws {BetaHeartbeatPreconditionFailedError}
+   *
    * @example
    * ```ts
    * const betaSelfHostedWorkHeartbeatResponse =
@@ -252,6 +280,9 @@ export class Work extends APIResource {
   /**
    * Get statistics about the work queue for an environment.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaSelfHostedWorkQueueStats =
@@ -284,12 +315,10 @@ export class Work extends APIResource {
   }
 
   /**
-   * Note: these endpoints are called automatically by the pre-built environment
-   * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
-   * sandbox environments. They are included here as a reference; you do not need to
-   * invoke them directly.
-   *
    * Stop a work item, initiating graceful or forced shutdown.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -390,6 +419,19 @@ export interface BetaHealthCheckWorkData {
 }
 
 /**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export interface BetaHeartbeatPreconditionFailedErrorDetails {
+  /**
+   * The lease as the server holds it.
+   */
+  current_state: BetaWorkLeaseState;
+
+  error_code: 'heartbeat_precondition_failed';
+}
+
+/**
  * Work resource representing a unit of work in a self-hosted environment.
  *
  * Work items are queued when sessions are created or when long-dormant sessions
@@ -398,7 +440,7 @@ export interface BetaHealthCheckWorkData {
  */
 export interface BetaSelfHostedWork {
   /**
-   * Work identifier (e.g., 'work\_...')
+   * Work identifier (e.g., 'work_...')
    */
   id: string;
 
@@ -571,7 +613,7 @@ export interface BetaSelfHostedWorkUpdateRequest {
  */
 export interface BetaSessionWorkData {
   /**
-   * Session identifier (e.g., 'session\_...')
+   * Session identifier (e.g., 'session_...')
    */
   id: string;
 
@@ -579,6 +621,31 @@ export interface BetaSessionWorkData {
    * Type of work data
    */
   type: 'session';
+}
+
+/**
+ * A work item's lease as the server holds it.
+ */
+export interface BetaWorkLeaseState {
+  /**
+   * RFC 3339 timestamp of the stored heartbeat, or null if there has been none
+   */
+  last_heartbeat: string | null;
+
+  /**
+   * Always false: a refused heartbeat does not extend the lease
+   */
+  lease_extended: boolean;
+
+  /**
+   * Current state of the work item
+   */
+  state: 'queued' | 'starting' | 'active' | 'stopping' | 'stopped';
+
+  /**
+   * TTL of the lease
+   */
+  ttl_seconds: number;
 }
 
 /**
@@ -686,7 +753,8 @@ export interface WorkHeartbeatParams {
    * concurrency). Use literal 'NO_HEARTBEAT' to claim an unclaimed lease (first
    * heartbeat). For subsequent heartbeats, echo the server's previous last_heartbeat
    * value exactly. Returns 412 Precondition Failed if the actual value doesn't
-   * match.
+   * match. The server does not compare the value when the work item is 'stopping' or
+   * 'stopped'.
    */
   expected_last_heartbeat?: string | null;
 
@@ -769,6 +837,7 @@ export interface WorkStopParams {
 export { WorkPoller, type WorkPollerOptions } from '../../../lib/environments/poller';
 export { EnvironmentWorker, type EnvironmentWorkerOptions } from '../../../lib/environments/worker';
 
+Work.BetaHeartbeatPreconditionFailedError = BetaHeartbeatPreconditionFailedError;
 Work.WorkPoller = WorkPoller;
 Work.EnvironmentWorker = EnvironmentWorker;
 
@@ -776,7 +845,9 @@ export declare namespace Work {
   export { WorkPoller, EnvironmentWorker };
 
   export {
+    BetaHeartbeatPreconditionFailedError as BetaHeartbeatPreconditionFailedError,
     type BetaHealthCheckWorkData as BetaHealthCheckWorkData,
+    type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,
     type BetaSelfHostedWorkHeartbeatResponse as BetaSelfHostedWorkHeartbeatResponse,
     type BetaSelfHostedWorkListResponse as BetaSelfHostedWorkListResponse,
@@ -784,6 +855,7 @@ export declare namespace Work {
     type BetaSelfHostedWorkStopRequest as BetaSelfHostedWorkStopRequest,
     type BetaSelfHostedWorkUpdateRequest as BetaSelfHostedWorkUpdateRequest,
     type BetaSessionWorkData as BetaSessionWorkData,
+    type BetaWorkLeaseState as BetaWorkLeaseState,
     type BetaWorkSecret as BetaWorkSecret,
     type BetaSelfHostedWorksPageCursor as BetaSelfHostedWorksPageCursor,
     type WorkRetrieveParams as WorkRetrieveParams,

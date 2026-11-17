@@ -31,7 +31,7 @@ describe('resource members', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.beta.organization.rbacGroups.members.add('rbac_group_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -44,7 +44,7 @@ describe('resource members', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.beta.organization.rbacGroups.members.add('rbac_group_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
     });
   });
 

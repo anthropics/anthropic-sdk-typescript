@@ -48,6 +48,11 @@ interface FakeOpts {
   // Optional: stream indices that throw (disconnect) after yielding their
   // scripted events, forcing the runner to reconnect + reconcile.
   streamErrors?: number[];
+  // Optional: list indices that throw after yielding their scripted events, so
+  // the runner reads only part of the history.
+  listErrors?: number[];
+  // Optional: how long events.list() takes to yield each event.
+  listItemDelayMs?: number;
 }
 
 function makeFake(opts: FakeOpts) {
@@ -64,8 +69,12 @@ function makeFake(opts: FakeOpts) {
           list: (_sessionId: string, _params: unknown, options?: unknown) => {
             calls.list++;
             calls.options.push(options);
-            const items = opts.list?.[listIdx++] ?? [];
-            return makeAsyncIterable(items);
+            const i = listIdx++;
+            return makeAsyncIterable(
+              opts.list?.[i] ?? [],
+              opts.listErrors?.includes(i) ?? false,
+              opts.listItemDelayMs,
+            );
           },
           send: (_sessionId: string, body: { events: AnyEvent[] }, options?: unknown) => {
             const i = sendIdx++;
@@ -94,10 +103,14 @@ function makeFake(opts: FakeOpts) {
   return { client: fake as never, calls };
 }
 
-function makeAsyncIterable<T>(items: T[]): AsyncIterable<T> {
+function makeAsyncIterable<T>(items: T[], throwAfter = false, itemDelayMs = 0): AsyncIterable<T> {
   return {
     async *[Symbol.asyncIterator]() {
-      for (const it of items) yield it;
+      for (const it of items) {
+        if (itemDelayMs > 0) await new Promise((r) => setTimeout(r, itemDelayMs));
+        yield it;
+      }
+      if (throwAfter) throw new Error('list failed');
     },
   };
 }
@@ -181,6 +194,14 @@ function idleRequiresAction(eventIds: string[]): AnyEvent {
 }
 
 const TERMINATED: AnyEvent = { type: 'session.status_terminated', id: 'ev_term' };
+
+function threadTerminated(sessionThreadId: string): AnyEvent {
+  return {
+    type: 'session.thread_status_terminated',
+    id: 'ev_thread_term',
+    session_thread_id: sessionThreadId,
+  };
+}
 
 // =====
 
@@ -1145,5 +1166,474 @@ describe('SessionToolRunner', () => {
 
     expect(runs).toBe(0);
     expect(calls.send.flat()).toHaveLength(0);
+  });
+
+  describe('terminated session threads (fake timers)', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    const inThread = (ev: AnyEvent, sessionThreadId: string): AnyEvent => ({
+      ...ev,
+      session_thread_id: sessionThreadId,
+    });
+
+    /** Advances fake time by 5 s, past one reconnect backoff and `maxIdleMs`, and reports whether the runner stopped by itself. */
+    async function drive(fake: FakeOpts, tools: BetaRunnableTool[] = []) {
+      const { client, calls } = makeFake(fake);
+      const runner = new SessionToolRunner('s', { client, tools, maxIdleMs: 1_000 });
+      const out: DispatchedToolCall[] = [];
+      let done = false;
+      const consumer = (async () => {
+        for await (const c of runner) out.push(c);
+        done = true;
+      })();
+      await vi.advanceTimersByTimeAsync(5_000);
+      const stopped = done;
+      runner.abort();
+      await consumer;
+      return { out, calls, stopped };
+    }
+
+    test('does not run a call of a terminated session thread that it finds in history', async () => {
+      // A call that was open when its thread terminated stays in the history
+      // without a result, so every new runner and every reconnect finds it.
+      let runs = 0;
+      const tool = makeOkTool('inc', async () => (runs++, 'done'));
+      const { out, calls, stopped } = await drive(
+        {
+          list: [
+            [
+              inThread(toolUse('tu_1', 'inc'), 'sthr_ended'),
+              idleRequiresAction(['tu_1']),
+              threadTerminated('sthr_ended'),
+              idleEndTurn(),
+            ],
+          ],
+          streams: [[]],
+        },
+        [tool],
+      );
+
+      expect(runs).toBe(0);
+      expect(out).toEqual([]);
+      expect(calls.send).toEqual([]);
+      expect(stopped).toBe(true);
+    });
+
+    test('does not run a call again after a reconnect once its session thread has terminated', async () => {
+      // The thread terminates while the tool runs, so the API refuses the result.
+      let runs = 0;
+      const tool = makeOkTool('inc', async () => (runs++, 'done'));
+      const call = inThread(toolUse('tu_1', 'inc'), 'sthr_ended');
+      const refused = Object.assign(Object.create(APIError.prototype) as APIError, { status: 400 });
+      const { out, calls, stopped } = await drive(
+        {
+          streams: [[call, threadTerminated('sthr_ended')], []],
+          streamErrors: [0],
+          list: [[], [call, threadTerminated('sthr_ended'), idleEndTurn()]],
+          sendErrors: [{ at: 0, err: refused }],
+        },
+        [tool],
+      );
+
+      expect(runs).toBe(1);
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([['tu_1', false]]);
+      expect(calls.send).toHaveLength(1);
+      expect(stopped).toBe(true);
+    });
+
+    test('runs once each call that the stream delivers before its session thread terminates', async () => {
+      const refused = Object.assign(Object.create(APIError.prototype) as APIError, { status: 400 });
+      const events = [
+        inThread(toolUse('tu_running', 'echo'), 'sthr_ended'),
+        inThread(toolUse('tu_approved', 'echo', {}, 'ask'), 'sthr_ended'),
+        toolConfirmation('c', 'tu_approved', 'allow'),
+        threadTerminated('sthr_ended'),
+      ];
+      const { out, calls, stopped } = await drive(
+        {
+          streams: [events, []],
+          streamErrors: [0],
+          list: [[], [...events, idleEndTurn()]],
+          sendErrors: [
+            { at: 0, err: refused },
+            { at: 1, err: refused },
+          ],
+        },
+        [makeOkTool('echo', 'ok')],
+      );
+
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([
+        ['tu_running', false],
+        ['tu_approved', false],
+      ]);
+      expect(calls.send).toHaveLength(2);
+      expect(stopped).toBe(true);
+    });
+
+    test('runs the open calls of live threads beside the call of a terminated session thread', async () => {
+      const { out } = await drive(
+        {
+          list: [
+            [
+              inThread(toolUse('tu_ended', 'echo'), 'sthr_ended'),
+              threadTerminated('sthr_ended'),
+              inThread(toolUse('tu_child', 'echo'), 'sthr_live'),
+              toolUse('tu_primary', 'echo'),
+            ],
+          ],
+          streams: [[TERMINATED]],
+        },
+        [makeOkTool('echo', 'ok')],
+      );
+
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([
+        ['tu_child', true],
+        ['tu_primary', true],
+      ]);
+    });
+
+    test.each([
+      { kind: 'an unowned', permission: undefined },
+      { kind: 'a denied', permission: 'deny' },
+    ])('does not yield $kind call of a terminated session thread', async ({ permission }) => {
+      const { out, stopped } = await drive({
+        list: [
+          [
+            inThread(toolUse('tu_1', 'other', {}, permission), 'sthr_ended'),
+            threadTerminated('sthr_ended'),
+            idleEndTurn(),
+          ],
+        ],
+        streams: [[]],
+      });
+
+      expect(out).toEqual([]);
+      expect(stopped).toBe(true);
+    });
+
+    const askCall = inThread(toolUse('tu_1', 'gated', {}, 'ask'), 'sthr_ended');
+    test.each([
+      {
+        termination: 'after the call',
+        fake: { streams: [[askCall, threadTerminated('sthr_ended'), idleEndTurn()]] },
+      },
+      {
+        termination: 'before the call',
+        fake: { streams: [[threadTerminated('sthr_ended'), askCall, idleEndTurn()]] },
+      },
+      {
+        termination: 'after an end_turn idle',
+        fake: { streams: [[askCall, idleEndTurn(), threadTerminated('sthr_ended')]] },
+      },
+      {
+        termination: 'before its approval',
+        fake: {
+          streams: [
+            [askCall, threadTerminated('sthr_ended'), toolConfirmation('c', 'tu_1', 'allow'), idleEndTurn()],
+          ],
+        },
+      },
+      {
+        termination: 'after its approval in history',
+        fake: {
+          list: [
+            [askCall, toolConfirmation('c', 'tu_1', 'allow'), threadTerminated('sthr_ended'), idleEndTurn()],
+          ],
+          streams: [[]],
+        },
+      },
+      {
+        termination: 'in history after a reconnect',
+        fake: {
+          streams: [[askCall], []],
+          streamErrors: [0],
+          list: [[], [askCall, threadTerminated('sthr_ended'), idleEndTurn()]],
+        },
+      },
+      {
+        termination: 'after its call left the history window',
+        fake: {
+          streams: [[askCall], []],
+          streamErrors: [0],
+          list: [[], [toolConfirmation('c', 'tu_1', 'allow'), threadTerminated('sthr_ended'), idleEndTurn()]],
+        },
+      },
+      {
+        termination: 'in a failed read before a new idle',
+        fake: {
+          streams: [[askCall, idleEndTurn()], [idleEndTurn()]],
+          streamErrors: [0],
+          list: [[], [askCall, idleEndTurn(), threadTerminated('sthr_ended')]],
+          listErrors: [1],
+        },
+      },
+      {
+        termination: 'in a failed read before a whole read',
+        fake: {
+          streams: [[askCall, idleEndTurn()], [], []],
+          streamErrors: [0, 1],
+          list: [
+            [],
+            [askCall, idleEndTurn(), threadTerminated('sthr_ended')],
+            [askCall, idleEndTurn(), threadTerminated('sthr_ended')],
+          ],
+          listErrors: [1],
+        },
+      },
+      {
+        termination: 'after a failed read and before a new idle',
+        fake: {
+          streams: [
+            [askCall, idleEndTurn()],
+            [threadTerminated('sthr_ended'), idleEndTurn()],
+          ],
+          streamErrors: [0],
+          list: [[], [askCall]],
+          listErrors: [1],
+        },
+      },
+      {
+        termination: 'after a failed read and a new idle',
+        fake: {
+          streams: [
+            [askCall, idleEndTurn()],
+            [idleEndTurn(), threadTerminated('sthr_ended')],
+          ],
+          streamErrors: [0],
+          list: [[], [askCall]],
+          listErrors: [1],
+        },
+      },
+      {
+        termination: 'after a failed read and a whole read',
+        fake: {
+          streams: [[askCall, idleEndTurn()], [], [threadTerminated('sthr_ended')]],
+          streamErrors: [0, 1],
+          list: [[], [askCall], [askCall, idleEndTurn()]],
+          listErrors: [1],
+        },
+      },
+    ])(
+      'an ask call does not block the idle stop when its session thread terminates $termination',
+      async ({ fake }) => {
+        const { out, stopped } = await drive(fake);
+
+        expect(out).toEqual([]);
+        expect(stopped).toBe(true);
+      },
+    );
+
+    const running: AnyEvent = { type: 'session.status_running', id: 'ev_running' };
+    test.each([
+      { termination: 'last in the partial history', listed: [threadTerminated('sthr_ended')], live: [] },
+      {
+        termination: 'after the session runs in the partial history',
+        listed: [running, threadTerminated('sthr_ended')],
+        live: [],
+      },
+      {
+        termination: 'before the session runs in the partial history',
+        listed: [threadTerminated('sthr_ended'), running],
+        live: [],
+      },
+      { termination: 'on the new stream', listed: [running], live: [threadTerminated('sthr_ended')] },
+    ])(
+      'a failed history read keeps a termination $termination from starting the deferred idle stop',
+      async ({ listed, live }) => {
+        const { out, stopped } = await drive({
+          streams: [[askCall, idleEndTurn()], live],
+          streamErrors: [0],
+          list: [[], [askCall, idleEndTurn(), ...listed]],
+          listErrors: [1],
+        });
+
+        expect(out).toEqual([]);
+        expect(stopped).toBe(false);
+      },
+    );
+
+    const liveAskCall = inThread(toolUse('tu_live', 'gated', {}, 'ask'), 'sthr_live');
+    test.each([
+      { outcome: 'starts', dropped: 'no held call', held: [liveAskCall], stops: true },
+      { outcome: 'does not start', dropped: 'another held call', held: [askCall, liveAskCall], stops: false },
+    ])(
+      'a denial after a failed history read $outcome the deferred idle stop when the termination drops $dropped',
+      async ({ held, stops }) => {
+        const { out, stopped } = await drive({
+          streams: [[...held, idleEndTurn()], [toolConfirmation('c', 'tu_live', 'deny')]],
+          streamErrors: [0],
+          list: [[], [...held, idleEndTurn(), threadTerminated('sthr_ended')]],
+          listErrors: [1],
+        });
+
+        expect(out.map((c) => [c.toolUseId, c.confirmation])).toEqual([['tu_live', 'deny']]);
+        expect(stopped).toBe(stops);
+      },
+    );
+
+    test('a failed history read does not cancel a running idle stop', async () => {
+      const { stopped } = await drive({
+        streams: [[idleEndTurn()], []],
+        streamErrors: [0],
+        list: [[], [idleEndTurn(), threadTerminated('sthr_ended')]],
+        listErrors: [1],
+      });
+
+      expect(stopped).toBe(true);
+    });
+
+    const queuedAskCall = inThread(toolUse('tu_2', 'gated', {}, 'ask'), 'sthr_ended');
+    const allow = toolConfirmation('c1', 'tu_1', 'allow');
+    const allowQueued = toolConfirmation('c2', 'tu_2', 'allow');
+    const denyLive = toolConfirmation('c', 'tu_live', 'deny');
+    const ended = threadTerminated('sthr_ended');
+    test.each([
+      { order: 'with no held call', beforeDrop: [idleEndTurn()], live: [ended] },
+      {
+        order: 'after an approval before the drop',
+        beforeDrop: [askCall, idleEndTurn(), allow],
+        live: [ended],
+      },
+      {
+        order: 'after an approval on the new stream',
+        beforeDrop: [askCall, idleEndTurn()],
+        live: [allow, ended],
+      },
+      {
+        order: 'after two approvals before the drop',
+        beforeDrop: [askCall, queuedAskCall, idleEndTurn(), allow, allowQueued],
+        live: [ended],
+      },
+      {
+        order: 'after two approvals on the new stream',
+        beforeDrop: [askCall, queuedAskCall, idleEndTurn()],
+        live: [allow, allowQueued, ended],
+      },
+      {
+        order: 'after a denial in a live thread',
+        beforeDrop: [liveAskCall, idleEndTurn()],
+        live: [denyLive, ended],
+      },
+      {
+        order: 'before a denial in a live thread',
+        beforeDrop: [liveAskCall, idleEndTurn()],
+        live: [ended, denyLive],
+      },
+    ])(
+      'a live termination after a failed history read cancels the idle stop $order',
+      async ({ beforeDrop, live }) => {
+        const slowTool = makeOkTool('gated', () => new Promise((r) => setTimeout(() => r('ok'), 300)));
+        const { stopped } = await drive(
+          { streams: [beforeDrop, live], streamErrors: [0], list: [[], [running]], listErrors: [1] },
+          [slowTool],
+        );
+
+        expect(stopped).toBe(false);
+      },
+    );
+
+    test('a whole read restarts the idle stop that a live termination cancelled', async () => {
+      const { stopped } = await drive({
+        streams: [[idleEndTurn()], [ended], []],
+        streamErrors: [0, 1],
+        list: [[], [], [idleEndTurn(), ended]],
+        listErrors: [1],
+      });
+
+      expect(stopped).toBe(true);
+    });
+
+    test('an approval after a failed history read starts the deferred idle stop', async () => {
+      const { out, stopped } = await drive(
+        { streams: [[askCall, idleEndTurn()], [allow]], streamErrors: [0], list: [[], []], listErrors: [1] },
+        [makeOkTool('gated', 'ok')],
+      );
+
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([['tu_1', true]]);
+      expect(stopped).toBe(true);
+    });
+
+    test('keeps holding the ask call of a live thread when another session thread terminates', async () => {
+      const { out } = await drive(
+        {
+          streams: [
+            [
+              liveAskCall,
+              threadTerminated('sthr_ended'),
+              toolConfirmation('c', 'tu_live', 'allow'),
+              TERMINATED,
+            ],
+          ],
+        },
+        [makeOkTool('gated', 'ok')],
+      );
+
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([['tu_live', true]]);
+    });
+
+    test('reads a slow history to its end before a termination in it can start the idle stop', async () => {
+      const { out, stopped } = await drive(
+        {
+          streams: [[askCall, idleEndTurn()], []],
+          streamErrors: [0],
+          list: [
+            [],
+            [askCall, idleEndTurn(), threadTerminated('sthr_ended'), running, toolUse('tu_live', 'echo')],
+          ],
+          listItemDelayMs: 600,
+        },
+        [makeOkTool('echo', 'ok')],
+      );
+
+      expect(out.map((c) => [c.toolUseId, c.posted])).toEqual([['tu_live', true]]);
+      expect(stopped).toBe(false);
+    });
+
+    // A client can archive a child thread once the session is idle, and another
+    // idle need not follow the thread's terminated event.
+    const terminatedAfterIdle = [idleEndTurn(), threadTerminated('sthr_ended')];
+    test.each([
+      {
+        seenOn: 'history',
+        fake: {
+          list: [[inThread(toolUse('tu_1', 'echo'), 'sthr_ended'), ...terminatedAfterIdle]],
+          streams: [[]],
+        },
+      },
+      { seenOn: 'the live stream', fake: { streams: [terminatedAfterIdle] } },
+    ])(
+      'a session thread termination after an end_turn idle on $seenOn does not cancel the idle stop',
+      async ({ fake }) => {
+        const { out, stopped } = await drive(fake);
+
+        expect(out).toEqual([]);
+        expect(stopped).toBe(true);
+      },
+    );
+
+    test.each(
+      [
+        {
+          order: 'after a requires_action idle',
+          events: [idleRequiresAction(['evt_elsewhere']), threadTerminated('sthr_ended')],
+        },
+        {
+          order: 'that drops a held call mid-turn',
+          events: [askCall, running, threadTerminated('sthr_ended')],
+        },
+        {
+          order: 'before the session runs again',
+          events: [idleEndTurn(), threadTerminated('sthr_ended'), running],
+        },
+      ].flatMap(({ order, events }) => [
+        { order, seenOn: 'history', fake: { list: [events], streams: [[]] } },
+        { order, seenOn: 'the live stream', fake: { streams: [events] } },
+      ]),
+    )('a session thread termination $order on $seenOn does not start the idle stop', async ({ fake }) => {
+      const { stopped } = await drive(fake);
+
+      expect(stopped).toBe(false);
+    });
   });
 });

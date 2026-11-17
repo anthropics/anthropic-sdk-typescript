@@ -211,14 +211,17 @@ export interface BetaManagedAgentsAgentAutoEvaluatedPermissionAsk {
 }
 
 /**
- * The server judged the invocation high-risk; it does not execute and a synthetic
- * error tool result is appended.
+ * The server judged the invocation high-risk, or reached no judgement and did not
+ * hold it for client approval (for example, because the organization is out of
+ * credits or has reached a spend limit); it does not execute and a synthetic error
+ * tool result is appended.
  */
 export interface BetaManagedAgentsAgentAutoEvaluatedPermissionDeny {
   /**
    * The judgement's grounds in registry-bound terms. Open registry; currently
-   * "high_risk" (judged high-risk; the call does not run). Clients must tolerate
-   * values outside this set.
+   * "high_risk" (judged high-risk; the call does not run) and "indeterminate" (no
+   * judgement was reached; the call does not run). Clients must tolerate values
+   * outside this set.
    */
   reason_code: string;
 
@@ -662,7 +665,7 @@ export interface BetaManagedAgentsBase64ImageSource {
  * credits or spend limit reached. Retrying with the same credentials will not
  * succeed; the caller must resolve the billing state.
  */
-export interface BetaManagedAgentsBillingError {
+export interface BetaManagedAgentsBillingErrorObject {
   /**
    * Human-readable error description.
    */
@@ -680,10 +683,33 @@ export interface BetaManagedAgentsBillingError {
 }
 
 /**
+ * The turn stopped because the context was compacted the maximum number of times
+ * in a row without the model producing a message or a tool call, not because a
+ * request failed. The thread goes idle with `stop_reason: retries_exhausted` (a
+ * child thread then terminates); the next `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsCompactionLimitReachedErrorObject {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'compaction_limit_reached_error';
+}
+
+/**
  * An `environment_variable` credential's `auth.networking.allowed_hosts` includes
  * a host the environment's network policy does not permit.
  */
-export interface BetaManagedAgentsCredentialHostUnreachableError {
+export interface BetaManagedAgentsCredentialHostUnreachableErrorObject {
   /**
    * ID of the affected credential.
    */
@@ -816,7 +842,7 @@ export interface BetaManagedAgentsImageBlock {
  * No run was created, because the session was at its limit of open workflow runs,
  * which are runs that have not ended. Only `workflow_run.error` carries this type.
  */
-export interface BetaManagedAgentsMaxWorkflowRunsWorkflowRunError {
+export interface BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject {
   /**
    * Short explanation written by the server. It never contains content from the run
    * or its agents.
@@ -829,7 +855,7 @@ export interface BetaManagedAgentsMaxWorkflowRunsWorkflowRunError {
 /**
  * Authentication to an MCP server failed.
  */
-export interface BetaManagedAgentsMCPAuthenticationFailedError {
+export interface BetaManagedAgentsMCPAuthenticationFailedErrorObject {
   /**
    * Name of the MCP server that failed authentication.
    */
@@ -854,7 +880,7 @@ export interface BetaManagedAgentsMCPAuthenticationFailedError {
 /**
  * Failed to connect to an MCP server.
  */
-export interface BetaManagedAgentsMCPConnectionFailedError {
+export interface BetaManagedAgentsMCPConnectionFailedErrorObject {
   /**
    * Name of the MCP server that failed to connect.
    */
@@ -880,7 +906,7 @@ export interface BetaManagedAgentsMCPConnectionFailedError {
  * The model is currently overloaded. Emitted after automatic retries are
  * exhausted.
  */
-export interface BetaManagedAgentsModelOverloadedError {
+export interface BetaManagedAgentsModelOverloadedErrorObject {
   /**
    * Human-readable error description.
    */
@@ -900,7 +926,7 @@ export interface BetaManagedAgentsModelOverloadedError {
 /**
  * The model request was rate-limited.
  */
-export interface BetaManagedAgentsModelRateLimitedError {
+export interface BetaManagedAgentsModelRateLimitedErrorObject {
   /**
    * Human-readable error description.
    */
@@ -920,7 +946,7 @@ export interface BetaManagedAgentsModelRateLimitedError {
 /**
  * A model request failed for a reason other than overload or rate-limiting.
  */
-export interface BetaManagedAgentsModelRequestFailedError {
+export interface BetaManagedAgentsModelRequestFailedErrorObject {
   /**
    * Human-readable error description.
    */
@@ -957,7 +983,7 @@ export interface BetaManagedAgentsPlainTextDocumentSource {
 /**
  * The plan, a program that the agent wrote, failed, or the server refused it.
  */
-export interface BetaManagedAgentsProgramWorkflowRunError {
+export interface BetaManagedAgentsProgramWorkflowRunErrorObject {
   /**
    * Short explanation written by the server. It never contains content from the run
    * or its agents.
@@ -978,7 +1004,7 @@ export interface BetaManagedAgentsRedactedBlock {
  * The repository host rejected the credentials, or required credentials and
  * received none.
  */
-export interface BetaManagedAgentsRepositoryAuthenticationError {
+export interface BetaManagedAgentsRepositoryAuthenticationErrorObject {
   /**
    * Human-readable error description.
    */
@@ -1005,7 +1031,7 @@ export interface BetaManagedAgentsRepositoryAuthenticationError {
 /**
  * The requested branch or commit does not exist in the repository.
  */
-export interface BetaManagedAgentsRepositoryCheckoutError {
+export interface BetaManagedAgentsRepositoryCheckoutErrorObject {
   /**
    * Human-readable error description.
    */
@@ -1032,7 +1058,7 @@ export interface BetaManagedAgentsRepositoryCheckoutError {
 /**
  * The repository could not be cloned.
  */
-export interface BetaManagedAgentsRepositoryCloneError {
+export interface BetaManagedAgentsRepositoryCloneErrorObject {
   /**
    * Human-readable error description.
    */
@@ -1059,7 +1085,7 @@ export interface BetaManagedAgentsRepositoryCloneError {
 /**
  * The repository host refused access to the repository.
  */
-export interface BetaManagedAgentsRepositoryForbiddenError {
+export interface BetaManagedAgentsRepositoryForbiddenErrorObject {
   /**
    * Human-readable error description.
    */
@@ -1086,7 +1112,7 @@ export interface BetaManagedAgentsRepositoryForbiddenError {
 /**
  * The repository host reported the repository as not found.
  */
-export interface BetaManagedAgentsRepositoryNotFoundError {
+export interface BetaManagedAgentsRepositoryNotFoundErrorObject {
   /**
    * Human-readable error description.
    */
@@ -1247,19 +1273,21 @@ export interface BetaManagedAgentsSessionErrorEvent {
   id: string;
 
   error:
-    | BetaManagedAgentsUnknownError
-    | BetaManagedAgentsModelOverloadedError
-    | BetaManagedAgentsModelRateLimitedError
-    | BetaManagedAgentsModelRequestFailedError
-    | BetaManagedAgentsMCPConnectionFailedError
-    | BetaManagedAgentsMCPAuthenticationFailedError
-    | BetaManagedAgentsBillingError
-    | BetaManagedAgentsCredentialHostUnreachableError
-    | BetaManagedAgentsRepositoryAuthenticationError
-    | BetaManagedAgentsRepositoryForbiddenError
-    | BetaManagedAgentsRepositoryNotFoundError
-    | BetaManagedAgentsRepositoryCheckoutError
-    | BetaManagedAgentsRepositoryCloneError;
+    | BetaManagedAgentsUnknownErrorObject
+    | BetaManagedAgentsModelOverloadedErrorObject
+    | BetaManagedAgentsModelRateLimitedErrorObject
+    | BetaManagedAgentsModelRequestFailedErrorObject
+    | BetaManagedAgentsMCPConnectionFailedErrorObject
+    | BetaManagedAgentsMCPAuthenticationFailedErrorObject
+    | BetaManagedAgentsBillingErrorObject
+    | BetaManagedAgentsCredentialHostUnreachableErrorObject
+    | BetaManagedAgentsToolUseLimitReachedErrorObject
+    | BetaManagedAgentsCompactionLimitReachedErrorObject
+    | BetaManagedAgentsRepositoryAuthenticationErrorObject
+    | BetaManagedAgentsRepositoryForbiddenErrorObject
+    | BetaManagedAgentsRepositoryNotFoundErrorObject
+    | BetaManagedAgentsRepositoryCheckoutErrorObject
+    | BetaManagedAgentsRepositoryCloneErrorObject;
 
   /**
    * Timestamp when the error occurred.
@@ -1549,7 +1577,7 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that went idle.
+   * Public sthr_ ID of the thread that went idle.
    */
   session_thread_id: string;
 
@@ -1591,7 +1619,7 @@ export interface BetaManagedAgentsSessionThreadStatusRescheduledEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that is retrying.
+   * Public sthr_ ID of the thread that is retrying.
    */
   session_thread_id: string;
 
@@ -1619,7 +1647,7 @@ export interface BetaManagedAgentsSessionThreadStatusRunningEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that started running.
+   * Public sthr_ ID of the thread that started running.
    */
   session_thread_id: string;
 
@@ -1647,7 +1675,7 @@ export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that terminated.
+   * Public sthr_ ID of the thread that terminated.
    */
   session_thread_id: string;
 
@@ -2001,7 +2029,7 @@ export interface BetaManagedAgentsTextRubricParams {
 /**
  * The run exceeded the limit on the number of threads that a run can create.
  */
-export interface BetaManagedAgentsThreadLimitWorkflowRunError {
+export interface BetaManagedAgentsThreadLimitWorkflowRunErrorObject {
   /**
    * Short explanation written by the server. It never contains content from the run
    * or its agents.
@@ -2014,7 +2042,7 @@ export interface BetaManagedAgentsThreadLimitWorkflowRunError {
 /**
  * The run reached its time limit.
  */
-export interface BetaManagedAgentsTimeoutWorkflowRunError {
+export interface BetaManagedAgentsTimeoutWorkflowRunErrorObject {
   /**
    * Short explanation written by the server. It never contains content from the run
    * or its agents.
@@ -2025,11 +2053,35 @@ export interface BetaManagedAgentsTimeoutWorkflowRunError {
 }
 
 /**
+ * The turn stopped because the agent loop reached its limit on tool-use rounds
+ * (one model response that calls tools, plus running those tools, is one round),
+ * not because a request failed. The thread goes idle with
+ * `stop_reason: retries_exhausted` (a child thread then terminates); the next
+ * `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsToolUseLimitReachedErrorObject {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'tool_use_limit_reached_error';
+}
+
+/**
  * An unknown or unexpected error occurred during session execution. A fallback
  * variant; clients that don't recognize a new error code can match on
  * `retry_status` and `message` alone.
  */
-export interface BetaManagedAgentsUnknownError {
+export interface BetaManagedAgentsUnknownErrorObject {
   /**
    * Human-readable error description.
    */
@@ -2049,7 +2101,7 @@ export interface BetaManagedAgentsUnknownError {
 /**
  * A failure that has no type of its own.
  */
-export interface BetaManagedAgentsUnknownWorkflowRunError {
+export interface BetaManagedAgentsUnknownWorkflowRunErrorObject {
   /**
    * Short explanation written by the server. It never contains content from the run
    * or its agents.
@@ -2447,18 +2499,6 @@ export interface BetaManagedAgentsWorkflowRunCreatedEvent {
 }
 
 /**
- * Why a workflow run did not finish, or was not created. More types may be added.
- * On `workflow_run.status_ended`, for a `type` you do not recognize, rely on the
- * event's `result.type`.
- */
-export type BetaManagedAgentsWorkflowRunError =
-  | BetaManagedAgentsTimeoutWorkflowRunError
-  | BetaManagedAgentsProgramWorkflowRunError
-  | BetaManagedAgentsUnknownWorkflowRunError
-  | BetaManagedAgentsThreadLimitWorkflowRunError
-  | BetaManagedAgentsMaxWorkflowRunsWorkflowRunError;
-
-/**
  * A workflow run met an error, or an error kept a run from being created. A run
  * that ends with a `result.type` of `error` emits this event before its
  * `workflow_run.status_ended`, with the same `error`.
@@ -2472,7 +2512,7 @@ export interface BetaManagedAgentsWorkflowRunErrorEvent {
   /**
    * Why the run did not finish, or was not created.
    */
-  error: BetaManagedAgentsWorkflowRunError;
+  error: BetaManagedAgentsWorkflowRunErrorObject;
 
   /**
    * Timestamp when this event was processed.
@@ -2487,6 +2527,18 @@ export interface BetaManagedAgentsWorkflowRunErrorEvent {
    */
   workflow_run_id: string | null;
 }
+
+/**
+ * Why a workflow run did not finish, or was not created. More types may be added.
+ * On `workflow_run.status_ended`, for a `type` you do not recognize, rely on the
+ * event's `result.type`.
+ */
+export type BetaManagedAgentsWorkflowRunErrorObject =
+  | BetaManagedAgentsTimeoutWorkflowRunErrorObject
+  | BetaManagedAgentsProgramWorkflowRunErrorObject
+  | BetaManagedAgentsUnknownWorkflowRunErrorObject
+  | BetaManagedAgentsThreadLimitWorkflowRunErrorObject
+  | BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject;
 
 /**
  * A phase that a workflow run's plan declares.
@@ -2580,7 +2632,7 @@ export interface BetaManagedAgentsWorkflowRunPhaseStartedEvent {
  */
 export type BetaManagedAgentsWorkflowRunResult =
   | BetaManagedAgentsWorkflowRunResultCompleted
-  | BetaManagedAgentsWorkflowRunResultError
+  | BetaManagedAgentsWorkflowRunResultErrorObject
   | BetaManagedAgentsWorkflowRunResultStopped;
 
 /**
@@ -2594,11 +2646,11 @@ export interface BetaManagedAgentsWorkflowRunResultCompleted {
 /**
  * The run failed or reached its time limit.
  */
-export interface BetaManagedAgentsWorkflowRunResultError {
+export interface BetaManagedAgentsWorkflowRunResultErrorObject {
   /**
    * Why the run did not finish.
    */
-  error: BetaManagedAgentsWorkflowRunError;
+  error: BetaManagedAgentsWorkflowRunErrorObject;
 
   type: 'error';
 }
@@ -2688,6 +2740,120 @@ export interface BetaManagedAgentsWorkflowRunStatusRunningEvent {
    */
   workflow_run_id: string;
 }
+
+/**
+ * @deprecated BetaManagedAgentsUnknownError has been renamed to BetaManagedAgentsUnknownErrorObject
+ */
+export type BetaManagedAgentsUnknownError = BetaManagedAgentsUnknownErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsModelOverloadedError has been renamed to BetaManagedAgentsModelOverloadedErrorObject
+ */
+export type BetaManagedAgentsModelOverloadedError = BetaManagedAgentsModelOverloadedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsModelRateLimitedError has been renamed to BetaManagedAgentsModelRateLimitedErrorObject
+ */
+export type BetaManagedAgentsModelRateLimitedError = BetaManagedAgentsModelRateLimitedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsModelRequestFailedError has been renamed to BetaManagedAgentsModelRequestFailedErrorObject
+ */
+export type BetaManagedAgentsModelRequestFailedError = BetaManagedAgentsModelRequestFailedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMCPConnectionFailedError has been renamed to BetaManagedAgentsMCPConnectionFailedErrorObject
+ */
+export type BetaManagedAgentsMCPConnectionFailedError = BetaManagedAgentsMCPConnectionFailedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMCPAuthenticationFailedError has been renamed to BetaManagedAgentsMCPAuthenticationFailedErrorObject
+ */
+export type BetaManagedAgentsMCPAuthenticationFailedError =
+  BetaManagedAgentsMCPAuthenticationFailedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsBillingError has been renamed to BetaManagedAgentsBillingErrorObject
+ */
+export type BetaManagedAgentsBillingError = BetaManagedAgentsBillingErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsToolUseLimitReachedError has been renamed to BetaManagedAgentsToolUseLimitReachedErrorObject
+ */
+export type BetaManagedAgentsToolUseLimitReachedError = BetaManagedAgentsToolUseLimitReachedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsCompactionLimitReachedError has been renamed to BetaManagedAgentsCompactionLimitReachedErrorObject
+ */
+export type BetaManagedAgentsCompactionLimitReachedError = BetaManagedAgentsCompactionLimitReachedErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsCredentialHostUnreachableError has been renamed to BetaManagedAgentsCredentialHostUnreachableErrorObject
+ */
+export type BetaManagedAgentsCredentialHostUnreachableError =
+  BetaManagedAgentsCredentialHostUnreachableErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsRepositoryAuthenticationError has been renamed to BetaManagedAgentsRepositoryAuthenticationErrorObject
+ */
+export type BetaManagedAgentsRepositoryAuthenticationError =
+  BetaManagedAgentsRepositoryAuthenticationErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsRepositoryForbiddenError has been renamed to BetaManagedAgentsRepositoryForbiddenErrorObject
+ */
+export type BetaManagedAgentsRepositoryForbiddenError = BetaManagedAgentsRepositoryForbiddenErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsRepositoryNotFoundError has been renamed to BetaManagedAgentsRepositoryNotFoundErrorObject
+ */
+export type BetaManagedAgentsRepositoryNotFoundError = BetaManagedAgentsRepositoryNotFoundErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsRepositoryCheckoutError has been renamed to BetaManagedAgentsRepositoryCheckoutErrorObject
+ */
+export type BetaManagedAgentsRepositoryCheckoutError = BetaManagedAgentsRepositoryCheckoutErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsRepositoryCloneError has been renamed to BetaManagedAgentsRepositoryCloneErrorObject
+ */
+export type BetaManagedAgentsRepositoryCloneError = BetaManagedAgentsRepositoryCloneErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsWorkflowRunResultError has been renamed to BetaManagedAgentsWorkflowRunResultErrorObject
+ */
+export type BetaManagedAgentsWorkflowRunResultError = BetaManagedAgentsWorkflowRunResultErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsWorkflowRunError has been renamed to BetaManagedAgentsWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsWorkflowRunError = BetaManagedAgentsWorkflowRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsTimeoutWorkflowRunError has been renamed to BetaManagedAgentsTimeoutWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsTimeoutWorkflowRunError = BetaManagedAgentsTimeoutWorkflowRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsProgramWorkflowRunError has been renamed to BetaManagedAgentsProgramWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsProgramWorkflowRunError = BetaManagedAgentsProgramWorkflowRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsUnknownWorkflowRunError has been renamed to BetaManagedAgentsUnknownWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsUnknownWorkflowRunError = BetaManagedAgentsUnknownWorkflowRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsThreadLimitWorkflowRunError has been renamed to BetaManagedAgentsThreadLimitWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsThreadLimitWorkflowRunError = BetaManagedAgentsThreadLimitWorkflowRunErrorObject;
+
+/**
+ * @deprecated BetaManagedAgentsMaxWorkflowRunsWorkflowRunError has been renamed to BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject
+ */
+export type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError =
+  BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject;
 
 export interface EventListParams extends PageCursorParams {
   /**
@@ -2828,8 +2994,9 @@ export declare namespace Events {
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
-    type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
-    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
+    type BetaManagedAgentsBillingErrorObject as BetaManagedAgentsBillingErrorObject,
+    type BetaManagedAgentsCompactionLimitReachedErrorObject as BetaManagedAgentsCompactionLimitReachedErrorObject,
+    type BetaManagedAgentsCredentialHostUnreachableErrorObject as BetaManagedAgentsCredentialHostUnreachableErrorObject,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -2837,20 +3004,20 @@ export declare namespace Events {
     type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
     type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
-    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
-    type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
-    type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
-    type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
-    type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
-    type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject as BetaManagedAgentsMaxWorkflowRunsWorkflowRunErrorObject,
+    type BetaManagedAgentsMCPAuthenticationFailedErrorObject as BetaManagedAgentsMCPAuthenticationFailedErrorObject,
+    type BetaManagedAgentsMCPConnectionFailedErrorObject as BetaManagedAgentsMCPConnectionFailedErrorObject,
+    type BetaManagedAgentsModelOverloadedErrorObject as BetaManagedAgentsModelOverloadedErrorObject,
+    type BetaManagedAgentsModelRateLimitedErrorObject as BetaManagedAgentsModelRateLimitedErrorObject,
+    type BetaManagedAgentsModelRequestFailedErrorObject as BetaManagedAgentsModelRequestFailedErrorObject,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
-    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
+    type BetaManagedAgentsProgramWorkflowRunErrorObject as BetaManagedAgentsProgramWorkflowRunErrorObject,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
-    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
-    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
-    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
-    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
-    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
+    type BetaManagedAgentsRepositoryAuthenticationErrorObject as BetaManagedAgentsRepositoryAuthenticationErrorObject,
+    type BetaManagedAgentsRepositoryCheckoutErrorObject as BetaManagedAgentsRepositoryCheckoutErrorObject,
+    type BetaManagedAgentsRepositoryCloneErrorObject as BetaManagedAgentsRepositoryCloneErrorObject,
+    type BetaManagedAgentsRepositoryForbiddenErrorObject as BetaManagedAgentsRepositoryForbiddenErrorObject,
+    type BetaManagedAgentsRepositoryNotFoundErrorObject as BetaManagedAgentsRepositoryNotFoundErrorObject,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -2889,10 +3056,11 @@ export declare namespace Events {
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
-    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
-    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
-    type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
-    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
+    type BetaManagedAgentsThreadLimitWorkflowRunErrorObject as BetaManagedAgentsThreadLimitWorkflowRunErrorObject,
+    type BetaManagedAgentsTimeoutWorkflowRunErrorObject as BetaManagedAgentsTimeoutWorkflowRunErrorObject,
+    type BetaManagedAgentsToolUseLimitReachedErrorObject as BetaManagedAgentsToolUseLimitReachedErrorObject,
+    type BetaManagedAgentsUnknownErrorObject as BetaManagedAgentsUnknownErrorObject,
+    type BetaManagedAgentsUnknownWorkflowRunErrorObject as BetaManagedAgentsUnknownWorkflowRunErrorObject,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
@@ -2907,18 +3075,40 @@ export declare namespace Events {
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
     type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsWorkflowRunCreatedEvent as BetaManagedAgentsWorkflowRunCreatedEvent,
-    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
     type BetaManagedAgentsWorkflowRunErrorEvent as BetaManagedAgentsWorkflowRunErrorEvent,
+    type BetaManagedAgentsWorkflowRunErrorObject as BetaManagedAgentsWorkflowRunErrorObject,
     type BetaManagedAgentsWorkflowRunPhase as BetaManagedAgentsWorkflowRunPhase,
     type BetaManagedAgentsWorkflowRunPhaseEndedEvent as BetaManagedAgentsWorkflowRunPhaseEndedEvent,
     type BetaManagedAgentsWorkflowRunPhaseStartedEvent as BetaManagedAgentsWorkflowRunPhaseStartedEvent,
     type BetaManagedAgentsWorkflowRunResult as BetaManagedAgentsWorkflowRunResult,
     type BetaManagedAgentsWorkflowRunResultCompleted as BetaManagedAgentsWorkflowRunResultCompleted,
-    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunResultErrorObject as BetaManagedAgentsWorkflowRunResultErrorObject,
     type BetaManagedAgentsWorkflowRunResultStopped as BetaManagedAgentsWorkflowRunResultStopped,
     type BetaManagedAgentsWorkflowRunStatusEndedEvent as BetaManagedAgentsWorkflowRunStatusEndedEvent,
     type BetaManagedAgentsWorkflowRunStatusIdleEvent as BetaManagedAgentsWorkflowRunStatusIdleEvent,
     type BetaManagedAgentsWorkflowRunStatusRunningEvent as BetaManagedAgentsWorkflowRunStatusRunningEvent,
+    type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
+    type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
+    type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
+    type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
+    type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
+    type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
+    type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsToolUseLimitReachedError as BetaManagedAgentsToolUseLimitReachedError,
+    type BetaManagedAgentsCompactionLimitReachedError as BetaManagedAgentsCompactionLimitReachedError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
+    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
+    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
+    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
+    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,

@@ -1,5 +1,265 @@
 # Changelog
 
+## [1.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.9.0...sdk-v1.10.0) (2026-11-17)
+
+### Features
+
+* **api:** add beta support for the billing_policy request parameter
+* **api:** add contract_spend_limit_reached error code to messages
+* **api:** add error codes for linked billing refusals
+* **api:** add the user_profile_billing_not_authorized error code
+* **api:** add webhook events for external key failure and recovery
+
+
+### Bug Fixes
+
+* **tools:** keep the session tool runner's maxIdleMs countdown running when a session thread terminates
+
+  If the runner fails to read the session's event history after a reconnect, a termination that then arrives on the event stream still cancels the countdown, until the next idle or successful read.
+
+* **tools:** stop EnvironmentWorker from running tools for a terminated session
+
+  For a terminated session, the worker now force-stops the work item right after it retrieves the session, before it downloads skills or memory stores. It no longer throws `SessionMemoryError` for such a session. The API reports an archived session as `terminated`.
+
+* **tools:** stop the session tool runner from running the tool calls of a terminated session thread
+
+  The runner also stops waiting for a confirmation of these calls and no longer yields them, including a denied call (`confirmation: 'deny'`) and a call to a tool that it does not own. A call that the runner starts before it reads the session thread's `session.thread_status_terminated` event still runs to the end, and the runner yields it with `posted: false` when the API refuses the result.
+
+
+### Chores
+
+* **api:** rename error data models, deprecating the old names
+* **docs:** clarify which AWS KMS keys a workspace can use on Claude Platform on AWS
+* **docs:** clarify which credential work get, update and list accept
+* **docs:** clarify which uploads a plugin pin holds back
+* **docs:** note that a plugin scan's reason also covers errored scans
+
+  `content_scan.reason` on an errored scan now says why there is no verdict. It is not a security finding, so code that treats any `reason` as a concern should also check `status`.
+
+## [1.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.8.0...sdk-v1.9.0) (2026-11-16)
+
+### Features
+
+* **api:** add source and error codes to the RBAC Role read endpoints
+* **api:** add Update Bundle, which sets a Claude Tag Bundle's instructions, and return instructions on Bundle
+
+
+### Bug Fixes
+
+* **helpers:** keep $schema out of the transformed schema description
+* **streaming:** reject characters that aren't JSON in streamed tool input
+
+  The lenient parser for streamed tool input used to skip characters and words that aren't JSON, such as a comment, and to join numbers such as `12 3`, so it could return a value that the text doesn't contain. It now rejects such text, and a stream with such tool input fails with an error, as it already did for a bad escape or a missing comma. Valid and truncated JSON parse as before.
+
+* **tools:** bound the grep tool's search at 60s where ripgrep is missing, and keep its regex off the main thread
+* **tools:** compare directory names exactly when confining file paths on Windows
+* **tools:** fully resolve file tool paths that pass through a dangling symlink
+* **tools:** ignore ripgrep config files in the agent toolset grep tool
+* **tools:** leave symlinks that point outside /memories out of listings
+* **tools:** normalize file modes of extracted skill files
+
+  Extracted files now get `0644`, or `0755` if any execute bit is set, in `0700` directories, whatever the archive recorded. The system `tar` must accept `--no-same-owner` and `--no-same-permissions`.
+
+* **tools:** pass over a tar or unzip inside the directories the agent toolset's file tools can write
+
+  `setupSkills` takes `tar`, `unzip` and a helper that `tar` starts, such as `gzip`, only from the `PATH` entries outside `workdir` and `allowedRoots`, and passes over a link that leads inside them. A host whose only `tar` or `unzip` is inside those directories can no longer download skills until one is installed outside. Only when no `PATH` entry is outside them, as with a `workdir` of `/`, is all of `PATH` still searched. A `tar` or `unzip` that fails now rejects with an `AnthropicError`.
+
+* **tools:** pass over an rg inside the directories the agent toolset's file tools can write
+
+  `grep` passes over an `rg` that resolves to somewhere inside `workdir` or `allowedRoots`. It uses the next `rg` on `PATH`, or the built-in search when there is none. With a `workdir` that holds every `rg` on the host, such as `/`, every search is a built-in search. `rg`, and the `tar` and `unzip` that extract skills, no longer get the `ANTHROPIC_*` variables of the process, like the shell of `bash`.
+
+* **tools:** read memory files only through the path that was validated
+* **tools:** stop looking for rg, tar and unzip in the current directory
+* **tools:** stop the grep tool's built-in search at a NUL byte in a file
+
+  The built-in search of `grep` reads no further into a file once it meets a NUL byte, much as ripgrep does. A very large binary file with no line break used to end the process with an uncaught `RangeError`.
+
+
+### Chores
+
+* **api:** deprecate old beta header values
+
+  The API still accepts these values, but a later release removes them from the SDKs. Delete `prompt-caching-2024-07-31`, `pdfs-2024-09-25`, `token-counting-2024-11-01`, `token-efficient-tools-2025-02-19`, `extended-cache-ttl-2025-04-11`, `cache-diagnosis-2026-04-07` and `ce-user-management-2026-07-13` from your requests. `files-api-2025-04-14` and `skills-2025-10-02` select the beta response shapes, so follow the Files API and Skills migration guides before you delete them.
+
+  In C#, the `AnthropicBeta` enum's members have new numbers, so code compiled against an earlier SDK version sends a different beta value, with no error, until you rebuild it.
+
+* **api:** stop sending an old beta header on batch requests
+
+  `beta.messages.batches` no longer sends `message-batches-2024-09-24`, which the API doesn't need. If your client sets a default `anthropic-beta` header, these requests now send it, where in some SDKs the old value replaced it. The API still accepts the old value. If you set it yourself, delete it: a later release removes it from the SDKs.
+
+* **docs:** add an example value for the workspace name
+* **docs:** clarify when the auto permission policy denies a tool call
+* **docs:** clarify which workspaces an external key can be attached to
+* **docs:** recommend multiagent_20261001 over the coordinator type
+* **docs:** say when organization_id is required on plugin reads
+
+## [1.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.7.0...sdk-v1.8.0) (2026-11-10)
+
+### Features
+
+* **api:** add Claude Tag metrics to the analytics summaries and users reports
+* **api:** add reply_mode to Claude Tag Slack channel settings
+
+
+### Chores
+
+* **docs:** clarify display_name for RBAC Roles created by Anthropic
+* **docs:** clarify plugin delete and skill name conflict descriptions
+* **docs:** clarify when to omit user_profile_id on external keys
+* **docs:** note that Claude Tag settings accept self-hosted runner pools
+
+
+### Documentation
+
+* **examples:** show multiagent when creating a Managed Agents agent
+
+## [1.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.6.0...sdk-v1.7.0) (2026-11-09)
+
+### Features
+
+* **api:** accept user_profile.program_status_updated on organization webhook endpoints
+* **api:** add claude-fable-5-2 and claude-mythos-5-2
+* **api:** add parent organization filtering and grouping to the usage and cost reports
+* **api:** add the sandbox_egress_restricted error to Admin API write methods
+* **api:** add the user_profile.program_status_updated webhook event
+
+
+### Bug Fixes
+
+* **client:** include the body of a failed response in debug logs
+* **helpers:** keep const and enum in structured output schemas
+
+
+### Chores
+
+* **api:** remove some error detail types and update descriptions
+* **docs:** say when a work heartbeat does not compare its value
+* **internal:** add this repository's review rules
+
+
+### Documentation
+
+* **client:** list error code types in api.md
+* **client:** say where the default logger writes and how to log to stderr
+* **helpers:** import from zod/v4 in the examples, for Zod 3.25 users
+
+
+### Refactors
+
+* **client:** declare the name of every AnthropicError subclass the same way
+
+## [1.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.5.0...sdk-v1.6.0) (2026-11-05)
+
+### Features
+
+* **api:** add error code for ramp limit errors
+* **api:** add error codes for External Key validation failures
+* **api:** add support for signing organization members out everywhere
+
+
+### Bug Fixes
+
+* **client:** set the name of each error to its class name
+* **client:** set the name of WorkloadIdentityError
+
+
+### Chores
+
+* **docs:** describe the type and message of API errors
+* **internal:** generate the OpenTelemetry span attribute tables
+* **internal:** tell contributors when a runtime type check belongs
+
+
+### Documentation
+
+* add the rules the SDKs share to CLAUDE.md
+* **client:** describe the type, message, code and details of API errors
+* **client:** list each method's errors without their descriptions
+
+## [1.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.5.0) (2026-11-04)
+
+### Features
+
+* **api:** add error details types and new error type values
+* **api:** add ids filter to list workspaces
+* **client:** add error classes for HTTP statuses and API error codes, and apiMessage, errorCode and details on APIError
+
+
+### Bug Fixes
+
+* **api:** capitalize CMEK in error details type names
+* **api:** move some error details types to the resource they describe
+* **client:** reject path parameters like ";x", ".;x" and "..;x"
+* **tools:** keep the memory tool from renaming or deleting the /memories directory
+
+
+### Performance Improvements
+
+* **streaming:** decode server-sent events once per chunk
+
+
+### Chores
+
+* **api:** update example values for pattern-constrained string fields
+* **docs:** clarify plugin reach values
+* **docs:** clarify plugin version description and plugin reach
+* **docs:** clarify plugin version description length
+* **docs:** clarify some API field descriptions
+* **docs:** clarify three error descriptions
+* **docs:** clarify which blocks to send back around a fallback block
+* **docs:** correct Claude Tag direct message notes in usage reports
+* **docs:** reword Dream and RBAC role permission descriptions
+* **docs:** update the telemetry destination headers description
+* **docs:** use the Claude Platform name in analytics filter docs
+* **internal:** accept changelog entry files in the changelog check
+* **internal:** ignore changelog entry files
+* **internal:** simplify how error classes read the response body
+
+
+### Documentation
+
+* **api:** show each field's own description for `speed`
+* clean up escapes and code spans in doc comments
+* fix examples that leave out a required params argument
+
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-11-02)
+
+### Features
+
+* **api:** add GA methods for analytics, spend limits and RBAC
+* **api:** add named beta types for unified metrics and RBAC delete responses
+* **api:** add shared analytics order and increase request actor types
+* **api:** add tool_use_limit_reached_error and compaction_limit_reached_error session error types
+* **api:** add types for analytics group_by and spend limit period filters
+* **api:** add user_profile_id to External Keys and Workspaces
+
+
+### Bug Fixes
+
+* **api:** make spend_limit nullable in the spend limit increase request approve response
+* **api:** require always-sent analytics fields and drop the unused project product field
+
+
+### Chores
+
+* **ci:** install only the headless Chromium shell in the browser ecosystem tests
+* **ci:** remove unused build upload steps
+* **docs:** clarify the Slack channel id description
+* **docs:** clarify what disabling the Compliance API stops
+* **docs:** clarify what the capability_access_all role action grants
+* **docs:** link Dreams model fields to the supported models section
+* **docs:** update example user ID in Admin API examples
+* **internal:** add a section for each repository's own review rules
+* **internal:** plainer wording in worker comments
+* **internal:** type-check the published declarations of every subpackage
+
+### Documentation
+
+* add a description to the AnthropicBeta type
+* **examples:** keep the message threads example valid on Sonnet 5.5
+* **examples:** use current model IDs
+* **readme:** point to the docs site for documentation
+
 ## [1.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.3.0) (2026-10-23)
 
 ### Features

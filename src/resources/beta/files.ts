@@ -14,6 +14,11 @@ export class Files extends APIResource {
   /**
    * List Files
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
@@ -48,6 +53,11 @@ export class Files extends APIResource {
   /**
    * Delete File
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaDeletedFile = await client.beta.files.delete(
@@ -80,6 +90,13 @@ export class Files extends APIResource {
 
   /**
    * Download File
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {FileNotDownloadableError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {FileExpiredError}
    *
    * @example
    * ```ts
@@ -119,6 +136,11 @@ export class Files extends APIResource {
   /**
    * Get File Metadata
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   *
    * @example
    * ```ts
    * const betaFileMetadata =
@@ -150,6 +172,12 @@ export class Files extends APIResource {
 
   /**
    * Upload File
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {StorageQuotaExceededError}
    *
    * @example
    * ```ts

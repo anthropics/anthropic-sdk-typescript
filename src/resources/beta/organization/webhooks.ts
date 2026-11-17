@@ -31,8 +31,9 @@ export class Webhooks extends APIResource {
    *   await client.beta.organization.webhooks.create({
    *     enabled_events: [
    *       'user_profile.enforcement_action_opened',
+   *       'user_profile.enforcement_action_resolved',
    *     ],
-   *     url: 'x',
+   *     url: 'https://example.com/anthropic-webhooks',
    *   });
    * ```
    */
@@ -109,6 +110,7 @@ export class Webhooks extends APIResource {
    * const betaOrganizationWebhookEndpoint =
    *   await client.beta.organization.webhooks.update(
    *     'webhook_endpoint_id',
+   *     {},
    *   );
    * ```
    */
@@ -185,6 +187,8 @@ export class Webhooks extends APIResource {
    * `404`. Organization webhook endpoints are in beta and are not available to
    * organizations with HIPAA readiness enabled.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaDeletedOrganizationWebhookEndpoint =
@@ -223,6 +227,8 @@ export class Webhooks extends APIResource {
    * endpoints on for each organization; until yours is on, requests also return
    * `404`. Organization webhook endpoints are in beta and are not available to
    * organizations with HIPAA readiness enabled.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -307,7 +313,11 @@ export interface BetaNewOrganizationWebhookEndpoint {
    * The event types delivered to the endpoint.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'external_key.failed'
+    | 'external_key.recovered'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -368,7 +378,11 @@ export interface BetaOrganizationWebhookEndpoint {
    * The event types delivered to the endpoint.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'external_key.failed'
+    | 'external_key.recovered'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -413,7 +427,11 @@ export interface WebhookCreateParams {
    * Body param: The event types to deliver to the endpoint. Must list at least one.
    */
   enabled_events: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'external_key.failed'
+    | 'external_key.recovered'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**
@@ -457,7 +475,11 @@ export interface WebhookUpdateParams {
    * an empty list leaves it unchanged.
    */
   enabled_events?: Array<
-    'user_profile.enforcement_action_opened' | 'user_profile.enforcement_action_resolved'
+    | 'external_key.failed'
+    | 'external_key.recovered'
+    | 'user_profile.enforcement_action_opened'
+    | 'user_profile.enforcement_action_resolved'
+    | 'user_profile.program_status_updated'
   >;
 
   /**

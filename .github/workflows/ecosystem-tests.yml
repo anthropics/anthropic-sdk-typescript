@@ -91,7 +91,7 @@ jobs:
       - name: Install Chromium
         if: ${{ !matrix.node }}
         working-directory: ecosystem-tests/browser-vite
-        run: npm ci --ignore-scripts --no-audit --no-fund && npx playwright-core install --with-deps chromium
+        run: npm ci --ignore-scripts --no-audit --no-fund && npx playwright-core install chromium --only-shell
 
       - name: Bootstrap
         run: ./scripts/bootstrap

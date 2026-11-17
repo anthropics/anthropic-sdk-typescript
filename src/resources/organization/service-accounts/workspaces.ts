@@ -78,6 +78,8 @@ export class Workspaces extends APIResource {
    * with the value supplied here. Archived workspaces return 400. Archived service
    * accounts cannot be added and are rejected.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const serviceAccountWorkspaceMember =
@@ -127,6 +129,8 @@ export class Workspaces extends APIResource {
    * default-workspace membership returns 200 but is a no-op and the membership
    * persists; deleting an explicit default-workspace row reverts to the implicit
    * `workspace_user` membership. Archived workspaces return 400.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

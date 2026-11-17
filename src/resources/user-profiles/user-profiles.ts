@@ -7,11 +7,62 @@ import {
   UserProfileEnrollEndUserAction,
 } from './action-urls';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError, PermissionDeniedError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export class UserProfileNotFoundError extends BadRequestError {
+  declare readonly errorCode: 'user_profile_not_found';
+  declare readonly details: UserProfileNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileNotFoundError';
+}
+
+/**
+ * The request sets `billing_policy.bill_to` to `"user_profile"` but names no user
+ * profile. Name the profile to bill in the `anthropic-user-profile-id` header.
+ */
+export class UserProfileRequiredError extends BadRequestError {
+  declare readonly errorCode: 'user_profile_required';
+  declare readonly details: UserProfileRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileRequiredError';
+}
+
+/**
+ * The customer that the named user profile represents has not authorized the
+ * caller to bill them, or the authorization that the request's credential uses has
+ * ended. The response does not say which applies.
+ */
+export class UserProfileBillingNotAuthorizedError extends PermissionDeniedError {
+  declare readonly errorCode: 'user_profile_billing_not_authorized';
+  declare readonly details: UserProfileBillingNotAuthorizedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileBillingNotAuthorizedError';
+}
+
+/**
+ * The caller is not allowed to bill the user profile that the request names. The
+ * response gives no more specific error code and does not say what the reason is.
+ */
+export class UserProfileNotBillableError extends PermissionDeniedError {
+  declare readonly errorCode: 'user_profile_not_billable';
+  declare readonly details: UserProfileNotBillableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'UserProfileNotBillableError';
+}
 
 export class UserProfiles extends APIResource {
   actionURLs: ActionURLsAPI.ActionURLs = new ActionURLsAPI.ActionURLs(this._client);
@@ -21,7 +72,7 @@ export class UserProfiles extends APIResource {
    *
    * @example
    * ```ts
-   * const userProfile = await client.userProfiles.create();
+   * const userProfile = await client.userProfiles.create({});
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<UserProfile> {
@@ -76,6 +127,7 @@ export class UserProfiles extends APIResource {
    * ```ts
    * const userProfile = await client.userProfiles.update(
    *   'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+   *   {},
    * );
    * ```
    */
@@ -277,6 +329,15 @@ export interface UserProfile {
  *   resells Claude access to.
  */
 export type UserProfileAccessType = 'application' | 'passthrough';
+
+/**
+ * The customer that the named user profile represents has not authorized the
+ * caller to bill them, or the authorization that the request's credential uses has
+ * ended. The response does not say which applies.
+ */
+export interface UserProfileBillingNotAuthorizedErrorDetails {
+  error_code: 'user_profile_billing_not_authorized';
+}
 
 /**
  * A user profile's standing in the Cyber Verification Program, which relaxes cyber
@@ -637,6 +698,23 @@ export type UserProfileListOrder = 'asc' | 'desc';
 export type UserProfileListOrderBy = 'created_at' | 'name';
 
 /**
+ * The caller is not allowed to bill the user profile that the request names. The
+ * response gives no more specific error code and does not say what the reason is.
+ */
+export interface UserProfileNotBillableErrorDetails {
+  error_code: 'user_profile_not_billable';
+}
+
+/**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export interface UserProfileNotFoundErrorDetails {
+  error_code: 'user_profile_not_found';
+}
+
+/**
  * A user profile's status in a program. Each program's `status` field says what
  * the values mean there.
  *
@@ -673,6 +751,14 @@ export interface UserProfilePrograms {
    * the profile to read it.
    */
   efs: UserProfileEfsProgram | null;
+}
+
+/**
+ * The request sets `billing_policy.bill_to` to `"user_profile"` but names no user
+ * profile. Name the profile to bill in the `anthropic-user-profile-id` header.
+ */
+export interface UserProfileRequiredErrorDetails {
+  error_code: 'user_profile_required';
 }
 
 export interface UserProfileCreateParams {
@@ -821,13 +907,22 @@ export interface UserProfileDeleteParams {
   workspace_id?: string;
 }
 
+UserProfiles.UserProfileNotFoundError = UserProfileNotFoundError;
+UserProfiles.UserProfileRequiredError = UserProfileRequiredError;
+UserProfiles.UserProfileBillingNotAuthorizedError = UserProfileBillingNotAuthorizedError;
+UserProfiles.UserProfileNotBillableError = UserProfileNotBillableError;
 UserProfiles.ActionURLs = ActionURLs;
 
 export declare namespace UserProfiles {
   export {
+    UserProfileNotFoundError as UserProfileNotFoundError,
+    UserProfileRequiredError as UserProfileRequiredError,
+    UserProfileBillingNotAuthorizedError as UserProfileBillingNotAuthorizedError,
+    UserProfileNotBillableError as UserProfileNotBillableError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileBillingNotAuthorizedErrorDetails as UserProfileBillingNotAuthorizedErrorDetails,
     type UserProfileCyberProgram as UserProfileCyberProgram,
     type UserProfileCyberRequirements as UserProfileCyberRequirements,
     type UserProfileCyberTier as UserProfileCyberTier,
@@ -845,8 +940,11 @@ export declare namespace UserProfiles {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotBillableErrorDetails as UserProfileNotBillableErrorDetails,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
+    type UserProfileRequiredErrorDetails as UserProfileRequiredErrorDetails,
     type UserProfilesPageCursor as UserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,
     type UserProfileRetrieveParams as UserProfileRetrieveParams,

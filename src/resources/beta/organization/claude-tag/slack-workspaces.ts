@@ -18,6 +18,11 @@ export class SlackWorkspaces extends APIResource {
    * level that could not be read. Either way `sources` names the settings level each
    * value comes from.
    *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
+   *
    * @example
    * ```ts
    * const betaClaudeTagSlackWorkspace =
@@ -57,6 +62,14 @@ export class SlackWorkspaces extends APIResource {
    * Change the settings a Slack workspace stores. The update is partial: a setting
    * left out is unchanged, and a setting sent as null is cleared, so the workspace
    * inherits it. If any value is refused, no setting in the request is stored.
+   *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
+   * @throws {BetaEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError}
+   * @throws {BetaSlackChannelSetUpSettingsConflictError}
    *
    * @example
    * ```ts
@@ -102,6 +115,11 @@ export class SlackWorkspaces extends APIResource {
    * `settings` holds what applies in it, and the request fails with 503 rather than
    * resolve against a settings level that could not be read. A `page` cursor resumes
    * only a request with the same `include_inherited`.
+   *
+   * @throws {BetaAPIKeyScopeMissingError}
+   * @throws {BetaClaudeTagWritesNotEnabledError}
+   * @throws {BetaComplianceConfigurationRestrictedError}
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError}
    *
    * @example
    * ```ts

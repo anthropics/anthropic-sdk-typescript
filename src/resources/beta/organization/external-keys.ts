@@ -9,6 +9,9 @@ export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
    *
+   * @throws {UserProfileNotFoundError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaExternalKey =
@@ -62,11 +65,15 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaExternalKey =
    *   await client.beta.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */
@@ -120,6 +127,9 @@ export class ExternalKeys extends APIResource {
    *
    * The request is rejected if any workspace still references this config.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const externalKey =
@@ -147,6 +157,8 @@ export class ExternalKeys extends APIResource {
    * the roundtrip succeeded, or `failure` with an error message if it failed or
    * timed out.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -171,9 +183,8 @@ export type BetaExternalKeysPageCursor = PageCursor<BetaExternalKey>;
 
 export interface BetaAWSExternalKeyConfig {
   /**
-   * Full ARN of the AWS KMS key. On Claude Platform on AWS the key must be a
-   * single-Region key in your organization's own AWS account; cross-account keys,
-   * multi-Region keys, and alias ARNs are rejected.
+   * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
+   * and your organization's own key must be a single-Region key.
    */
   kms_arn: string;
 
@@ -185,9 +196,7 @@ export interface BetaAWSExternalKeyConfig {
   region?: string | null;
 
   /**
-   * @deprecated IAM role ARN. Deprecated — Anthropic reaches the KMS key through its
-   * own intermediate role (or, on Claude Platform on AWS, with credentials AWS
-   * issues for the Workspace); this field is ignored.
+   * @deprecated IAM role ARN. Deprecated; this field is ignored.
    */
   role_arn?: string | null;
 }
@@ -258,8 +267,8 @@ export interface BetaAzureExternalKeyConfigParam {
  */
 export interface BetaExternalKey {
   /**
-   * Identifier of the external key config. A tagged ID prefixed `ekey_`, or — for
-   * organizations on the Claude Platform on AWS — the AWS KMS key ARN.
+   * Identifier of the external key config: a tagged ID prefixed `ekey_`, or, on
+   * Claude Platform on AWS, an AWS KMS key's ARN.
    */
   id: string;
 
@@ -279,8 +288,7 @@ export interface BetaExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects the region that handles this key's encrypt/decrypt
-   * roundtrips.
+   * Data residency geo. Selects the region this key is used in.
    */
   geo: string;
 
@@ -292,6 +300,14 @@ export interface BetaExternalKey {
   type: 'external_key';
 
   updated_at: string;
+
+  /**
+   * ID of the user profile the key is bound to, or null if the key is not bound to
+   * one. A key bound to a user profile can only be attached to a Workspace that has
+   * the same user profile. A key that isn't bound can only be attached to a
+   * Workspace that has no user profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface BetaExternalKeyAttachedAttachment {
@@ -356,6 +372,17 @@ export interface ExternalKeyCreateParams {
    * Data residency geo. Only `us` is supported.
    */
   geo?: 'us';
+
+  /**
+   * ID of a user profile to bind the key to. A user profile represents one of your
+   * customers: bind a customer's key to that customer's user profile. A key bound to
+   * a user profile can only be attached to a Workspace that has the same user
+   * profile, and the binding cannot be changed later. Omit this field only for your
+   * organization's own key, never a customer's. A key created without a user profile
+   * ID can't be attached to a Workspace that has a user profile, and you can't add
+   * one to the key later.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface ExternalKeyUpdateParams {

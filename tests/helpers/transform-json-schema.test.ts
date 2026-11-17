@@ -110,6 +110,30 @@ describe('transformJsonSchema', () => {
 `);
   });
 
+  it('should drop $schema without adding it to description', () => {
+    const input = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    const diff = detailedDiff(input, result);
+    expect(diff).toMatchInlineSnapshot(`
+{
+  "added": {
+    "additionalProperties": false,
+  },
+  "deleted": {
+    "$schema": undefined,
+  },
+  "updated": {},
+}
+`);
+  });
+
   it('should preserve supported minItems values (0 and 1)', () => {
     const input = {
       type: 'array',
@@ -386,6 +410,102 @@ describe('transformJsonSchema', () => {
   "updated": {},
 }
 `);
+  });
+
+  it('should preserve const and enum', () => {
+    const input = {
+      anyOf: [
+        {
+          type: 'object',
+          properties: {
+            action: { type: 'string', const: 'set_title' },
+            title: { type: 'string' },
+          },
+          required: ['action', 'title'],
+        },
+        {
+          type: 'object',
+          properties: {
+            action: { type: 'string', enum: ['add_members', 'remove_members'] },
+            emails: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['action', 'emails'],
+        },
+      ],
+    };
+
+    const result = transformJSONSchema(input);
+    const diff = detailedDiff(input, result);
+    expect(diff).toMatchInlineSnapshot(`
+{
+  "added": {
+    "anyOf": {
+      "0": {
+        "additionalProperties": false,
+      },
+      "1": {
+        "additionalProperties": false,
+      },
+    },
+  },
+  "deleted": {
+    "anyOf": {
+      "0": {
+        "properties": {
+          "action": {
+            "type": undefined,
+          },
+        },
+      },
+      "1": {
+        "properties": {
+          "action": {
+            "type": undefined,
+          },
+        },
+      },
+    },
+  },
+  "updated": {},
+}
+`);
+  });
+
+  it.each([
+    ['a string const', { type: 'string', const: 'a' }, { const: 'a' }],
+    ['a null const', { type: 'null', const: null }, { const: null }],
+    ['an integer enum', { type: 'integer', enum: [1, 2] }, { enum: [1, 2] }],
+    ['a const with no type', { const: 'a' }, { const: 'a' }],
+    ['an enum with no type', { enum: ['a', 1, null] }, { enum: ['a', 1, null] }],
+    ['an enum with a list of types', { type: ['string', 'null'], enum: ['a', null] }, { enum: ['a', null] }],
+    [
+      'an enum beside a format',
+      { type: 'string', format: 'date', enum: ['2020-01-01'] },
+      { enum: ['2020-01-01'], description: '{format: "date"}' },
+    ],
+    [
+      'an enum beside anyOf',
+      { anyOf: [{ type: 'string' }, { type: 'number' }], enum: ['a', 1] },
+      { enum: ['a', 1], anyOf: [{ type: 'string' }, { type: 'number' }] },
+    ],
+  ])('should keep %s and drop the type', (_, input, expected) => {
+    expect(transformJSONSchema(input)).toEqual(expected);
+  });
+
+  it.each([
+    ['an array const', { type: 'array', const: [1] }, { type: 'array', description: '{const: [1]}' }],
+    [
+      'an enum with an object value',
+      { type: ['string', 'object'], enum: ['a', { x: 1 }] },
+      { type: ['string', 'object'], description: '{enum: ["a",{"x":1}]}' },
+    ],
+    ['an empty enum', { type: 'string', enum: [] }, { type: 'string', description: '{enum: []}' }],
+  ])('should move %s into the description', (_, input, expected) => {
+    expect(transformJSONSchema(input)).toEqual(expected);
+  });
+
+  it('should report a boolean subschema as a schema with no type', () => {
+    expect(() => transformJSONSchema({ type: 'array', items: true })).toThrow('must have a type defined');
   });
 
   it('should remove unsupported string formats', () => {

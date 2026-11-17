@@ -26,13 +26,146 @@ import {
   BetaClaudeTagBundlesPageCursor,
   BundleListParams,
   BundleRetrieveParams,
+  BundleUpdateParams,
   Bundles,
 } from './bundles/bundles';
+import { BadRequestError, ConflictError, NotFoundError, PermissionDeniedError } from '../../../../core/error';
+
+/**
+ * The Bundle has an attachment this API does not support editing, so its
+ * instructions can be changed only in claude.ai.
+ */
+export class BetaBundleAttachmentNotSupportedError extends BadRequestError {
+  declare readonly errorCode: 'bundle_attachment_not_supported';
+  declare readonly details: BetaBundleAttachmentNotSupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBundleAttachmentNotSupportedError';
+}
+
+/**
+ * This Bundle's instructions are managed in claude.ai and can't be changed through
+ * the API.
+ */
+export class BetaBundleOnCallError extends BadRequestError {
+  declare readonly errorCode: 'bundle_on_call';
+  declare readonly details: BetaBundleOnCallErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBundleOnCallError';
+}
+
+/**
+ * The request set the channel up, and `settings` was then refused. The channel
+ * stays set up with every setting unset.
+ */
+export class BetaSlackChannelSetUpSettingsRefusedError extends BadRequestError {
+  declare readonly errorCode: 'slack_channel_set_up_settings_refused';
+  declare readonly details: BetaSlackChannelSetUpSettingsRefusedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpSettingsRefusedError';
+}
+
+/**
+ * The API key lacks the scope the request needs: `read:claude_tag` for a read,
+ * `write:claude_tag` for a change.
+ */
+export class BetaAPIKeyScopeMissingError extends PermissionDeniedError {
+  declare readonly errorCode: 'api_key_scope_missing';
+  declare readonly details: BetaAPIKeyScopeMissingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaAPIKeyScopeMissingError';
+}
+
+/**
+ * Changes through the Claude Tag API are not enabled for the organization.
+ */
+export class BetaClaudeTagWritesNotEnabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'claude_tag_writes_not_enabled';
+  declare readonly details: BetaClaudeTagWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaClaudeTagWritesNotEnabledError';
+}
+
+/**
+ * The organization's compliance configuration does not let Claude Tag store
+ * anything new.
+ */
+export class BetaComplianceConfigurationRestrictedError extends PermissionDeniedError {
+  declare readonly errorCode: 'compliance_configuration_restricted';
+  declare readonly details: BetaComplianceConfigurationRestrictedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaComplianceConfigurationRestrictedError';
+}
+
+/**
+ * The credential is not a scoped API key that is bound at the organization level.
+ */
+export class BetaOrganizationLevelScopedAPIKeyRequiredError extends PermissionDeniedError {
+  declare readonly errorCode: 'organization_level_scoped_api_key_required';
+  declare readonly details: BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaOrganizationLevelScopedAPIKeyRequiredError';
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach,
+ * and the request had set the channel up by then. The channel stays set up with
+ * every setting unset.
+ */
+export class BetaSlackChannelSetUpEnvironmentNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'slack_channel_set_up_environment_not_found';
+  declare readonly details: BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpEnvironmentNotFoundError';
+}
+
+/**
+ * The request set the channel up, and something else then changed the channel or
+ * removed it. Nothing of `settings` was stored.
+ */
+export class BetaSlackChannelSetUpSettingsConflictError extends ConflictError {
+  declare readonly errorCode: 'slack_channel_set_up_settings_conflict';
+  declare readonly details: BetaSlackChannelSetUpSettingsConflictErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpSettingsConflictError';
+}
 
 export class ClaudeTag extends APIResource {
   slackChannels: SlackChannelsAPI.SlackChannels = new SlackChannelsAPI.SlackChannels(this._client);
   slackWorkspaces: SlackWorkspacesAPI.SlackWorkspaces = new SlackWorkspacesAPI.SlackWorkspaces(this._client);
   bundles: BundlesAPI.Bundles = new BundlesAPI.Bundles(this._client);
+}
+
+/**
+ * The API key lacks the scope the request needs: `read:claude_tag` for a read,
+ * `write:claude_tag` for a change.
+ */
+export interface BetaAPIKeyScopeMissingErrorDetails {
+  error_code: 'api_key_scope_missing';
+}
+
+/**
+ * The Bundle has an attachment this API does not support editing, so its
+ * instructions can be changed only in claude.ai.
+ */
+export interface BetaBundleAttachmentNotSupportedErrorDetails {
+  error_code: 'bundle_attachment_not_supported';
+}
+
+/**
+ * This Bundle's instructions are managed in claude.ai and can't be changed through
+ * the API.
+ */
+export interface BetaBundleOnCallErrorDetails {
+  error_code: 'bundle_on_call';
 }
 
 /**
@@ -71,6 +204,48 @@ export interface BetaClaudeTagGuestPolicyChannelOnly {
  */
 export interface BetaClaudeTagGuestPolicyRestrict {
   type: 'restrict';
+}
+
+/**
+ * How Claude takes part in a Slack channel. A channel alone stores one. More types
+ * can be added.
+ */
+export type BetaClaudeTagReplyMode =
+  | BetaClaudeTagReplyModeAutomatic
+  | BetaClaudeTagReplyModeMentionOnly
+  | BetaClaudeTagReplyModeAlwaysAwake
+  | BetaClaudeTagReplyModeThread;
+
+/**
+ * Like `automatic`, but Claude never pauses on its own. Available where it is
+ * enabled for the channel.
+ */
+export interface BetaClaudeTagReplyModeAlwaysAwake {
+  type: 'always_awake';
+}
+
+/**
+ * Claude reads along and joins in when it can help, and pauses on its own in quiet
+ * or busy channels.
+ */
+export interface BetaClaudeTagReplyModeAutomatic {
+  type: 'automatic';
+}
+
+/**
+ * Claude replies only when it is @-mentioned.
+ */
+export interface BetaClaudeTagReplyModeMentionOnly {
+  type: 'mention_only';
+}
+
+/**
+ * Every new top-level message in the channel gets its own reply from Claude, in a
+ * thread under it. Available where it is enabled for the channel, and only once
+ * Claude has been used in the channel.
+ */
+export interface BetaClaudeTagReplyModeThread {
+  type: 'thread';
 }
 
 /**
@@ -117,13 +292,20 @@ export interface BetaClaudeTagSettingSources {
    * The settings level `model` comes from.
    */
   model: BetaClaudeTagSettingSource | null;
+
+  /**
+   * The settings level `reply_mode` comes from: the channel when it stores one. With
+   * `include_inherited=true` and no stored mode it is `default`.
+   */
+  reply_mode: BetaClaudeTagSettingSource | null;
 }
 
 /**
  * Claude Tag settings. Without `include_inherited`, a setting that is null is not
  * set on the settings level and is inherited. With it, `enabled` and
- * `guest_policy` are never null, and `instructions`, `model` and `environment_id`
- * are null when no settings level sets them.
+ * `guest_policy` are never null, `instructions`, `model` and `environment_id` are
+ * null when no settings level sets them, and `reply_mode` is null unless the
+ * channel itself stores one.
  */
 export interface BetaClaudeTagSettings {
   /**
@@ -156,6 +338,15 @@ export interface BetaClaudeTagSettings {
    * product's default model.
    */
   model: string | null;
+
+  /**
+   * How Claude takes part in the channel. Only a channel stores one, and no settings
+   * level passes one on, so it is always null on a workspace. Null on a channel
+   * means the channel stores none yet: Claude then follows the reply mode chosen in
+   * Slack, if one was, else `automatic`. A stored reply mode can be changed but
+   * never cleared.
+   */
+  reply_mode: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -171,7 +362,9 @@ export interface BetaClaudeTagSettingsCreate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
@@ -191,6 +384,17 @@ export interface BetaClaudeTagSettingsCreate {
    * that the organization is entitled to for Claude Tag. Null clears it.
    */
   model?: string | null;
+
+  /**
+   * How Claude takes part in the channel: `automatic`, `mention_only`,
+   * `always_awake` or `thread`. Only a channel takes one: an update of a workspace
+   * that sends a value is refused, and one that sends null changes nothing. Null
+   * never clears it: sent to a channel that stores none it changes nothing, and sent
+   * to a channel that stores one it is refused, because a stored reply mode can be
+   * changed but never cleared; a caller that wants Claude's default behavior sends
+   * `automatic`.
+   */
+  reply_mode?: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -206,7 +410,9 @@ export interface BetaClaudeTagSettingsUpdate {
 
   /**
    * The environment Claude's sessions run in: the identifier of an active
-   * environment of the organization, starting with `env_`. Null clears it.
+   * environment of the organization, starting with `env_`, or of a self-hosted
+   * runner pool of the organization that every member may use, starting with
+   * `ccpool_`. Null clears it.
    */
   environment_id?: string | null;
 
@@ -226,6 +432,17 @@ export interface BetaClaudeTagSettingsUpdate {
    * that the organization is entitled to for Claude Tag. Null clears it.
    */
   model?: string | null;
+
+  /**
+   * How Claude takes part in the channel: `automatic`, `mention_only`,
+   * `always_awake` or `thread`. Only a channel takes one: an update of a workspace
+   * that sends a value is refused, and one that sends null changes nothing. Null
+   * never clears it: sent to a channel that stores none it changes nothing, and sent
+   * to a channel that stores one it is refused, because a stored reply mode can be
+   * changed but never cleared; a caller that wants Claude's default behavior sends
+   * `automatic`.
+   */
+  reply_mode?: BetaClaudeTagReplyMode | null;
 }
 
 /**
@@ -316,17 +533,111 @@ export interface BetaClaudeTagSlackWorkspaceSettingSource {
   type: 'slack_workspace';
 }
 
+/**
+ * Changes through the Claude Tag API are not enabled for the organization.
+ */
+export interface BetaClaudeTagWritesNotEnabledErrorDetails {
+  error_code: 'claude_tag_writes_not_enabled';
+}
+
+/**
+ * The organization's compliance configuration does not let Claude Tag store
+ * anything new.
+ */
+export interface BetaComplianceConfigurationRestrictedErrorDetails {
+  error_code: 'compliance_configuration_restricted';
+}
+
+/**
+ * The credential is not a scoped API key that is bound at the organization level.
+ */
+export interface BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails {
+  error_code: 'organization_level_scoped_api_key_required';
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach,
+ * and the request had set the channel up by then. The channel stays set up with
+ * every setting unset.
+ */
+export interface BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails {
+  error_code: 'slack_channel_set_up_environment_not_found';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+/**
+ * The request set the channel up, and something else then changed the channel or
+ * removed it. Nothing of `settings` was stored.
+ */
+export interface BetaSlackChannelSetUpSettingsConflictErrorDetails {
+  /**
+   * A stable code that names the cause.
+   */
+  error_code: 'slack_channel_set_up_settings_conflict';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+/**
+ * The request set the channel up, and `settings` was then refused. The channel
+ * stays set up with every setting unset.
+ */
+export interface BetaSlackChannelSetUpSettingsRefusedErrorDetails {
+  /**
+   * A stable code that names the cause.
+   */
+  error_code: 'slack_channel_set_up_settings_refused';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+ClaudeTag.BetaBundleAttachmentNotSupportedError = BetaBundleAttachmentNotSupportedError;
+ClaudeTag.BetaBundleOnCallError = BetaBundleOnCallError;
+ClaudeTag.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
+ClaudeTag.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
+ClaudeTag.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
+ClaudeTag.BetaComplianceConfigurationRestrictedError = BetaComplianceConfigurationRestrictedError;
+ClaudeTag.BetaOrganizationLevelScopedAPIKeyRequiredError = BetaOrganizationLevelScopedAPIKeyRequiredError;
+ClaudeTag.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSetUpEnvironmentNotFoundError;
+ClaudeTag.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 ClaudeTag.SlackChannels = SlackChannels;
 ClaudeTag.SlackWorkspaces = SlackWorkspaces;
 ClaudeTag.Bundles = Bundles;
 
 export declare namespace ClaudeTag {
   export {
+    BetaBundleAttachmentNotSupportedError as BetaBundleAttachmentNotSupportedError,
+    BetaBundleOnCallError as BetaBundleOnCallError,
+    BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
+    BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
+    BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
+    BetaComplianceConfigurationRestrictedError as BetaComplianceConfigurationRestrictedError,
+    BetaOrganizationLevelScopedAPIKeyRequiredError as BetaOrganizationLevelScopedAPIKeyRequiredError,
+    BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
+    BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
+    type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
+    type BetaBundleAttachmentNotSupportedErrorDetails as BetaBundleAttachmentNotSupportedErrorDetails,
+    type BetaBundleOnCallErrorDetails as BetaBundleOnCallErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
     type BetaClaudeTagGuestPolicyChannelOnly as BetaClaudeTagGuestPolicyChannelOnly,
     type BetaClaudeTagGuestPolicyRestrict as BetaClaudeTagGuestPolicyRestrict,
+    type BetaClaudeTagReplyMode as BetaClaudeTagReplyMode,
+    type BetaClaudeTagReplyModeAlwaysAwake as BetaClaudeTagReplyModeAlwaysAwake,
+    type BetaClaudeTagReplyModeAutomatic as BetaClaudeTagReplyModeAutomatic,
+    type BetaClaudeTagReplyModeMentionOnly as BetaClaudeTagReplyModeMentionOnly,
+    type BetaClaudeTagReplyModeThread as BetaClaudeTagReplyModeThread,
     type BetaClaudeTagSettingSource as BetaClaudeTagSettingSource,
     type BetaClaudeTagSettingSources as BetaClaudeTagSettingSources,
     type BetaClaudeTagSettings as BetaClaudeTagSettings,
@@ -339,6 +650,12 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
     type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
+    type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
+    type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
+    type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+    type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+    type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,
+    type BetaSlackChannelSetUpSettingsRefusedErrorDetails as BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   };
 
   export {
@@ -367,6 +684,7 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagBundle as BetaClaudeTagBundle,
     type BetaClaudeTagBundlesPageCursor as BetaClaudeTagBundlesPageCursor,
     type BundleRetrieveParams as BundleRetrieveParams,
+    type BundleUpdateParams as BundleUpdateParams,
     type BundleListParams as BundleListParams,
   };
 }

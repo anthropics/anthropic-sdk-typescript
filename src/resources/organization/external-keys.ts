@@ -1,13 +1,65 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError, ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
+  declare readonly errorCode: 'external_key_in_workspace_policy';
+  declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyInWorkspacePolicyError';
+}
+
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export class ExternalKeyValidationFailedError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_failed';
+  declare readonly details: ExternalKeyValidationFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationFailedError';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export class ExternalKeyValidationTimedOutError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_timed_out';
+  declare readonly details: ExternalKeyValidationTimedOutErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationTimedOutError';
+}
+
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export class ExternalKeyChangedError extends ConflictError {
+  declare readonly errorCode: 'external_key_changed';
+  declare readonly details: ExternalKeyChangedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyChangedError';
+}
+
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
+   *
+   * @throws {UserProfileNotFoundError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -60,11 +112,15 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const externalKey =
    *   await client.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */
@@ -116,6 +172,9 @@ export class ExternalKeys extends APIResource {
    *
    * The request is rejected if any workspace still references this config.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const externalKey =
@@ -142,6 +201,8 @@ export class ExternalKeys extends APIResource {
    * the roundtrip succeeded, or `failure` with an error message if it failed or
    * timed out.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -165,9 +226,8 @@ export type ExternalKeysPageCursor = PageCursor<ExternalKey>;
 
 export interface AWSExternalKeyConfig {
   /**
-   * Full ARN of the AWS KMS key. On Claude Platform on AWS the key must be a
-   * single-Region key in your organization's own AWS account; cross-account keys,
-   * multi-Region keys, and alias ARNs are rejected.
+   * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
+   * and your organization's own key must be a single-Region key.
    */
   kms_arn: string;
 
@@ -245,8 +305,8 @@ export interface AzureExternalKeyConfigParam {
  */
 export interface ExternalKey {
   /**
-   * Identifier of the external key config. A tagged ID prefixed `ekey_`, or — for
-   * organizations on the Claude Platform on AWS — the AWS KMS key ARN.
+   * Identifier of the external key config: a tagged ID prefixed `ekey_`, or, on
+   * Claude Platform on AWS, an AWS KMS key's ARN.
    */
   id: string;
 
@@ -266,8 +326,7 @@ export interface ExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects the region that handles this key's encrypt/decrypt
-   * roundtrips.
+   * Data residency geo. Selects the region this key is used in.
    */
   geo: string;
 
@@ -279,14 +338,54 @@ export interface ExternalKey {
   type: 'external_key';
 
   updated_at: string;
+
+  /**
+   * ID of the user profile the key is bound to, or null if the key is not bound to
+   * one. A key bound to a user profile can only be attached to a Workspace that has
+   * the same user profile. A key that isn't bound can only be attached to a
+   * Workspace that has no user profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface ExternalKeyAttachedAttachment {
   type: 'attached';
 }
 
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export interface ExternalKeyChangedErrorDetails {
+  error_code: 'external_key_changed';
+}
+
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export interface ExternalKeyInWorkspacePolicyErrorDetails {
+  error_code: 'external_key_in_workspace_policy';
+}
+
 export interface ExternalKeyUnattachedAttachment {
   type: 'unattached';
+}
+
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export interface ExternalKeyValidationFailedErrorDetails {
+  error_code: 'external_key_validation_failed';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export interface ExternalKeyValidationTimedOutErrorDetails {
+  error_code: 'external_key_validation_timed_out';
 }
 
 export interface GCPExternalKeyConfig {
@@ -343,6 +442,17 @@ export interface ExternalKeyCreateParams {
    * Data residency geo. Only `us` is supported.
    */
   geo?: 'us';
+
+  /**
+   * ID of a user profile to bind the key to. A user profile represents one of your
+   * customers: bind a customer's key to that customer's user profile. A key bound to
+   * a user profile can only be attached to a Workspace that has the same user
+   * profile, and the binding cannot be changed later. Omit this field only for your
+   * organization's own key, never a customer's. A key created without a user profile
+   * ID can't be attached to a Workspace that has a user profile, and you can't add
+   * one to the key later.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface ExternalKeyUpdateParams {
@@ -364,14 +474,27 @@ export interface ExternalKeyUpdateParams {
 
 export interface ExternalKeyListParams extends PageCursorParams {}
 
+ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+ExternalKeys.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
+ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
+
 export declare namespace ExternalKeys {
   export {
+    ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
+    ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
+    type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,

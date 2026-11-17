@@ -141,6 +141,7 @@ export const formatRequestDetails = (details: RequestDetails) => {
   if (details.options) {
     details.options = { ...details.options };
     delete details.options['headers']; // redundant + leaks internals
+    delete details.options['__span']; // internal + circular, which fails a logger that writes JSON
   }
   if (details.headers) {
     details.headers = Object.fromEntries(

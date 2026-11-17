@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.1.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.3...google-cloud-sdk-v1.1.4) (2026-11-10)
+
+### Bug Fixes
+
+* **google-cloud:** throw an `AnthropicError` for a project, location or workspace ID such as `;x`, `.;x` or `..;x`
+
+## [1.1.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.2...google-cloud-sdk-v1.1.3) (2026-11-04)
+
+### Bug Fixes
+
+* **google-cloud:** percent-encode the project, location and workspace ID in the derived base URL, and throw an `AnthropicError` for a value of `.` or `..`
+
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.1...google-cloud-sdk-v1.1.2) (2026-10-26)
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
+
+### Documentation
+
+* **examples:** use current model IDs
+
 ## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.0...google-cloud-sdk-v1.1.1) (2026-10-23)
 
 ### Bug Fixes

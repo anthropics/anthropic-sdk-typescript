@@ -90,6 +90,8 @@ export class IncreaseRequests extends APIResource {
    * request to `approved`. `period` defaults to the period the member was blocked
    * on. Anthropic emails the requester unless `suppress_notification` is set.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -132,11 +134,14 @@ export class IncreaseRequests extends APIResource {
    * Idempotent on `denied`; denying an already-`approved` request returns 400.
    * Anthropic emails the requester unless `suppress_notification` is set.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaSpendLimitIncreaseRequest =
    *   await client.beta.organization.spendLimits.increaseRequests.deny(
    *     'spend_limit_increase_request_id',
+   *     {},
    *   );
    * ```
    */
@@ -172,7 +177,10 @@ export type BetaSpendLimitIncreaseRequestsPageCursor = PageCursor<BetaSpendLimit
 export interface BetaSpendLimitIncreaseRequest {
   id: string;
 
-  actor: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+  /**
+   * Who submitted the increase request.
+   */
+  actor: BetaSpendLimitIncreaseRequestActor;
 
   created_at: string;
 
@@ -180,7 +188,10 @@ export interface BetaSpendLimitIncreaseRequest {
 
   resolved_at: string | null;
 
-  resolved_by: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor | null;
+  /**
+   * Who approved or denied the increase request.
+   */
+  resolved_by: BetaSpendLimitIncreaseRequestResolvedBy | null;
 
   /**
    * Per-member effective-limit report row (`GET /spend_limits/effective`).
@@ -192,12 +203,29 @@ export interface BetaSpendLimitIncreaseRequest {
   type: 'spend_limit_increase_request';
 }
 
+/**
+ * Who submitted the increase request.
+ */
+export type BetaSpendLimitIncreaseRequestActor =
+  | SpendLimitsAPI.BetaSpendLimitUserActor
+  | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+
+/**
+ * Who approved or denied the increase request.
+ */
+export type BetaSpendLimitIncreaseRequestResolvedBy =
+  | SpendLimitsAPI.BetaSpendLimitUserActor
+  | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+
 export type BetaSpendLimitIncreaseRequestStatus = 'approved' | 'denied' | 'pending';
 
 export interface IncreaseRequestApproveResponse {
   id: string;
 
-  actor: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor;
+  /**
+   * Who submitted the increase request.
+   */
+  actor: BetaSpendLimitIncreaseRequestActor;
 
   created_at: string;
 
@@ -205,12 +233,15 @@ export interface IncreaseRequestApproveResponse {
 
   resolved_at: string | null;
 
-  resolved_by: SpendLimitsAPI.BetaSpendLimitUserActor | SpendLimitsAPI.BetaSpendLimitScopedAPIKeyActor | null;
+  /**
+   * Who approved or denied the increase request.
+   */
+  resolved_by: BetaSpendLimitIncreaseRequestResolvedBy | null;
 
   /**
    * A configured spend limit: a cap on metered spend for one scope and period.
    */
-  spend_limit: SpendLimitsAPI.BetaSpendLimit;
+  spend_limit: SpendLimitsAPI.BetaSpendLimit | null;
 
   /**
    * Per-member effective-limit report row (`GET /spend_limits/effective`).
@@ -252,6 +283,8 @@ export interface IncreaseRequestDenyParams {
 export declare namespace IncreaseRequests {
   export {
     type BetaSpendLimitIncreaseRequest as BetaSpendLimitIncreaseRequest,
+    type BetaSpendLimitIncreaseRequestActor as BetaSpendLimitIncreaseRequestActor,
+    type BetaSpendLimitIncreaseRequestResolvedBy as BetaSpendLimitIncreaseRequestResolvedBy,
     type BetaSpendLimitIncreaseRequestStatus as BetaSpendLimitIncreaseRequestStatus,
     type IncreaseRequestApproveResponse as IncreaseRequestApproveResponse,
     type BetaSpendLimitIncreaseRequestsPageCursor as BetaSpendLimitIncreaseRequestsPageCursor,

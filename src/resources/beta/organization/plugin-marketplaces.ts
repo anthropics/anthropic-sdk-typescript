@@ -188,6 +188,8 @@ export class PluginMarketplaces extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {BetaUnsupportedCharsetError}
+   *
    * @example
    * ```ts
    * const betaPluginMarketplaceValidationReport =
@@ -370,7 +372,7 @@ export interface BetaPluginMarketplace {
   type: 'plugin_marketplace';
 }
 
-export interface BetaPluginMarketplaceValidationPluginError {
+export interface BetaPluginMarketplaceValidationPluginErrorObject {
   /**
    * Why the plugin would be skipped by a synchronization.
    */
@@ -438,7 +440,7 @@ export interface BetaPluginMarketplaceValidationReport {
    * One entry per plugin a synchronization would skip entirely, keyed by the
    * plugin's name in marketplace.json.
    */
-  plugin_errors: Array<BetaPluginMarketplaceValidationPluginError>;
+  plugin_errors: Array<BetaPluginMarketplaceValidationPluginErrorObject>;
 
   /**
    * One entry per plugin that would synchronize with some of its contents left out,
@@ -471,6 +473,11 @@ export interface BetaPluginMarketplaceValidationReport {
   valid: boolean;
 }
 
+/**
+ * @deprecated BetaPluginMarketplaceValidationPluginError has been renamed to BetaPluginMarketplaceValidationPluginErrorObject
+ */
+export type BetaPluginMarketplaceValidationPluginError = BetaPluginMarketplaceValidationPluginErrorObject;
+
 export interface PluginMarketplaceRetrieveParams {
   /**
    * Query param: For a `read:org_audit` or `read:compliance_org_data` key created
@@ -479,7 +486,8 @@ export interface PluginMarketplaceRetrieveParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -513,7 +521,8 @@ export interface PluginMarketplaceListParams extends PageCursorParams {
    * the organization's UUID or its `org_`-prefixed ID. A value that is neither
    * returns a 400; an organization that is not a child of the key's parent, or where
    * the Plugins API is not available, returns a 404. Any other key may pass only its
-   * own organization's ID here; another organization returns a 404.
+   * own organization's ID here; another organization returns a 404. A key with no
+   * organization of its own must always pass `organization_id`.
    */
   organization_id?: string | null;
 
@@ -587,10 +596,11 @@ export interface PluginMarketplaceValidateRepositoryParams {
 export declare namespace PluginMarketplaces {
   export {
     type BetaPluginMarketplace as BetaPluginMarketplace,
-    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
+    type BetaPluginMarketplaceValidationPluginErrorObject as BetaPluginMarketplaceValidationPluginErrorObject,
     type BetaPluginMarketplaceValidationPluginWarning as BetaPluginMarketplaceValidationPluginWarning,
     type BetaPluginMarketplaceValidationPluginWarnings as BetaPluginMarketplaceValidationPluginWarnings,
     type BetaPluginMarketplaceValidationReport as BetaPluginMarketplaceValidationReport,
+    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
     type BetaPluginMarketplacesPageCursor as BetaPluginMarketplacesPageCursor,
     type PluginMarketplaceRetrieveParams as PluginMarketplaceRetrieveParams,
     type PluginMarketplaceUpdateParams as PluginMarketplaceUpdateParams,

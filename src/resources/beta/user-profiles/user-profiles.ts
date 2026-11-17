@@ -23,7 +23,7 @@ export class UserProfiles extends APIResource {
    * @example
    * ```ts
    * const betaUserProfile =
-   *   await client.beta.userProfiles.create();
+   *   await client.beta.userProfiles.create({});
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
@@ -88,6 +88,7 @@ export class UserProfiles extends APIResource {
    * const betaUserProfile =
    *   await client.beta.userProfiles.update(
    *     'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+   *     {},
    *   );
    * ```
    */

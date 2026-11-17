@@ -57,6 +57,7 @@ export abstract class AbstractPage<Item> implements AsyncIterable<Item> {
             queryParams: span.queryParams,
             contentQueryParams: span.contentQueryParams,
             attributes: span.attributes,
+            request: nextOptions,
           },
         ),
     });

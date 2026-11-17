@@ -15,6 +15,15 @@ export class Invites extends APIResource {
    * no seat-tier parameter. When no seat is free the request fails with a 400 error
    * rather than purchasing a seat.
    *
+   * @throws {AlreadyMemberError}
+   * @throws {CannotInviteEmailsWithUnverifiedDomainsError}
+   * @throws {EmailDomainNotAllowedError}
+   * @throws {InviteAlreadyExistsError}
+   * @throws {OrgMemberLimitExceededError}
+   * @throws {RBACGroupGrantsOwnerAccessError}
+   * @throws {RBACGroupOwnerAccessUnconfirmedError}
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaOrganizationInvite =
@@ -86,6 +95,8 @@ export class Invites extends APIResource {
 
   /**
    * Delete a pending invite.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

@@ -9,7 +9,7 @@ import {
 } from '../internal/parse';
 import { endApiCallSpan, guardTracing, setCreatedIDAttribute, type ApiCallResult } from '../internal/tracing';
 import { isAsyncIterable } from '../internal/uploads';
-import { endAnthropicApiCallSpanWhenStreamEnds, setAnthropicSpanAttributes } from '../lib/internal/tracing';
+import { endAnthropicApiCallSpanWhenStreamEnds } from '../lib/internal/tracing';
 
 /**
  * A subclass of `Promise` providing additional helper methods
@@ -65,7 +65,6 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
       const span = props.options.__span?.span;
       if (span && !this.parsedPromise) {
         const result: ApiCallResult = { status: 'success', ...props, data: undefined };
-        setAnthropicSpanAttributes(this.#client, span, result);
         guardTracing(this.#client, () => endApiCallSpan(span, result));
       }
       return props.response;
@@ -121,13 +120,11 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
       data = await this.parseResponse(this.#client, props);
     } catch (error) {
       const result: ApiCallResult = { status: 'error', ...props, error };
-      setAnthropicSpanAttributes(this.#client, span, result);
       guardTracing(this.#client, () => endApiCallSpan(span, result));
       throw error;
     }
     const result: ApiCallResult = { status: 'success', ...props, data };
     guardTracing(this.#client, () => setCreatedIDAttribute(call, data));
-    setAnthropicSpanAttributes(this.#client, span, result);
     if (props.options.stream && isAsyncIterable(data)) {
       guardTracing(this.#client, () =>
         endAnthropicApiCallSpanWhenStreamEnds(this.#client, span, data, props),

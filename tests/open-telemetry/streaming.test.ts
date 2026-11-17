@@ -4,6 +4,12 @@ import v8 from 'node:v8';
 import vm from 'node:vm';
 import { trace, SpanStatusCode, type Span } from '@opentelemetry/api';
 import Anthropic from '@anthropic-ai/sdk';
+import { SPAN_ATTRIBUTES } from '@anthropic-ai/sdk/internal/tracing';
+import { INPUT_TOKEN_COUNTS } from '@anthropic-ai/sdk/lib/internal/tracing/response';
+import {
+  FINAL_FROM_MESSAGE_DELTA,
+  TOTALS_IN_MESSAGE_DELTA,
+} from '@anthropic-ai/sdk/lib/internal/tracing/streaming';
 import {
   tracer,
   makeClient,
@@ -41,7 +47,63 @@ const _recordedDeltaUsageKeys: Record<
 };
 void _recordedDeltaUsageKeys;
 
+// tripwires: the spans read these fields by name from what the API sent, so a field that the API
+// renames or removes must change in TOTALS_IN_MESSAGE_DELTA (src/lib/internal/tracing/streaming.ts) or
+// in setUsageSumAttributes (src/lib/internal/tracing/response.ts); enforced like the one above
+type Compaction = Extract<
+  NonNullable<Anthropic.Beta.BetaUsage['iterations']>[number],
+  { type: 'compaction' }
+>;
+const _namesReadFromUsage: [
+  ReadonlyArray<keyof typeof _recordedDeltaUsageKeys>,
+  ReadonlyArray<keyof Anthropic.Usage & keyof Anthropic.Beta.BetaUsage & keyof Compaction>,
+  keyof Compaction,
+  Compaction['type'],
+] = [TOTALS_IN_MESSAGE_DELTA, INPUT_TOKEN_COUNTS, 'output_tokens', 'compaction'];
+void _namesReadFromUsage;
+
+// The response paths of `anthropic.messages.create` that `message_start` already has the Message's
+// value for. FINAL_FROM_MESSAGE_DELTA has the others.
+const KNOWN_AT_MESSAGE_START = [
+  'id',
+  'model',
+  'usage.cache_creation_input_tokens',
+  'usage.cache_read_input_tokens',
+  'usage.cache_creation.ephemeral_5m_input_tokens',
+  'usage.cache_creation.ephemeral_1h_input_tokens',
+  'usage.service_tier',
+];
+
 describe('OpenTelemetry spans', () => {
+  test('tripwire: each response path of messages.create is final from message_start or from message_delta', () => {
+    const paths = (SPAN_ATTRIBUTES['anthropic.messages.create']?.response ?? []).map(([, path]) =>
+      path.join('.'),
+    );
+    const fromDelta = FINAL_FROM_MESSAGE_DELTA.map((path) => path.join('.'));
+    const under = (path: string, parent: string) => path === parent || path.startsWith(parent + '.');
+
+    expect(
+      paths.filter(
+        (path) => !KNOWN_AT_MESSAGE_START.includes(path) && !fromDelta.some((each) => under(path, each)),
+      ),
+      'SPAN_ATTRIBUTES (src/internal/tracing.ts) has a new response path: if message_start has only a ' +
+        'placeholder for it, add it to FINAL_FROM_MESSAGE_DELTA (src/lib/internal/tracing/streaming.ts), ' +
+        'and to KNOWN_AT_MESSAGE_START here if not',
+    ).toEqual([]);
+    expect(
+      [
+        ...KNOWN_AT_MESSAGE_START.filter((each) => !paths.includes(each)),
+        ...fromDelta.filter((each) => !paths.some((path) => under(path, each))),
+      ],
+      'SPAN_ATTRIBUTES (src/internal/tracing.ts) no longer has these response paths: remove them from ' +
+        'FINAL_FROM_MESSAGE_DELTA (src/lib/internal/tracing/streaming.ts) or KNOWN_AT_MESSAGE_START',
+    ).toEqual([]);
+    expect(
+      KNOWN_AT_MESSAGE_START.filter((each) => fromDelta.some((parent) => under(each, parent))),
+      'KNOWN_AT_MESSAGE_START and FINAL_FROM_MESSAGE_DELTA both have these response paths',
+    ).toEqual([]);
+  });
+
   test('a streaming API call ends its span when the stream has been read', async () => {
     const { client } = makeClient([sse(STREAM_EVENTS)]);
 
@@ -563,6 +625,65 @@ describe('OpenTelemetry spans', () => {
     30_000,
   );
 
+  const STREAMS = [
+    [
+      'messages.create',
+      (client: Anthropic, messages: Anthropic.MessageParam[]) =>
+        client.messages.create({ ...PARAMS, messages, stream: true }),
+    ],
+    [
+      'beta.messages.create',
+      (client: Anthropic, messages: Anthropic.MessageParam[]) =>
+        client.beta.messages.create({ ...PARAMS, messages, stream: true }),
+    ],
+  ] as const;
+
+  test.each(STREAMS)('the span of an open %s stream does not keep the request alive', async (_, request) => {
+    /** Of a class of its own, for `v8.queryObjects` to count. */
+    class Messages extends Array<Anthropic.MessageParam> {}
+    const { client } = makeClient([sse(STREAM_EVENTS)]);
+
+    // In its own frame, so that this one cannot keep the messages alive.
+    const stream = await (async () => request(client, Messages.from(PARAMS.messages)))();
+
+    expect([...openSpans.values()]).toEqual(['anthropic.messages.create']);
+    // It counts after a full garbage collection.
+    expect(v8.queryObjects(Messages)).toBe(0);
+    for await (const _ of stream);
+  });
+
+  describe.each(STREAMS)('the span of a %s stream', (_, request) => {
+    test.each(['content', 'usage', 'container', 'context_management', 'not_in_this_version'])(
+      'does not keep the %s of message_start alive',
+      async (name) => {
+        /** Of a class of its own, for `v8.queryObjects` to count. */
+        class Value {}
+        const [start, ...rest] = STREAM_EVENTS;
+        const message = {
+          ...start!.message,
+          container: { id: 'container_1', expires_at: '2030-01-01T00:00:00Z' },
+          context_management: { applied_edits: [] },
+          not_in_this_version: {},
+        };
+        const { client } = makeClient([sse([{ ...start, message }, ...rest])]);
+        const stream = await request(client, PARAMS.messages);
+        const events = stream[Symbol.asyncIterator]();
+
+        // In its own frame, so that this one cannot keep the event alive.
+        await (async () => {
+          const { value } = await events.next();
+          Object.setPrototypeOf(value.message[name], Value.prototype);
+        })();
+
+        expect([...openSpans.values()]).toEqual(['anthropic.messages.create']);
+        expect(v8.queryObjects(Value)).toBe(0);
+        while (!(await events.next()).done);
+        expect(v8.queryObjects(Value)).toBe(0);
+        expect(stream.controller.signal.aborted).toBe(false);
+      },
+    );
+  });
+
   test('an error event fails the span with its type', async () => {
     const { client } = makeClient([
       sse([STREAM_EVENTS[0]!, { type: 'error', error: { type: 'overloaded_error', message: 'busy' } }]),
@@ -636,6 +757,93 @@ describe('OpenTelemetry spans', () => {
         'gen_ai.usage.output_tokens': 20,
         'gen_ai.usage.reasoning.output_tokens': 7,
       });
+    });
+  });
+
+  test('a stream that ends right after message_start records none of its placeholders', async () => {
+    const start = STREAM_EVENTS[0]!;
+    const usage = { ...start.message!.usage, output_tokens_details: { thinking_tokens: 0 } };
+    const { client } = makeClient([sse([{ ...start, message: { ...start.message, usage } }])]);
+
+    for await (const _ of await client.messages.create({ ...PARAMS, stream: true })) {
+    }
+
+    const span = onlySpan('anthropic.messages.create');
+    expect(span.attributes).toMatchObject({
+      'gen_ai.response.id': 'msg_1',
+      'gen_ai.usage.cache_read.input_tokens': 3,
+      'anthropic.response.service_tier': 'standard',
+    });
+    expect(span.attributes).not.toHaveProperty('anthropic.message.stop_reason');
+    expect(span.attributes).not.toHaveProperty('gen_ai.usage.output_tokens');
+    expect(span.attributes).not.toHaveProperty('gen_ai.usage.reasoning.output_tokens');
+  });
+
+  describe.each([
+    [
+      'messages.create',
+      async (client: Anthropic) => {
+        for await (const _ of await client.messages.create({ ...PARAMS, stream: true }));
+      },
+    ],
+    [
+      'beta.messages.create',
+      async (client: Anthropic) => {
+        for await (const _ of await client.beta.messages.create({ ...PARAMS, stream: true }));
+      },
+    ],
+    ['messages.stream', (client: Anthropic) => client.messages.stream(PARAMS).done()],
+    ['beta.messages.stream', (client: Anthropic) => client.beta.messages.stream(PARAMS).done()],
+  ])('a %s stream', (_, read) => {
+    const [start, stop] = [STREAM_EVENTS[0]!, STREAM_EVENTS[5]!];
+
+    test('takes only the totals and the stop reason from message_delta', async () => {
+      const delta = {
+        type: 'message_delta',
+        delta: { stop_reason: 'max_tokens', stop_sequence: null, id: 'msg_other', model: 'model-other' },
+        usage: {
+          input_tokens: 100,
+          cache_creation_input_tokens: 30,
+          cache_read_input_tokens: 40,
+          output_tokens: 9,
+          cache_creation: { ephemeral_5m_input_tokens: 77, ephemeral_1h_input_tokens: 88 },
+          service_tier: 'priority',
+        },
+      };
+      const { client } = makeClient([sse([start, delta, stop])]);
+
+      await read(client);
+
+      expect(onlySpan('anthropic.messages.create').attributes).toMatchObject({
+        'gen_ai.response.id': 'msg_1',
+        'gen_ai.response.model': 'model-served',
+        'anthropic.response.service_tier': 'standard',
+        'anthropic.usage.cache_creation.ephemeral_5m_input_tokens': 2,
+        'anthropic.usage.cache_creation.ephemeral_1h_input_tokens': 0,
+        'anthropic.message.stop_reason': 'max_tokens',
+        'gen_ai.usage.input_tokens': 170,
+        'gen_ai.usage.cache_write.input_tokens': 30,
+        'gen_ai.usage.cache_read.input_tokens': 40,
+        'gen_ai.usage.output_tokens': 9,
+      });
+    });
+
+    test.each([
+      ['no output tokens', { output_tokens: null }],
+      ['a string for its usage', 'none'],
+      ['an array for its usage', []],
+      ['null for its usage', null],
+      ['no usage', undefined],
+    ])('does not report the placeholder of message_start when message_delta has %s', async (_, usage) => {
+      const delta = { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage };
+      const { client } = makeClient([sse([start, delta, stop])]);
+
+      // A stream helper fails on an event without usage, after the span has seen the event.
+      await read(client).catch(() => {});
+
+      const span = onlySpan('anthropic.messages.create');
+      expect(span.attributes['anthropic.message.stop_reason']).toBe('end_turn');
+      expect(span.attributes).not.toHaveProperty('gen_ai.usage.output_tokens');
     });
   });
 

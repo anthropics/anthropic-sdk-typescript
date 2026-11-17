@@ -8,7 +8,7 @@ async function main() {
   // to the API directly.
   const client = new Anthropic();
   const served = await client.beta.messages.create({
-    model: 'claude-fable-5',
+    model: 'claude-fable-5-1',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Some prompt that triggers a refusal' }],
     fallbacks: [{ model: 'claude-opus-4-8' }],
@@ -28,7 +28,7 @@ async function main() {
   // `fallback` content block marking the model boundary.
   const stream = fallbackClient.beta.messages.stream(
     {
-      model: 'claude-fable-5',
+      model: 'claude-fable-5-1',
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Some prompt that triggers a refusal' }],
     },
@@ -47,7 +47,7 @@ async function main() {
   // get the message back.
   const message = await fallbackClient.beta.messages.create(
     {
-      model: 'claude-fable-5',
+      model: 'claude-fable-5-1',
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Some prompt that triggers a refusal' }],
     },

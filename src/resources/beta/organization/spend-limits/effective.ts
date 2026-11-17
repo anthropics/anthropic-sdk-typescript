@@ -14,6 +14,8 @@ export class Effective extends APIResource {
    * member's periods never split across pages. Supported for Claude Enterprise
    * organizations only, not for Claude Console organizations.
    *
+   * @throws {OrganizationTypeNotSupportedError}
+   *
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
@@ -52,7 +54,7 @@ export interface EffectiveListParams extends PageCursorParams {
    * Restrict the report to these limit periods. Omit to return one row per period
    * each member resolves a spend limit for.
    */
-  period?: Array<'daily' | 'monthly' | 'weekly'> | null;
+  period?: Array<SpendLimitsAPI.BetaSpendLimitPeriod> | null;
 
   /**
    * Restrict the report to these members, by tagged user ID (`user_...`). At most

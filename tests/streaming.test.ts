@@ -1,7 +1,15 @@
 import assert from 'assert';
-import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/core/streaming';
+import { Stream, _iterSSEMessages, type ServerSentEvent } from '@anthropic-ai/sdk/core/streaming';
 import { APIError } from '@anthropic-ai/sdk/core/error';
 import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
+
+async function decode(body: AsyncGenerator<Buffer>): Promise<ServerSentEvent[]> {
+  const events = [];
+  for await (const event of _iterSSEMessages(new Response(ReadableStreamFrom(body)), new AbortController())) {
+    events.push(event);
+  }
+  return events;
+}
 
 describe('streaming decoding', () => {
   test('basic', async () => {
@@ -246,6 +254,86 @@ describe('streaming decoding', () => {
     event = await stream.next();
     expect(event.done).toBeTruthy();
   });
+
+  test.each<{ name: string; chunks: string[]; events: ServerSentEvent[] }>([
+    {
+      name: 'carriage return line ends',
+      chunks: ['event: a\rdata: 1\r\r'],
+      events: [{ event: 'a', data: '1', raw: ['event: a', 'data: 1'] }],
+    },
+    {
+      name: 'a line end split across chunks',
+      chunks: ['event: a\r', '\ndata: 1\r', '\n\r', '\n'],
+      events: [{ event: 'a', data: '1', raw: ['event: a', 'data: 1'] }],
+    },
+    {
+      name: 'mixed line ends',
+      chunks: ['event: a\r\ndata: 1\rdata: 2\n\r\nevent: b\ndata: 3\n\r'],
+      events: [
+        { event: 'a', data: '1\n2', raw: ['event: a', 'data: 1', 'data: 2'] },
+        { event: 'b', data: '3', raw: ['event: b', 'data: 3'] },
+      ],
+    },
+    {
+      name: 'a byte order mark at the start of a line',
+      chunks: ['\ufeffdata: 1\n\ufeffdata: 2\n\n'],
+      events: [{ event: null, data: '1\n2', raw: ['data: 1', 'data: 2'] }],
+    },
+    {
+      name: 'a field without a colon',
+      chunks: ['data\ndata: 1\n\n'],
+      events: [{ event: null, data: '\n1', raw: ['data', 'data: 1'] }],
+    },
+    {
+      name: 'a comment before an event',
+      chunks: [': keepalive\n\n', 'data: 1\n\n'],
+      events: [{ event: null, data: '1', raw: [': keepalive', 'data: 1'] }],
+    },
+    {
+      name: 'unknown fields',
+      chunks: ['id: 7\nretry: 10\ndata: 1\n\n'],
+      events: [{ event: null, data: '1', raw: ['id: 7', 'retry: 10', 'data: 1'] }],
+    },
+    {
+      name: 'only one leading space is dropped',
+      chunks: ['data:  1\ndata:2\n\n'],
+      events: [{ event: null, data: ' 1\n2', raw: ['data:  1', 'data:2'] }],
+    },
+    {
+      name: 'an event with no blank line after it',
+      chunks: ['data: 1\n\ndata: 2\n'],
+      events: [{ event: null, data: '1', raw: ['data: 1'] }],
+    },
+    {
+      name: 'a last line with no line end',
+      chunks: ['data: 1\n\ndata: 2'],
+      events: [{ event: null, data: '1', raw: ['data: 1'] }],
+    },
+  ])('$name', async ({ chunks, events }) => {
+    async function* body(): AsyncGenerator<Buffer> {
+      for (const chunk of chunks) yield Buffer.from(chunk);
+    }
+
+    expect(await decode(body())).toEqual(events);
+  });
+
+  test('one byte per chunk', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      const bytes = Buffer.from(
+        ': известни\r\nevent: a\rdata: {"content": "известни"}\ndata: 2\r\n\r\ndata: 3\n\n',
+      );
+      for (const byte of bytes) yield Buffer.from([byte]);
+    }
+
+    expect(await decode(body())).toEqual([
+      {
+        event: 'a',
+        data: '{"content": "известни"}\n2',
+        raw: [': известни', 'event: a', 'data: {"content": "известни"}', 'data: 2'],
+      },
+      { event: null, data: '3', raw: ['data: 3'] },
+    ]);
+  });
 });
 
 test('skips events without data', async () => {
@@ -296,7 +384,7 @@ test('error handling', async () => {
   ).rejects;
 
   await err.toMatchInlineSnapshot(
-    `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
+    `[APIError: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
 });

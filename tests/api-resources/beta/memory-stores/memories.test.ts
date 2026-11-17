@@ -10,7 +10,7 @@ describe('resource memories', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.memoryStores.memories.create('memory_store_id', {
       content: 'content',
-      path: 'xx',
+      path: '/P',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -24,9 +24,9 @@ describe('resource memories', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.memoryStores.memories.create('memory_store_id', {
       content: 'content',
-      path: 'xx',
+      path: '/P',
       view: 'basic',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -48,7 +48,7 @@ describe('resource memories', () => {
     const response = await client.beta.memoryStores.memories.retrieve('memory_id', {
       memory_store_id: 'memory_store_id',
       view: 'basic',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -71,9 +71,12 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       view: 'basic',
       content: 'content',
-      path: 'xx',
-      precondition: { type: 'content_sha256', content_sha256: 'content_sha256' },
-      betas: ['message-batches-2024-09-24'],
+      path: '/P',
+      precondition: {
+        type: 'content_sha256',
+        content_sha256: '210b9798eb53baa4e69d31c1071cf03d212b8ad0ca30cf321e0ea82e120aac26',
+      },
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
@@ -100,7 +103,7 @@ describe('resource memories', () => {
           page: 'page',
           path_prefix: 'path_prefix',
           view: 'basic',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
@@ -125,7 +128,7 @@ describe('resource memories', () => {
     const response = await client.beta.memoryStores.memories.delete('memory_id', {
       memory_store_id: 'memory_store_id',
       expected_content_sha256: 'expected_content_sha256',
-      betas: ['message-batches-2024-09-24'],
+      betas: ['computer-use-2024-10-22'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });

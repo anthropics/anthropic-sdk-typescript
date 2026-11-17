@@ -9,8 +9,8 @@ const client = new Anthropic({
 describe('resource webhooks', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.organization.webhooks.create({
-      enabled_events: ['user_profile.enforcement_action_opened'],
-      url: 'x',
+      enabled_events: ['user_profile.enforcement_action_opened', 'user_profile.enforcement_action_resolved'],
+      url: 'https://example.com/anthropic-webhooks',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -23,11 +23,11 @@ describe('resource webhooks', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.organization.webhooks.create({
-      enabled_events: ['user_profile.enforcement_action_opened'],
-      url: 'x',
+      enabled_events: ['user_profile.enforcement_action_opened', 'user_profile.enforcement_action_resolved'],
+      url: 'https://example.com/anthropic-webhooks',
       description: 'description',
-      name: 'name',
-      betas: ['message-batches-2024-09-24'],
+      name: 'Enforcement actions',
+      betas: ['computer-use-2024-10-22'],
     });
   });
 
@@ -47,7 +47,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.retrieve(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -84,7 +84,7 @@ describe('resource webhooks', () => {
           before_id: 'before_id',
           limit: 0,
           order: 'asc',
-          betas: ['message-batches-2024-09-24'],
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -107,7 +107,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.delete(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -129,7 +129,7 @@ describe('resource webhooks', () => {
     await expect(
       client.beta.organization.webhooks.regenerateSigningSecret(
         'webhook_endpoint_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['computer-use-2024-10-22'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

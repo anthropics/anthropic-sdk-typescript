@@ -33,11 +33,12 @@ export type {
 import { stringifyQuery } from './internal/utils/query';
 import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
+import { ERROR_CODE_CLASSES } from './core/error-classes';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
-import { setAnthropicSpanAttributes, takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
+import { takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -73,12 +74,18 @@ import {
   DeletedFile,
   FileDeleteParams,
   FileDownloadParams,
+  FileExpiredError,
+  FileExpiredErrorDetails,
   FileListParams,
   FileMetadata,
   FileMetadataPageCursor,
+  FileNotDownloadableError,
+  FileNotDownloadableErrorDetails,
   FileRetrieveMetadataParams,
   FileUploadParams,
   Files,
+  StorageQuotaExceededError,
+  StorageQuotaExceededErrorDetails,
 } from './resources/files';
 import {
   CapabilitySupport,
@@ -96,24 +103,60 @@ import {
   ThinkingTypes,
 } from './resources/models';
 import {
+  CMEKContextUnavailableError,
+  CMEKKeyDisabledError,
+  CMEKKeyNetworkBlockedError,
+  CMEKKeyUnreachableError,
+  ClaudeCodeKeyCreatorNotMemberError,
+  ClaudeCodeVersionTooOldError,
+  ContractSpendLimitReachedError,
+  EnforcedSpendLimitReachedError,
+  LinkedOrganizationBillingUnavailableError,
+  LinkedOrganizationSpendLimitReachedError,
+  OrganizationOnHoldError,
+  OrganizationTypeNotSupportedError,
+  ParentOrganizationRequiredError,
+  RampLimitExceededError,
+  RequestBodyEncodingInvalidError,
+  RequestBodyEncodingUnsupportedError,
+  RequestBodyTooLargeAfterDecodingError,
+  SandboxEgressRestrictedError,
+} from './resources/shared';
+import {
   AnthropicBeta,
   Beta,
   BetaAPIError,
+  BetaAPIErrorObject,
   BetaAuthenticationError,
+  BetaAuthenticationErrorObject,
   BetaBillingError,
+  BetaBillingErrorObject,
   BetaCurrency,
   BetaError,
+  BetaErrorObject,
   BetaErrorResponse,
   BetaGatewayTimeoutError,
+  BetaGatewayTimeoutErrorObject,
   BetaInvalidRequestError,
+  BetaInvalidRequestErrorObject,
   BetaMonetaryAmount,
   BetaNotFoundError,
+  BetaNotFoundErrorObject,
+  BetaOrganizationNotEnrolledInBetaError,
+  BetaOrganizationNotEnrolledInBetaErrorDetails,
   BetaOverloadedError,
+  BetaOverloadedErrorObject,
   BetaPermissionError,
+  BetaPermissionErrorObject,
   BetaRateLimitError,
+  BetaRateLimitErrorObject,
+  BetaUnsupportedCharsetError,
+  BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
 import {
   AssistantMessageParam,
+  AvailableToolsLimitExceededError,
+  AvailableToolsLimitExceededErrorDetails,
   Base64ImageSource,
   Base64PDFSource,
   BashCodeExecutionOutputBlock,
@@ -124,6 +167,7 @@ import {
   BashCodeExecutionToolResultBlockParam,
   BashCodeExecutionToolResultError,
   BashCodeExecutionToolResultErrorCode,
+  BashCodeExecutionToolResultErrorObject,
   BashCodeExecutionToolResultErrorParam,
   BrowserClickTarget,
   BrowserCloseTabConfig,
@@ -273,7 +317,26 @@ import {
   CodeExecutionToolResultBlockParamContent,
   CodeExecutionToolResultError,
   CodeExecutionToolResultErrorCode,
+  CodeExecutionToolResultErrorObject,
   CodeExecutionToolResultErrorParam,
+  CompactionBlockAmbiguousError,
+  CompactionBlockAmbiguousErrorDetails,
+  CompactionBlockMisplacedError,
+  CompactionBlockMisplacedErrorDetails,
+  CompactionContentMismatchError,
+  CompactionContentMismatchErrorDetails,
+  CompactionIncompleteTurnError,
+  CompactionIncompleteTurnErrorDetails,
+  CompactionNothingToSummarizeError,
+  CompactionNothingToSummarizeErrorDetails,
+  CompactionSignatureInvalidError,
+  CompactionSignatureInvalidErrorDetails,
+  CompactionTooManyToolReferencesError,
+  CompactionTooManyToolReferencesErrorDetails,
+  CompactionToolChangesMismatchError,
+  CompactionToolChangesMismatchErrorDetails,
+  CompactionUnavailableError,
+  CompactionUnavailableErrorDetails,
   ComputerCursorPositionConfig,
   ComputerCursorPositionInput,
   ComputerCursorPositionToolUseBlock,
@@ -464,6 +527,7 @@ import {
   TextEditorCodeExecutionToolResultBlockParam,
   TextEditorCodeExecutionToolResultError,
   TextEditorCodeExecutionToolResultErrorCode,
+  TextEditorCodeExecutionToolResultErrorObject,
   TextEditorCodeExecutionToolResultErrorParam,
   TextEditorCodeExecutionViewResultBlock,
   TextEditorCodeExecutionViewResultBlockParam,
@@ -475,6 +539,17 @@ import {
   ThinkingConfigEnabled,
   ThinkingConfigParam,
   ThinkingDelta,
+  ThreadAlreadyContinuedError,
+  ThreadAlreadyContinuedErrorDetails,
+  ThreadContinueInFlightError,
+  ThreadContinueInFlightErrorDetails,
+  ThreadFingerprintMismatchError,
+  ThreadFingerprintMismatchErrorDetails,
+  ThreadNotFoundError,
+  ThreadNotFoundErrorDetails,
+  ThreadUnsupportedFeatureName,
+  ThreadUnsupportedRequestError,
+  ThreadUnsupportedRequestErrorDetails,
   Tool,
   ToolBash20250124,
   ToolChoice,
@@ -482,8 +557,12 @@ import {
   ToolChoiceAuto,
   ToolChoiceNone,
   ToolChoiceTool,
+  ToolNameConflictError,
+  ToolNameConflictErrorDetails,
   ToolReferenceBlock,
   ToolReferenceBlockParam,
+  ToolReferenceUnresolvedError,
+  ToolReferenceUnresolvedErrorDetails,
   ToolResultBlockParam,
   ToolSearchToolBm25_20251119,
   ToolSearchToolRegex20251119,
@@ -491,6 +570,7 @@ import {
   ToolSearchToolResultBlockParam,
   ToolSearchToolResultError,
   ToolSearchToolResultErrorCode,
+  ToolSearchToolResultErrorObject,
   ToolSearchToolResultErrorParam,
   ToolSearchToolSearchResultBlock,
   ToolSearchToolSearchResultBlockParam,
@@ -530,20 +610,34 @@ import {
   WebSearchTool20260209,
   WebSearchTool20260318,
   WebSearchToolRequestError,
+  WebSearchToolRequestErrorObject,
   WebSearchToolResultBlock,
   WebSearchToolResultBlockContent,
   WebSearchToolResultBlockParam,
   WebSearchToolResultBlockParamContent,
   WebSearchToolResultError,
   WebSearchToolResultErrorCode,
+  WebSearchToolResultErrorObject,
 } from './resources/messages/messages';
-import { Organization, OrganizationInfo, OrganizationRole } from './resources/organization/organization';
+import {
+  ConcurrentMembershipChangeError,
+  ConcurrentMembershipChangeErrorDetails,
+  OrgMemberLimitExceededError,
+  OrgMemberLimitExceededErrorDetails,
+  Organization,
+  OrganizationInfo,
+  OrganizationRole,
+  RBACRoleNotFoundError,
+  RBACRoleNotFoundErrorDetails,
+} from './resources/organization/organization';
 import {
   DeletedSkill,
   Skill,
   SkillCreateParams,
   SkillDeleteParams,
   SkillListParams,
+  SkillReadBlockedUndecryptableError,
+  SkillReadBlockedUndecryptableErrorDetails,
   SkillRetrieveParams,
   SkillSource,
   Skills,
@@ -553,6 +647,8 @@ import {
   DeletedUserProfile,
   UserProfile,
   UserProfileAccessType,
+  UserProfileBillingNotAuthorizedError,
+  UserProfileBillingNotAuthorizedErrorDetails,
   UserProfileCreateParams,
   UserProfileCyberProgram,
   UserProfileCyberRequirements,
@@ -573,8 +669,14 @@ import {
   UserProfileListOrder,
   UserProfileListOrderBy,
   UserProfileListParams,
+  UserProfileNotBillableError,
+  UserProfileNotBillableErrorDetails,
+  UserProfileNotFoundError,
+  UserProfileNotFoundErrorDetails,
   UserProfileProgramStatus,
   UserProfilePrograms,
+  UserProfileRequiredError,
+  UserProfileRequiredErrorDetails,
   UserProfileRetrieveParams,
   UserProfileUpdateParams,
   UserProfiles,
@@ -810,7 +912,8 @@ export interface ClientOptions {
   /**
    * Set the logger.
    *
-   * Defaults to globalThis.console.
+   * Defaults to globalThis.console, which writes 'debug' and 'info' lines to stdout in Node.js.
+   * Pass `new console.Console(process.stderr)` to send every line to stderr.
    */
   logger?: Logger | undefined;
 }
@@ -1332,6 +1435,14 @@ export class BaseAnthropic {
     message: string | undefined,
     headers: Headers,
   ): Errors.APIError {
+    const body = (error ?? {}) as any;
+    const errorCode = body.error?.details?.error_code;
+    const errorClass =
+      typeof errorCode === 'string' ? ERROR_CODE_CLASSES.get(`${status} ${errorCode}`) : undefined;
+    if (errorClass) {
+      return new errorClass(status, error, message, headers);
+    }
+
     return Errors.APIError.generate(status, error, message, headers);
   }
 
@@ -1510,7 +1621,6 @@ export class BaseAnthropic {
       );
     } catch (error) {
       const result: ApiCallResult = { status: 'error', options, error };
-      setAnthropicSpanAttributes(this, span, result);
       guardTracing(this, () => endApiCallSpan(span, result));
       throw error;
     }
@@ -1676,7 +1786,7 @@ export class BaseAnthropic {
         url: response.url,
         status: response.status,
         headers: response.headers,
-        message: errMessage,
+        body: errJSON ?? errText,
         durationMs: Date.now() - startTime,
       });
 
@@ -2103,10 +2213,20 @@ export class BaseAnthropic {
   static ConflictError = Errors.ConflictError;
   static RateLimitError = Errors.RateLimitError;
   static BadRequestError = Errors.BadRequestError;
+  static OverloadedError = Errors.OverloadedError;
   static AuthenticationError = Errors.AuthenticationError;
+  static RequestTimeoutError = Errors.RequestTimeoutError;
   static InternalServerError = Errors.InternalServerError;
+  static NotImplementedError = Errors.NotImplementedError;
+  static GatewayTimeoutError = Errors.GatewayTimeoutError;
+  static PaymentRequiredError = Errors.PaymentRequiredError;
+  static ContentTooLargeError = Errors.ContentTooLargeError;
   static PermissionDeniedError = Errors.PermissionDeniedError;
+  static PreconditionFailedError = Errors.PreconditionFailedError;
+  static ServiceUnavailableError = Errors.ServiceUnavailableError;
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
+  static ClientClosedRequestError = Errors.ClientClosedRequestError;
+  static RequestHeaderFieldsTooLargeError = Errors.RequestHeaderFieldsTooLargeError;
 
   static toFile = Uploads.toFile;
 }
@@ -2128,12 +2248,60 @@ export class Anthropic extends BaseAnthropic {
 }
 
 Anthropic.Messages = Messages;
+Anthropic.AvailableToolsLimitExceededError = AvailableToolsLimitExceededError;
+Anthropic.CompactionBlockAmbiguousError = CompactionBlockAmbiguousError;
+Anthropic.CompactionBlockMisplacedError = CompactionBlockMisplacedError;
+Anthropic.CompactionContentMismatchError = CompactionContentMismatchError;
+Anthropic.CompactionIncompleteTurnError = CompactionIncompleteTurnError;
+Anthropic.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
+Anthropic.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
+Anthropic.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
+Anthropic.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Anthropic.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
+Anthropic.ThreadContinueInFlightError = ThreadContinueInFlightError;
+Anthropic.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
+Anthropic.ThreadUnsupportedRequestError = ThreadUnsupportedRequestError;
+Anthropic.ToolNameConflictError = ToolNameConflictError;
+Anthropic.ToolReferenceUnresolvedError = ToolReferenceUnresolvedError;
+Anthropic.ThreadNotFoundError = ThreadNotFoundError;
+Anthropic.CompactionUnavailableError = CompactionUnavailableError;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
+Anthropic.FileNotDownloadableError = FileNotDownloadableError;
+Anthropic.StorageQuotaExceededError = StorageQuotaExceededError;
+Anthropic.FileExpiredError = FileExpiredError;
 Anthropic.Skills = Skills;
+Anthropic.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
 Anthropic.UserProfiles = UserProfiles;
+Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
+Anthropic.UserProfileRequiredError = UserProfileRequiredError;
+Anthropic.UserProfileBillingNotAuthorizedError = UserProfileBillingNotAuthorizedError;
+Anthropic.UserProfileNotBillableError = UserProfileNotBillableError;
 Anthropic.Organization = Organization;
+Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
+Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
+Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
+Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
+Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
+Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
+Anthropic.CMEKKeyDisabledError = CMEKKeyDisabledError;
+Anthropic.CMEKKeyNetworkBlockedError = CMEKKeyNetworkBlockedError;
+Anthropic.OrganizationOnHoldError = OrganizationOnHoldError;
+Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
+Anthropic.ParentOrganizationRequiredError = ParentOrganizationRequiredError;
+Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
+Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.LinkedOrganizationBillingUnavailableError = LinkedOrganizationBillingUnavailableError;
+Anthropic.LinkedOrganizationSpendLimitReachedError = LinkedOrganizationSpendLimitReachedError;
+Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
+Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
+Anthropic.ContractSpendLimitReachedError = ContractSpendLimitReachedError;
+Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
+Anthropic.RampLimitExceededError = RampLimitExceededError;
+Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
+Anthropic.CMEKKeyUnreachableError = CMEKKeyUnreachableError;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
@@ -2169,7 +2337,25 @@ export declare namespace Anthropic {
 
   export {
     Messages as Messages,
+    AvailableToolsLimitExceededError as AvailableToolsLimitExceededError,
+    CompactionBlockAmbiguousError as CompactionBlockAmbiguousError,
+    CompactionBlockMisplacedError as CompactionBlockMisplacedError,
+    CompactionContentMismatchError as CompactionContentMismatchError,
+    CompactionIncompleteTurnError as CompactionIncompleteTurnError,
+    CompactionNothingToSummarizeError as CompactionNothingToSummarizeError,
+    CompactionSignatureInvalidError as CompactionSignatureInvalidError,
+    CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
+    CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
+    ThreadContinueInFlightError as ThreadContinueInFlightError,
+    ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
+    ThreadUnsupportedRequestError as ThreadUnsupportedRequestError,
+    ToolNameConflictError as ToolNameConflictError,
+    ToolReferenceUnresolvedError as ToolReferenceUnresolvedError,
+    ThreadNotFoundError as ThreadNotFoundError,
+    CompactionUnavailableError as CompactionUnavailableError,
     type AssistantMessageParam as AssistantMessageParam,
+    type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -2178,8 +2364,8 @@ export declare namespace Anthropic {
     type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
     type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
     type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
-    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
     type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
+    type BashCodeExecutionToolResultErrorObject as BashCodeExecutionToolResultErrorObject,
     type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
     type BrowserClickTarget as BrowserClickTarget,
     type BrowserCloseTabConfig as BrowserCloseTabConfig,
@@ -2327,9 +2513,18 @@ export declare namespace Anthropic {
     type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
     type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
     type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
-    type CodeExecutionToolResultError as CodeExecutionToolResultError,
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
+    type CodeExecutionToolResultErrorObject as CodeExecutionToolResultErrorObject,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type CompactionBlockAmbiguousErrorDetails as CompactionBlockAmbiguousErrorDetails,
+    type CompactionBlockMisplacedErrorDetails as CompactionBlockMisplacedErrorDetails,
+    type CompactionContentMismatchErrorDetails as CompactionContentMismatchErrorDetails,
+    type CompactionIncompleteTurnErrorDetails as CompactionIncompleteTurnErrorDetails,
+    type CompactionNothingToSummarizeErrorDetails as CompactionNothingToSummarizeErrorDetails,
+    type CompactionSignatureInvalidErrorDetails as CompactionSignatureInvalidErrorDetails,
+    type CompactionTooManyToolReferencesErrorDetails as CompactionTooManyToolReferencesErrorDetails,
+    type CompactionToolChangesMismatchErrorDetails as CompactionToolChangesMismatchErrorDetails,
+    type CompactionUnavailableErrorDetails as CompactionUnavailableErrorDetails,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
     type ComputerCursorPositionInput as ComputerCursorPositionInput,
     type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
@@ -2461,8 +2656,8 @@ export declare namespace Anthropic {
     type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
     type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
     type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
-    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
     type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
+    type TextEditorCodeExecutionToolResultErrorObject as TextEditorCodeExecutionToolResultErrorObject,
     type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
     type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
     type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
@@ -2474,6 +2669,12 @@ export declare namespace Anthropic {
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
     type ThinkingDelta as ThinkingDelta,
+    type ThreadAlreadyContinuedErrorDetails as ThreadAlreadyContinuedErrorDetails,
+    type ThreadContinueInFlightErrorDetails as ThreadContinueInFlightErrorDetails,
+    type ThreadFingerprintMismatchErrorDetails as ThreadFingerprintMismatchErrorDetails,
+    type ThreadNotFoundErrorDetails as ThreadNotFoundErrorDetails,
+    type ThreadUnsupportedFeatureName as ThreadUnsupportedFeatureName,
+    type ThreadUnsupportedRequestErrorDetails as ThreadUnsupportedRequestErrorDetails,
     type Tool as Tool,
     type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
@@ -2481,15 +2682,17 @@ export declare namespace Anthropic {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolNameConflictErrorDetails as ToolNameConflictErrorDetails,
     type ToolReferenceBlock as ToolReferenceBlock,
     type ToolReferenceBlockParam as ToolReferenceBlockParam,
+    type ToolReferenceUnresolvedErrorDetails as ToolReferenceUnresolvedErrorDetails,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
     type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
     type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
     type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
-    type ToolSearchToolResultError as ToolSearchToolResultError,
     type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
+    type ToolSearchToolResultErrorObject as ToolSearchToolResultErrorObject,
     type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
     type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
     type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
@@ -2528,13 +2731,19 @@ export declare namespace Anthropic {
     type WebSearchTool20250305 as WebSearchTool20250305,
     type WebSearchTool20260209 as WebSearchTool20260209,
     type WebSearchTool20260318 as WebSearchTool20260318,
-    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type WebSearchToolRequestErrorObject as WebSearchToolRequestErrorObject,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
-    type WebSearchToolResultError as WebSearchToolResultError,
     type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
+    type WebSearchToolResultErrorObject as WebSearchToolResultErrorObject,
+    type WebSearchToolResultError as WebSearchToolResultError,
+    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type CodeExecutionToolResultError as CodeExecutionToolResultError,
+    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
+    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
+    type ToolSearchToolResultError as ToolSearchToolResultError,
     type ResponseToolUseBlockUnion as ResponseToolUseBlockUnion,
     type ResponseBrowserToolUseBlock as ResponseBrowserToolUseBlock,
     type ResponseBrowserCloseTabToolUseBlock as ResponseBrowserCloseTabToolUseBlock,
@@ -2611,8 +2820,14 @@ export declare namespace Anthropic {
 
   export {
     Files as Files,
+    FileNotDownloadableError as FileNotDownloadableError,
+    StorageQuotaExceededError as StorageQuotaExceededError,
+    FileExpiredError as FileExpiredError,
     type DeletedFile as DeletedFile,
+    type FileExpiredErrorDetails as FileExpiredErrorDetails,
     type FileMetadata as FileMetadata,
+    type FileNotDownloadableErrorDetails as FileNotDownloadableErrorDetails,
+    type StorageQuotaExceededErrorDetails as StorageQuotaExceededErrorDetails,
     type FileMetadataPageCursor as FileMetadataPageCursor,
     type FileListParams as FileListParams,
     type FileDeleteParams as FileDeleteParams,
@@ -2623,8 +2838,10 @@ export declare namespace Anthropic {
 
   export {
     Skills as Skills,
+    SkillReadBlockedUndecryptableError as SkillReadBlockedUndecryptableError,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,
@@ -2635,9 +2852,14 @@ export declare namespace Anthropic {
 
   export {
     UserProfiles as UserProfiles,
+    UserProfileNotFoundError as UserProfileNotFoundError,
+    UserProfileRequiredError as UserProfileRequiredError,
+    UserProfileBillingNotAuthorizedError as UserProfileBillingNotAuthorizedError,
+    UserProfileNotBillableError as UserProfileNotBillableError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileBillingNotAuthorizedErrorDetails as UserProfileBillingNotAuthorizedErrorDetails,
     type UserProfileCyberProgram as UserProfileCyberProgram,
     type UserProfileCyberRequirements as UserProfileCyberRequirements,
     type UserProfileCyberTier as UserProfileCyberTier,
@@ -2655,8 +2877,11 @@ export declare namespace Anthropic {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotBillableErrorDetails as UserProfileNotBillableErrorDetails,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
+    type UserProfileRequiredErrorDetails as UserProfileRequiredErrorDetails,
     type UserProfilesPageCursor as UserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,
     type UserProfileRetrieveParams as UserProfileRetrieveParams,
@@ -2667,36 +2892,106 @@ export declare namespace Anthropic {
 
   export {
     Organization as Organization,
+    OrgMemberLimitExceededError as OrgMemberLimitExceededError,
+    RBACRoleNotFoundError as RBACRoleNotFoundError,
+    ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
+    type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
+    type RBACRoleNotFoundErrorDetails as RBACRoleNotFoundErrorDetails,
   };
 
   export {
     Beta as Beta,
+    BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
+    type BetaAPIErrorObject as BetaAPIErrorObject,
+    type BetaAuthenticationErrorObject as BetaAuthenticationErrorObject,
+    type BetaBillingErrorObject as BetaBillingErrorObject,
+    type BetaCurrency as BetaCurrency,
+    type BetaErrorObject as BetaErrorObject,
+    type BetaErrorResponse as BetaErrorResponse,
+    type BetaGatewayTimeoutErrorObject as BetaGatewayTimeoutErrorObject,
+    type BetaInvalidRequestErrorObject as BetaInvalidRequestErrorObject,
+    type BetaMonetaryAmount as BetaMonetaryAmount,
+    type BetaNotFoundErrorObject as BetaNotFoundErrorObject,
+    type BetaOrganizationNotEnrolledInBetaErrorDetails as BetaOrganizationNotEnrolledInBetaErrorDetails,
+    type BetaOverloadedErrorObject as BetaOverloadedErrorObject,
+    type BetaPermissionErrorObject as BetaPermissionErrorObject,
+    type BetaRateLimitErrorObject as BetaRateLimitErrorObject,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
+    type BetaError as BetaError,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
-    type BetaBillingError as BetaBillingError,
-    type BetaCurrency as BetaCurrency,
-    type BetaError as BetaError,
-    type BetaErrorResponse as BetaErrorResponse,
-    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaInvalidRequestError as BetaInvalidRequestError,
-    type BetaMonetaryAmount as BetaMonetaryAmount,
+    type BetaBillingError as BetaBillingError,
+    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
   };
 
+  export {
+    ClaudeCodeKeyCreatorNotMemberError as ClaudeCodeKeyCreatorNotMemberError,
+    ClaudeCodeVersionTooOldError as ClaudeCodeVersionTooOldError,
+    CMEKKeyDisabledError as CMEKKeyDisabledError,
+    CMEKKeyNetworkBlockedError as CMEKKeyNetworkBlockedError,
+    OrganizationOnHoldError as OrganizationOnHoldError,
+    OrganizationTypeNotSupportedError as OrganizationTypeNotSupportedError,
+    ParentOrganizationRequiredError as ParentOrganizationRequiredError,
+    RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
+    RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    LinkedOrganizationBillingUnavailableError as LinkedOrganizationBillingUnavailableError,
+    LinkedOrganizationSpendLimitReachedError as LinkedOrganizationSpendLimitReachedError,
+    SandboxEgressRestrictedError as SandboxEgressRestrictedError,
+    RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
+    ContractSpendLimitReachedError as ContractSpendLimitReachedError,
+    EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
+    RampLimitExceededError as RampLimitExceededError,
+    CMEKContextUnavailableError as CMEKContextUnavailableError,
+    CMEKKeyUnreachableError as CMEKKeyUnreachableError,
+  };
+
   export type APIErrorObject = API.APIErrorObject;
-  export type AuthenticationError = API.AuthenticationError;
-  export type BillingError = API.BillingError;
+  export type AuthenticationErrorObject = API.AuthenticationErrorObject;
+  export type BillingErrorObject = API.BillingErrorObject;
+  export type ClaudeCodeKeyCreatorNotMemberErrorDetails = API.ClaudeCodeKeyCreatorNotMemberErrorDetails;
+  export type ClaudeCodeVersionTooOldErrorDetails = API.ClaudeCodeVersionTooOldErrorDetails;
+  export type CMEKContextUnavailableErrorDetails = API.CMEKContextUnavailableErrorDetails;
+  export type CMEKKeyDisabledErrorDetails = API.CMEKKeyDisabledErrorDetails;
+  export type CMEKKeyNetworkBlockedErrorDetails = API.CMEKKeyNetworkBlockedErrorDetails;
+  export type CMEKKeyUnreachableErrorDetails = API.CMEKKeyUnreachableErrorDetails;
+  export type ContractSpendLimitReachedErrorDetails = API.ContractSpendLimitReachedErrorDetails;
+  export type EnforcedSpendLimitReachedErrorDetails = API.EnforcedSpendLimitReachedErrorDetails;
+  export type ErrorDetails = API.ErrorDetails;
   export type ErrorObject = API.ErrorObject;
   export type ErrorResponse = API.ErrorResponse;
   export type ErrorType = API.ErrorType;
-  export type GatewayTimeoutError = API.GatewayTimeoutError;
+  export type GatewayTimeoutErrorObject = API.GatewayTimeoutErrorObject;
+  export type InvalidRequestErrorObject = API.InvalidRequestErrorObject;
+  export type LinkedOrganizationBillingUnavailableErrorDetails =
+    API.LinkedOrganizationBillingUnavailableErrorDetails;
+  export type LinkedOrganizationSpendLimitReachedErrorDetails =
+    API.LinkedOrganizationSpendLimitReachedErrorDetails;
+  export type NotFoundErrorObject = API.NotFoundErrorObject;
+  export type OrganizationOnHoldErrorDetails = API.OrganizationOnHoldErrorDetails;
+  export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
+  export type OverloadedErrorObject = API.OverloadedErrorObject;
+  export type ParentOrganizationRequiredErrorDetails = API.ParentOrganizationRequiredErrorDetails;
+  export type PermissionErrorObject = API.PermissionErrorObject;
+  export type RampLimitExceededErrorDetails = API.RampLimitExceededErrorDetails;
+  export type RateLimitErrorObject = API.RateLimitErrorObject;
+  export type RequestBodyEncodingInvalidErrorDetails = API.RequestBodyEncodingInvalidErrorDetails;
+  export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;
+  export type RequestBodyTooLargeAfterDecodingErrorDetails = API.RequestBodyTooLargeAfterDecodingErrorDetails;
+  export type SandboxEgressRestrictedErrorDetails = API.SandboxEgressRestrictedErrorDetails;
+  export type AuthenticationError = API.AuthenticationError;
   export type InvalidRequestError = API.InvalidRequestError;
+  export type BillingError = API.BillingError;
+  export type GatewayTimeoutError = API.GatewayTimeoutError;
   export type NotFoundError = API.NotFoundError;
   export type OverloadedError = API.OverloadedError;
   export type PermissionError = API.PermissionError;

@@ -89,8 +89,8 @@ export interface PluginListParams extends PageCursorParams {
    * users who held the group at any point during each covered UTC day (time-of-usage
    * attribution); `user_id` takes a tagged user id (`user_...`), as emitted in
    * responses. An unsupported dimension returns 400. At most 100 entries.
-   * `chat_cowork_unified` is accepted as a `product` value only on deployments that
-   * offer Chat and Cowork unified.
+   * `chat_cowork_unified` is accepted as a `product` value only where Chat and
+   * Cowork unified is available.
    */
   filter?: Array<string> | null;
 
@@ -105,7 +105,7 @@ export interface PluginListParams extends PageCursorParams {
    * grouped rows are not an exclusive partition and can sum above org-level totals.
    * At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsPluginGroupBy> | null;
 
   /**
    * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
@@ -113,7 +113,7 @@ export interface PluginListParams extends PageCursorParams {
    * to `order_by`, or to the endpoint's default sort field when `order_by` is
    * omitted.
    */
-  order?: 'asc' | 'desc' | null;
+  order?: AnalyticsAPI.BetaAnalyticsOrder | null;
 
   /**
    * Sort field. Restricted to the endpoint's sort column plus its rankable metrics
