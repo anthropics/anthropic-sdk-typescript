@@ -9,7 +9,12 @@ import type {
   BetaManagedAgentsAgentToolUseEvent,
 } from '../../resources/beta/sessions/events';
 import { ToolError } from './ToolError';
-import { thrownErrorText } from '../internal/toolsets/sanitize';
+import {
+  EMPTY_ERROR_TEXT,
+  errorText,
+  errorTextContent,
+  isEmptyErrorContent,
+} from '../internal/toolsets/sanitize';
 
 export type Promisable<T> = T | Promise<T>;
 
@@ -22,9 +27,7 @@ export type BetaClientRunnableToolType = Extract<BetaClientToolUnion, { name: st
  * `name` and `input`.
  */
 export type BetaToolUse =
-  | BetaToolUseBlock
-  | BetaManagedAgentsAgentToolUseEvent
-  | BetaManagedAgentsAgentCustomToolUseEvent;
+  BetaToolUseBlock | BetaManagedAgentsAgentToolUseEvent | BetaManagedAgentsAgentCustomToolUseEvent;
 
 export type BetaToolRunContext = {
   toolUse: BetaToolUse;
@@ -67,9 +70,20 @@ export function toolName(tool: BetaToolUnion | BetaRunnableTool): string {
   );
 }
 
-/** Tool-result content for a thrown value: a {@link ToolError}'s own content, otherwise `Error: <message>`. */
+/**
+ * Tool-result content for a thrown value: a {@link ToolError}'s own content,
+ * otherwise `Error: <message>`.
+ *
+ * Sanitized the same way the toolset runner sanitizes it, because the API
+ * applies one contract to an `is_error` result whichever runner produced it:
+ * text only, well-formed, bounded to the field limit, and never empty. Passing
+ * a `ToolError`'s content through raw let a function tool answer with an image
+ * block, an empty string or a page-sized message, and the API rejects each of
+ * those with a 400 that ends the run.
+ */
 export function toolErrorContent(e: unknown): string | Array<BetaToolResultContentBlockParam> {
-  return e instanceof ToolError ? e.content : thrownErrorText(e);
+  const content = e instanceof ToolError ? errorTextContent(e.content) : errorText(e);
+  return isEmptyErrorContent(content) ? EMPTY_ERROR_TEXT : content;
 }
 
 /** What a tool run produced, and whether it failed. */
