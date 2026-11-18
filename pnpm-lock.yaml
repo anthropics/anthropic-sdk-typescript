@@ -77,8 +77,8 @@ importers:
         specifier: ^0.2.12
         version: 0.2.12
       streamfold:
-        specifier: 0.1.18
-        version: 0.1.18
+        specifier: 0.1.19
+        version: 0.1.19
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
         version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
@@ -4515,10 +4515,10 @@ packages:
         integrity: sha512-oCUKSupKTHX53EyjDtuZQ64pjLJ6yYCtpmEw0goYxtjG9KpbRe8KAsl2tBUGU9DyMcJ0RwJ8GqJAFzMXcXW1Rw==,
       }
 
-  streamfold@0.1.18:
+  streamfold@0.1.19:
     resolution:
       {
-        integrity: sha512-PHUSkTVfniXIB9RdHSuer9AdgqjcFBsapPUp5G/Dc7NodA2gAajH06tTU6bm6fqG0jqNjMjeJ5if1zAQ+QrvFA==,
+        integrity: sha512-du2kp19IqITb4CyfaHewKY4QNuPGH3UflbJEfFVgZvoDxVZ3I2VWEN6RB/gnGJ08kB3FZ40hrGcpw6xdpYE2Sw==,
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -8302,7 +8302,7 @@ snapshots:
 
   std-env@4.2.0: {}
 
-  streamfold@0.1.18: {}
+  streamfold@0.1.19: {}
 
   strict-event-emitter@0.5.1: {}
 
