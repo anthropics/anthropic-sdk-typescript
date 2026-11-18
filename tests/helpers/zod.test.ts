@@ -300,6 +300,32 @@ describe('GA zod helpers', () => {
       expect(format.schema).toBeDefined();
     });
 
+    it('does not include $schema in output format schema description', () => {
+      const schema = z.object({
+        name: z.string(),
+      });
+
+      const format = zodOutputFormat(schema);
+      const jsonSchema = format.schema as any;
+
+      expect(jsonSchema.description).toBeUndefined();
+      expect(jsonSchema.$schema).toBeUndefined();
+    });
+
+    it('preserves user description without appending $schema in zodOutputFormat', () => {
+      const schema = z
+        .object({
+          name: z.string(),
+        })
+        .describe('A person object');
+
+      const format = zodOutputFormat(schema);
+      const jsonSchema = format.schema as any;
+
+      expect(jsonSchema.description).toBe('A person object');
+      expect(jsonSchema.$schema).toBeUndefined();
+    });
+
     it('parses valid JSON correctly', () => {
       const schema = z.object({
         city: z.string(),
