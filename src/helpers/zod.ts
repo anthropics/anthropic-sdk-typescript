@@ -1,4 +1,4 @@
-import { transformJSONSchema } from '../lib/transform-json-schema';
+import { inlineLocalDefs, transformJSONSchema } from '../lib/transform-json-schema';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../core/error';
 import { AutoParseableOutputFormat } from '../lib/parser';
@@ -15,7 +15,9 @@ import { AutoParseableOutputFormat } from '../lib/parser';
 export function zodOutputFormat<ZodInput extends z.ZodType>(
   zodObject: ZodInput,
 ): AutoParseableOutputFormat<z.infer<ZodInput>> {
-  const jsonSchema = transformJSONSchema(z.toJSONSchema(zodObject, { reused: 'ref' }));
+  // zod ≥ 4.6 hoists described-union branches into `$defs` under `{ reused: 'ref' }`,
+  // a shape the API rejects (`For 'anyOf', '$defs' is not supported`), so inline them.
+  const jsonSchema = transformJSONSchema(inlineLocalDefs(z.toJSONSchema(zodObject, { reused: 'ref' })));
 
   return {
     type: 'json_schema',
