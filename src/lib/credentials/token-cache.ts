@@ -27,6 +27,10 @@ export class TokenCache {
   private cached: AccessToken | null = null;
   private pendingRefresh: Promise<AccessToken> | null = null;
   private nextForce = false;
+  /** Increments on every new refresh and on invalidate(), so a slower
+   *  superseded refresh can no longer commit its (older) token over a
+   *  newer one. */
+  private generation = 0;
   private lastAdvisoryError = 0;
   private onAdvisoryRefreshError: ((err: unknown) => void) | undefined;
 
@@ -71,6 +75,9 @@ export class TokenCache {
    * if its `expires_at` still looks fresh.
    */
   invalidate(): void {
+    // Any refresh still in flight was started before the invalidation and
+    // must not commit its result over the forced refresh that follows.
+    this.generation++;
     this.cached = null;
     this.nextForce = true;
   }
@@ -114,14 +121,22 @@ export class TokenCache {
    * (both advisory and mandatory) coalesce into a single provider call.
    */
   private doRefresh(force = false): Promise<AccessToken> {
+    const generation = ++this.generation;
     this.pendingRefresh = this.provider(force ? { forceRefresh: true } : undefined).then(
       (token) => {
+        if (generation !== this.generation) {
+          // A forced refresh or invalidate() superseded this one; committing
+          // would overwrite the newer token with an older one.
+          return token;
+        }
         this.cached = token;
         this.pendingRefresh = null;
         return token;
       },
       (err) => {
-        this.pendingRefresh = null;
+        if (generation === this.generation) {
+          this.pendingRefresh = null;
+        }
         throw err;
       },
     );
