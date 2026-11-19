@@ -8,7 +8,7 @@ pnpm test:ecosystem                          # build, pack and run every project
 pnpm test:ecosystem node-ts-esm 'browser-*'  # run projects by name or glob
 pnpm test:ecosystem --list                   # list projects and known failures
 pnpm test:ecosystem --skip-build --skip-pack # reuse .pack/anthropic-ai-sdk.tgz
-pnpm test:ecosystem --node-versions 20,22,24 # run the Node projects once per installed Node major
+pnpm test:ecosystem --node-versions 22,24,26 # run the Node projects once per installed Node major
 pnpm test:ecosystem --only node              # only the projects --node-versions repeats; --only non-node is the rest
 ```
 

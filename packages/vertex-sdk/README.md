@@ -107,7 +107,7 @@ TypeScript >= 4.5 is supported.
 
 The following runtimes are supported:
 
-- Node.js 18 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
+- Node.js 22 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
 - Deno v1.28.0 or higher, using `import { AnthropicVertex } from "npm:@anthropic-ai/vertex-sdk"`.
 - Bun 1.0 or later.
 - Cloudflare Workers.
