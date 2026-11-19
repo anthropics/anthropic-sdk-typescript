@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.10.0...sdk-v1.11.0) (2026-11-19)
+
+### Features
+
+* **api:** add Claude Code managed settings to the Admin API
+* **api:** add the sandbox_egress_restricted error to Admin API plugin methods
+
+
+### Performance Improvements
+
+* **client:** speed up streaming of large events
+
+
+### Chores
+
+* **docs:** explain how the input-token rate limit types differ
+* **docs:** name Claude Security in the usage and cost report descriptions
+* **docs:** note that a Google Cloud external key's provider and key_name can't be changed
+
 ## [1.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.9.0...sdk-v1.10.0) (2026-11-17)
 
 ### Features
