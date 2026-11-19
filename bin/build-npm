@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eux
+
+bash ./scripts/build
+(cd 'packages/vertex-sdk' && pnpm build)
+(cd 'packages/bedrock-sdk' && pnpm build)
+(cd 'packages/foundry-sdk' && pnpm build)
+(cd 'packages/aws-sdk' && pnpm build)
+(cd 'packages/google-cloud-sdk' && pnpm build)
+
+root="$PWD"
+for package in '.' 'packages/vertex-sdk' 'packages/bedrock-sdk' 'packages/foundry-sdk' 'packages/aws-sdk' 'packages/google-cloud-sdk'; do
+  (cd "$package/dist" && pnpm pack --pack-destination "$root/packed")
+done
