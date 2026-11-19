@@ -98,6 +98,8 @@ export class InstallationSettings extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaDeletedPluginInstallationSetting =
@@ -158,6 +160,8 @@ export class InstallationSettings extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

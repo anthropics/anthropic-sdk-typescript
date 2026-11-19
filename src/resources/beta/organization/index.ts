@@ -170,6 +170,17 @@ export {
   type BetaOrganizationUsersPage,
 } from './users';
 export {
+  BetaRBACGroupNotFoundError,
+  RBACGroups,
+  type BetaDeletedRBACGroup,
+  type BetaRBACGroup,
+  type BetaRBACGroupNotFoundErrorDetails,
+  type RBACGroupCreateParams,
+  type RBACGroupUpdateParams,
+  type RBACGroupListParams,
+  type BetaRBACGroupsPageCursor,
+} from './rbac-groups/index';
+export {
   BetaScanFailedError,
   BetaPluginNameTakenError,
   BetaScanPendingError,
@@ -221,6 +232,7 @@ export {
   type BetaSpendSummariesPageCursor,
   type BetaSpendLimitsPageCursor,
 } from './spend-limits/index';
+export { ClaudeCode } from './claude-code/index';
 export {
   ComplianceSettings,
   type BetaComplianceSettings,
@@ -273,15 +285,6 @@ export {
   type PluginMarketplaceValidateRepositoryParams,
   type BetaPluginMarketplacesPageCursor,
 } from './plugin-marketplaces';
-export {
-  RBACGroups,
-  type BetaDeletedRBACGroup,
-  type BetaRBACGroup,
-  type RBACGroupCreateParams,
-  type RBACGroupUpdateParams,
-  type RBACGroupListParams,
-  type BetaRBACGroupsPageCursor,
-} from './rbac-groups/index';
 export {
   RBACRoles,
   type BetaRBACRole,

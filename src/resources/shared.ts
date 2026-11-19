@@ -15,7 +15,9 @@ import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
 import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
 import * as PluginsAPI from './beta/organization/plugins/plugins';
+import * as OrganizationRBACGroupsAPI from './beta/organization/rbac-groups/rbac-groups';
 import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
+import * as ManagedSettingsAPI from './beta/organization/claude-code/managed-settings/managed-settings';
 import {
   BadRequestError,
   ContentTooLargeError,
@@ -160,7 +162,7 @@ export class LinkedOrganizationSpendLimitReachedError extends PaymentRequiredErr
 
 /**
  * The request came from a Claude sandbox with restricted network access, which is
- * not allowed to make this change. Send it from outside the sandbox, or from a
+ * not allowed to make this request. Send it from outside the sandbox, or from a
  * sandbox with unrestricted network access.
  */
 export class SandboxEgressRestrictedError extends PermissionDeniedError {
@@ -426,6 +428,13 @@ export type ErrorDetails =
   | PluginsAPI.BetaRegistrationPendingErrorDetails
   | PluginsAPI.BetaScanFailedErrorDetails
   | PluginsAPI.BetaScanPendingErrorDetails
+  | BetaAPI.BetaRequestBodyTimeoutErrorDetails
+  | ManagedSettingsAPI.BetaSettingsDocumentLimitExceededErrorDetails
+  | ManagedSettingsAPI.BetaSettingsHistoryLimitExceededErrorDetails
+  | ManagedSettingsAPI.BetaCMEKFeatureUnsupportedErrorDetails
+  | ManagedSettingsAPI.BetaRBACGroupManagedSettingsNotFoundErrorDetails
+  | ManagedSettingsAPI.BetaRBACGroupOrderLimitExceededErrorDetails
+  | OrganizationRBACGroupsAPI.BetaRBACGroupNotFoundErrorDetails
   | ClaudeTagAPI.BetaSlackChannelSetUpSettingsRefusedErrorDetails
   | ClaudeTagAPI.BetaAPIKeyScopeMissingErrorDetails
   | ClaudeTagAPI.BetaClaudeTagWritesNotEnabledErrorDetails
@@ -624,7 +633,7 @@ export interface RequestBodyTooLargeAfterDecodingErrorDetails {
 
 /**
  * The request came from a Claude sandbox with restricted network access, which is
- * not allowed to make this change. Send it from outside the sandbox, or from a
+ * not allowed to make this request. Send it from outside the sandbox, or from a
  * sandbox with unrestricted network access.
  */
 export interface SandboxEgressRestrictedErrorDetails {

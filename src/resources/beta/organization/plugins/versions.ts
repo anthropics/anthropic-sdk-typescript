@@ -45,6 +45,7 @@ export class Versions extends APIResource {
    * @throws {CMEKKeyDisabledError}
    * @throws {CMEKKeyNetworkBlockedError}
    * @throws {BetaUnsupportedCharsetError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {BetaSkillNameTakenError}
    * @throws {BetaRegistrationPendingError}
    *
@@ -218,6 +219,7 @@ export class Versions extends APIResource {
    *
    * @throws {CMEKKeyDisabledError}
    * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

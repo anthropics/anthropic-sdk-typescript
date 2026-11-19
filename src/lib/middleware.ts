@@ -311,6 +311,7 @@ export function betaRefusalFallbackMiddleware(
       index += 1;
       pin(index);
       const entry = fallbacks[index]!;
+      const details = message.stop_details?.type === 'refusal' ? message.stop_details : null;
       // One `fallback` seam block per model boundary, prepended to the serving
       // hop's content below — the same block shape the server places in
       // `content`, not a claim of full envelope parity.
@@ -320,15 +321,15 @@ export function betaRefusalFallbackMiddleware(
         // against an untyped body that carried no `model` field.
         from: { model: requestedModel ?? message.model },
         to: { model: entry.model },
-        trigger: { type: 'refusal', category: message.stop_details?.category ?? null },
+        trigger: { type: 'refusal', category: details?.category ?? null },
       });
       requestedModel = entry.model;
       ({ response: res } = await sendHop(next, ctx, entry, {
         ...request,
         body: JSON.stringify({
           ...applyFallbackPatch(body, entry),
-          ...(message.stop_details?.fallback_credit_token ?
-            { fallback_credit_token: creditTokenParam(message.stop_details.fallback_credit_token) }
+          ...(details?.fallback_credit_token ?
+            { fallback_credit_token: creditTokenParam(details.fallback_credit_token) }
           : undefined),
         }),
       }));

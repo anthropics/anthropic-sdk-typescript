@@ -334,6 +334,30 @@ describe('streaming decoding', () => {
       { event: null, data: '3', raw: ['data: 3'] },
     ]);
   });
+
+  test('an event ended by a carriage return does not wait for the next line end', async () => {
+    let unblock = () => {};
+    const blocked = new Promise<void>((resolve) => (unblock = resolve));
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('data: 1\r\r');
+      yield Buffer.from('data: 2');
+      await blocked;
+      yield Buffer.from('\r\r');
+    }
+
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+      Symbol.asyncIterator
+    ]();
+
+    let event = await stream.next();
+    assert(event.value);
+    expect(event.value.data).toEqual('1');
+
+    unblock();
+    event = await stream.next();
+    assert(event.value);
+    expect(event.value.data).toEqual('2');
+  });
 });
 
 test('skips events without data', async () => {

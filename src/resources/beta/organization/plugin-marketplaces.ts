@@ -72,6 +72,8 @@ export class PluginMarketplaces extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaPluginMarketplace =
@@ -189,6 +191,7 @@ export class PluginMarketplaces extends APIResource {
    * readiness enabled.
    *
    * @throws {BetaUnsupportedCharsetError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -258,6 +261,8 @@ export class PluginMarketplaces extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

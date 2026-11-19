@@ -1016,6 +1016,18 @@ export class BetaOrganizationNotEnrolledInBetaError extends BadRequestError {
 }
 
 /**
+ * The request body did not finish arriving in time, so nothing was done. Send a
+ * smaller body, or send it over a faster connection.
+ */
+export class BetaRequestBodyTimeoutError extends BadRequestError {
+  declare readonly errorCode: 'request_body_timeout';
+  declare readonly details: BetaRequestBodyTimeoutErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRequestBodyTimeoutError';
+}
+
+/**
  * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
  * or US-ASCII. Send the request with no charset, or with one of these.
  */
@@ -1110,6 +1122,7 @@ export type AnthropicBeta =
   | 'skills-2025-10-02'
   | 'cache-diagnosis-2026-04-07'
   | 'ce-user-management-2026-07-13'
+  | 'ce-claude-code-managed-settings-2026-10-06'
   | 'user-profiles-billing-2026-10-01';
 
 export interface BetaAPIErrorObject {
@@ -1278,6 +1291,14 @@ export interface BetaRateLimitErrorObject {
 }
 
 /**
+ * The request body did not finish arriving in time, so nothing was done. Send a
+ * smaller body, or send it over a faster connection.
+ */
+export interface BetaRequestBodyTimeoutErrorDetails {
+  error_code: 'request_body_timeout';
+}
+
+/**
  * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
  * or US-ASCII. Send the request with no charset, or with one of these.
  */
@@ -1336,6 +1357,7 @@ export type BetaPermissionError = BetaPermissionErrorObject;
 export type BetaRateLimitError = BetaRateLimitErrorObject;
 
 Beta.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Beta.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
 Beta.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Beta.Models = Models;
 Beta.Messages = Messages;
@@ -1363,6 +1385,7 @@ Beta.Organization = Organization;
 export declare namespace Beta {
   export {
     BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaRequestBodyTimeoutError as BetaRequestBodyTimeoutError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIErrorObject as BetaAPIErrorObject,
@@ -1379,6 +1402,7 @@ export declare namespace Beta {
     type BetaOverloadedErrorObject as BetaOverloadedErrorObject,
     type BetaPermissionErrorObject as BetaPermissionErrorObject,
     type BetaRateLimitErrorObject as BetaRateLimitErrorObject,
+    type BetaRequestBodyTimeoutErrorDetails as BetaRequestBodyTimeoutErrorDetails,
     type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
     type BetaError as BetaError,
     type BetaAPIError as BetaAPIError,

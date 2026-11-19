@@ -669,6 +669,7 @@ export {
 } from './environments/index';
 export {
   BetaOrganizationNotEnrolledInBetaError,
+  BetaRequestBodyTimeoutError,
   BetaUnsupportedCharsetError,
   Beta,
   type AnthropicBeta,
@@ -686,6 +687,7 @@ export {
   type BetaOverloadedErrorObject,
   type BetaPermissionErrorObject,
   type BetaRateLimitErrorObject,
+  type BetaRequestBodyTimeoutErrorDetails,
   type BetaUnsupportedCharsetErrorDetails,
   type BetaError,
   type BetaAPIError,
