@@ -1,4 +1,15 @@
 export {
+  BetaRBACGroupNotFoundError,
+  RBACGroups,
+  type BetaDeletedRBACGroup,
+  type BetaRBACGroup,
+  type BetaRBACGroupNotFoundErrorDetails,
+  type RBACGroupCreateParams,
+  type RBACGroupUpdateParams,
+  type RBACGroupListParams,
+  type BetaRBACGroupsPageCursor,
+} from './rbac-groups';
+export {
   Members,
   type BetaDeletedRBACGroupMember,
   type BetaRBACGroupMember,
@@ -7,12 +18,3 @@ export {
   type MemberRemoveParams,
   type BetaRBACGroupMembersPageCursor,
 } from './members';
-export {
-  RBACGroups,
-  type BetaDeletedRBACGroup,
-  type BetaRBACGroup,
-  type RBACGroupCreateParams,
-  type RBACGroupUpdateParams,
-  type RBACGroupListParams,
-  type BetaRBACGroupsPageCursor,
-} from './rbac-groups';

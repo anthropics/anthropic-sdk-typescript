@@ -20,7 +20,11 @@ import {
   RequestBodyTooLargeAfterDecodingError,
   SandboxEgressRestrictedError,
 } from '../resources/shared';
-import { BetaOrganizationNotEnrolledInBetaError, BetaUnsupportedCharsetError } from '../resources/beta/beta';
+import {
+  BetaOrganizationNotEnrolledInBetaError,
+  BetaRequestBodyTimeoutError,
+  BetaUnsupportedCharsetError,
+} from '../resources/beta/beta';
 import {
   AvailableToolsLimitExceededError,
   CompactionBlockAmbiguousError,
@@ -113,7 +117,15 @@ import {
   BetaScanPendingError,
   BetaSkillNameTakenError,
 } from '../resources/beta/organization/plugins/plugins';
+import { BetaRBACGroupNotFoundError } from '../resources/beta/organization/rbac-groups/rbac-groups';
 import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/organization/spend-limits/spend-limits';
+import {
+  BetaCMEKFeatureUnsupportedError,
+  BetaRBACGroupManagedSettingsNotFoundError,
+  BetaRBACGroupOrderLimitExceededError,
+  BetaSettingsDocumentLimitExceededError,
+  BetaSettingsHistoryLimitExceededError,
+} from '../resources/beta/organization/claude-code/managed-settings/managed-settings';
 
 /** @internal */
 export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
@@ -127,6 +139,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 cannot_sign_out_self', BetaCannotSignOutSelfError],
   ['400 claude_code_key_creator_not_member', ClaudeCodeKeyCreatorNotMemberError],
   ['400 claude_code_version_too_old', ClaudeCodeVersionTooOldError],
+  ['400 cmek_feature_unsupported', BetaCMEKFeatureUnsupportedError],
   ['400 cmek_key_disabled', CMEKKeyDisabledError],
   ['400 cmek_key_network_blocked', CMEKKeyNetworkBlockedError],
   ['400 compaction_block_ambiguous', CompactionBlockAmbiguousError],
@@ -154,10 +167,14 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 organization_type_not_supported', OrganizationTypeNotSupportedError],
   ['400 parent_organization_required', ParentOrganizationRequiredError],
   ['400 rbac_group_grants_owner_access', RBACGroupGrantsOwnerAccessError],
+  ['400 rbac_group_order_limit_exceeded', BetaRBACGroupOrderLimitExceededError],
   ['400 rbac_group_owner_access_unconfirmed', RBACGroupOwnerAccessUnconfirmedError],
   ['400 request_body_encoding_invalid', RequestBodyEncodingInvalidError],
   ['400 request_body_encoding_unsupported', RequestBodyEncodingUnsupportedError],
+  ['400 request_body_timeout', BetaRequestBodyTimeoutError],
   ['400 scan_failed', BetaScanFailedError],
+  ['400 settings_document_limit_exceeded', BetaSettingsDocumentLimitExceededError],
+  ['400 settings_history_limit_exceeded', BetaSettingsHistoryLimitExceededError],
   ['400 slack_channel_set_up_settings_refused', BetaSlackChannelSetUpSettingsRefusedError],
   ['400 storage_quota_exceeded', StorageQuotaExceededError],
   ['400 thread_already_continued', ThreadAlreadyContinuedError],
@@ -190,6 +207,8 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['403 user_profile_not_billable', UserProfileNotBillableError],
   ['404 environment_not_found', BetaEnvironmentNotFoundError],
   ['404 file_expired', FileExpiredError],
+  ['404 rbac_group_managed_settings_not_found', BetaRBACGroupManagedSettingsNotFoundError],
+  ['404 rbac_group_not_found', BetaRBACGroupNotFoundError],
   ['404 rbac_role_not_found', RBACRoleNotFoundError],
   ['404 slack_channel_set_up_environment_not_found', BetaSlackChannelSetUpEnvironmentNotFoundError],
   ['404 thread_not_found', ThreadNotFoundError],

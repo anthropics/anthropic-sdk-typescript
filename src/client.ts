@@ -150,6 +150,8 @@ import {
   BetaPermissionErrorObject,
   BetaRateLimitError,
   BetaRateLimitErrorObject,
+  BetaRequestBodyTimeoutError,
+  BetaRequestBodyTimeoutErrorDetails,
   BetaUnsupportedCharsetError,
   BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
@@ -2283,6 +2285,7 @@ Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
 Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Anthropic.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
 Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
 Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
@@ -2905,6 +2908,7 @@ export declare namespace Anthropic {
   export {
     Beta as Beta,
     BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaRequestBodyTimeoutError as BetaRequestBodyTimeoutError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIErrorObject as BetaAPIErrorObject,
@@ -2921,6 +2925,7 @@ export declare namespace Anthropic {
     type BetaOverloadedErrorObject as BetaOverloadedErrorObject,
     type BetaPermissionErrorObject as BetaPermissionErrorObject,
     type BetaRateLimitErrorObject as BetaRateLimitErrorObject,
+    type BetaRequestBodyTimeoutErrorDetails as BetaRequestBodyTimeoutErrorDetails,
     type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
     type BetaError as BetaError,
     type BetaAPIError as BetaAPIError,

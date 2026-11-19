@@ -1191,6 +1191,7 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaRequestBodyTimeoutErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIError</a></code>
@@ -1203,6 +1204,7 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaRequestBodyTimeoutError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetError</a></code>
 
 ## Models
@@ -3148,6 +3150,8 @@ Types:
 
 - <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaDeletedRBACGroup</a></code>
 - <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaRBACGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaRBACGroupNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaRBACGroupNotFoundError</a></code>
 
 Methods:
 
@@ -3362,6 +3366,70 @@ Methods:
 - <code title="get /v1/organizations/webhooks">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">list</a>({ ...params }) -> BetaOrganizationWebhookEndpointsPage</code>
 - <code title="delete /v1/organizations/webhooks/{webhook_endpoint_id}">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">delete</a>(webhookEndpointID, { ...params }) -> BetaDeletedOrganizationWebhookEndpoint</code>
 - <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}/regenerate_signing_secret">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">regenerateSigningSecret</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpointSigningSecret</code>
+
+### ClaudeCode
+
+#### ManagedSettings
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaCMEKFeatureUnsupportedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaRBACGroupManagedSettingsNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaRBACGroupOrderLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaSettingsDocumentLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaSettingsHistoryLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaCMEKFeatureUnsupportedError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaRBACGroupOrderLimitExceededError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaSettingsDocumentLimitExceededError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaSettingsHistoryLimitExceededError</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/managed-settings.ts">BetaRBACGroupManagedSettingsNotFoundError</a></code>
+
+##### Configuration
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsConfiguration</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsMode</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsModeParam</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsOrganizationMode</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsOrganizationModeParam</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsRBACGroupsMode</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">BetaClaudeCodeManagedSettingsRBACGroupsModeParam</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_code/managed_settings/configuration">client.beta.organization.claudeCode.managedSettings.configuration.<a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">retrieve</a>({ ...params }) -> BetaClaudeCodeManagedSettingsConfiguration</code>
+- <code title="post /v1/organizations/claude_code/managed_settings/configuration">client.beta.organization.claudeCode.managedSettings.configuration.<a href="./src/resources/beta/organization/claude-code/managed-settings/configuration.ts">update</a>({ ...params }) -> BetaClaudeCodeManagedSettingsConfiguration</code>
+
+##### RBACGroups
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupManagedSettings</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupManagedSettingsSummary</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupStatus</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupStatusActive</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupStatusDeleted</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaClaudeCodeRBACGroupStatusUnknown</a></code>
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">BetaDeletedClaudeCodeRBACGroupManagedSettings</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_code/managed_settings/rbac_groups/{rbac_group_id}">client.beta.organization.claudeCode.managedSettings.rbacGroups.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">retrieve</a>(rbacGroupID, { ...params }) -> BetaClaudeCodeRBACGroupManagedSettings</code>
+- <code title="get /v1/organizations/claude_code/managed_settings/rbac_groups">client.beta.organization.claudeCode.managedSettings.rbacGroups.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">list</a>({ ...params }) -> BetaClaudeCodeRBACGroupManagedSettingsSummariesPageCursor</code>
+- <code title="delete /v1/organizations/claude_code/managed_settings/rbac_groups/{rbac_group_id}">client.beta.organization.claudeCode.managedSettings.rbacGroups.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">delete</a>(rbacGroupID, { ...params }) -> BetaDeletedClaudeCodeRBACGroupManagedSettings</code>
+- <code title="post /v1/organizations/claude_code/managed_settings/rbac_groups/{rbac_group_id}">client.beta.organization.claudeCode.managedSettings.rbacGroups.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-groups.ts">set</a>(rbacGroupID, { ...params }) -> BetaClaudeCodeRBACGroupManagedSettings</code>
+
+##### RBACGroupDefault
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-group-default.ts">BetaClaudeCodeRBACGroupDefaultManagedSettings</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_code/managed_settings/rbac_group_default">client.beta.organization.claudeCode.managedSettings.rbacGroupDefault.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-group-default.ts">retrieve</a>({ ...params }) -> BetaClaudeCodeRBACGroupDefaultManagedSettings</code>
+- <code title="post /v1/organizations/claude_code/managed_settings/rbac_group_default">client.beta.organization.claudeCode.managedSettings.rbacGroupDefault.<a href="./src/resources/beta/organization/claude-code/managed-settings/rbac-group-default.ts">update</a>({ ...params }) -> BetaClaudeCodeRBACGroupDefaultManagedSettings</code>
 
 ### ClaudeTag
 

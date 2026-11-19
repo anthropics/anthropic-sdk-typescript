@@ -10,10 +10,22 @@ import {
   Members,
 } from './members';
 import { APIPromise } from '../../../../core/api-promise';
+import { NotFoundError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The RBAC Group is not one of the organization's groups.
+ */
+export class BetaRBACGroupNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'rbac_group_not_found';
+  declare readonly details: BetaRBACGroupNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRBACGroupNotFoundError';
+}
 
 export class RBACGroups extends APIResource {
   members: MembersAPI.Members = new MembersAPI.Members(this._client);
@@ -222,6 +234,13 @@ export interface BetaRBACGroup {
   updated_at: string;
 }
 
+/**
+ * The RBAC Group is not one of the organization's groups.
+ */
+export interface BetaRBACGroupNotFoundErrorDetails {
+  error_code: 'rbac_group_not_found';
+}
+
 export interface RBACGroupCreateParams {
   /**
    * Name of the RBAC Group. Not uniqueness-enforced.
@@ -238,12 +257,15 @@ export interface RBACGroupUpdateParams {
 
 export interface RBACGroupListParams extends PageCursorParams {}
 
+RBACGroups.BetaRBACGroupNotFoundError = BetaRBACGroupNotFoundError;
 RBACGroups.Members = Members;
 
 export declare namespace RBACGroups {
   export {
+    BetaRBACGroupNotFoundError as BetaRBACGroupNotFoundError,
     type BetaDeletedRBACGroup as BetaDeletedRBACGroup,
     type BetaRBACGroup as BetaRBACGroup,
+    type BetaRBACGroupNotFoundErrorDetails as BetaRBACGroupNotFoundErrorDetails,
     type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,

@@ -203,6 +203,8 @@ import {
   BetaAnalyticsUserActor,
   BetaAnalyticsUserGroupBy,
 } from './analytics/analytics';
+import * as ClaudeCodeAPI from './claude-code/claude-code';
+import { ClaudeCode } from './claude-code/claude-code';
 import * as ClaudeTagAPI from './claude-tag/claude-tag';
 import {
   BetaAPIKeyScopeMissingError,
@@ -284,6 +286,8 @@ import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
 import {
   BetaDeletedRBACGroup,
   BetaRBACGroup,
+  BetaRBACGroupNotFoundError,
+  BetaRBACGroupNotFoundErrorDetails,
   BetaRBACGroupsPageCursor,
   RBACGroupCreateParams,
   RBACGroupListParams,
@@ -417,6 +421,7 @@ export class Organization extends APIResource {
   telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
     new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
   webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
+  claudeCode: ClaudeCodeAPI.ClaudeCode = new ClaudeCodeAPI.ClaudeCode(this._client);
   claudeTag: ClaudeTagAPI.ClaudeTag = new ClaudeTagAPI.ClaudeTag(this._client);
 
   /**
@@ -489,6 +494,7 @@ Organization.Analytics = Analytics;
 Organization.SpendLimits = SpendLimits;
 Organization.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 Organization.RBACGroups = RBACGroups;
+Organization.BetaRBACGroupNotFoundError = BetaRBACGroupNotFoundError;
 Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
 Organization.BetaScanFailedError = BetaScanFailedError;
@@ -499,6 +505,7 @@ Organization.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
 Organization.Webhooks = Webhooks;
+Organization.ClaudeCode = ClaudeCode;
 Organization.ClaudeTag = ClaudeTag;
 Organization.BetaBundleAttachmentNotSupportedError = BetaBundleAttachmentNotSupportedError;
 Organization.BetaBundleOnCallError = BetaBundleOnCallError;
@@ -739,8 +746,10 @@ export declare namespace Organization {
 
   export {
     RBACGroups as RBACGroups,
+    BetaRBACGroupNotFoundError as BetaRBACGroupNotFoundError,
     type BetaDeletedRBACGroup as BetaDeletedRBACGroup,
     type BetaRBACGroup as BetaRBACGroup,
+    type BetaRBACGroupNotFoundErrorDetails as BetaRBACGroupNotFoundErrorDetails,
     type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,
@@ -859,6 +868,8 @@ export declare namespace Organization {
     type WebhookDeleteParams as WebhookDeleteParams,
     type WebhookRegenerateSigningSecretParams as WebhookRegenerateSigningSecretParams,
   };
+
+  export { ClaudeCode as ClaudeCode };
 
   export {
     ClaudeTag as ClaudeTag,
