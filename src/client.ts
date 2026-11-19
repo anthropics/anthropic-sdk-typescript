@@ -1114,7 +1114,10 @@ export class BaseAnthropic {
           parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
         }
       }
-      options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+      options.defaultHeaders =
+        options.defaultHeaders instanceof Headers || Array.isArray(options.defaultHeaders) ?
+          buildHeaders([parsed, options.defaultHeaders])
+        : { ...parsed, ...options.defaultHeaders };
     }
 
     const inherited = (opts as InternalClientOptions).__auth;
