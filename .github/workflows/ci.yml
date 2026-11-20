@@ -97,6 +97,54 @@ jobs:
       - name: Run tests
         run: ./scripts/test
 
+  loom-memory-example:
+    timeout-minutes: 15
+    name: loom-memory-example
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Check out the immutable Loom development source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ClickHouse/loom
+          ref: 2e43b9598f1d35b2f0d7ff8a06aeaddd906dd948
+          path: .loom-source
+          sparse-checkout: sdk/typescript
+          persist-credentials: false
+
+      - name: Build and pack the source SDK
+        working-directory: .loom-source/sdk/typescript
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          mkdir -p "$RUNNER_TEMP/loom-memory"
+          npm pack --silent --pack-destination "$RUNNER_TEMP/loom-memory"
+
+      - name: Extract the complete documented program and offline checks
+        run: |
+          mkdir "$RUNNER_TEMP/loom-memory/app"
+          node examples/memory/extract-loom-example.mjs "$RUNNER_TEMP/loom-memory/app"
+
+      - name: Install, strictly compile and execute the isolated example
+        working-directory: ${{ runner.temp }}/loom-memory/app
+        run: |
+          npm init --yes
+          npm pkg set type=module
+          npm install --save-exact --no-audit --no-fund ../clickhouse-loom-1.3.0.tgz @anthropic-ai/sdk@1.11.0 typescript@6.0.3 @types/node@20.17.6
+          npx tsc --project tsconfig.json
+          node --test loom-memory.test.ts
+          node loom-memory.ts --help
+
   detect_breaking_changes:
     timeout-minutes: 10
     name: detect-breaking-changes
@@ -182,14 +230,14 @@ jobs:
   ci:
     timeout-minutes: 5
     name: ci
-    needs: [lint, build, test]
+    needs: [lint, build, test, loom-memory-example]
     if: always()
     runs-on: 'ubuntu-latest'
     permissions: {}
     steps:
-      - name: Check that lint, build and test passed
+      - name: Check that all required jobs passed
         env:
-          RESULTS: lint=${{ needs.lint.result }} build=${{ needs.build.result }} test=${{ needs.test.result }}
+          RESULTS: lint=${{ needs.lint.result }} build=${{ needs.build.result }} test=${{ needs.test.result }} loom-memory-example=${{ needs.loom-memory-example.result }}
         run: |
           status=0
           passed=0
