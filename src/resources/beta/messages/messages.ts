@@ -96,6 +96,7 @@ export class Messages extends APIResource {
    * @throws {CompactionSignatureInvalidError}
    * @throws {CompactionTooManyToolReferencesError}
    * @throws {CompactionToolChangesMismatchError}
+   * @throws {ImageDimensionsTooLargeError}
    * @throws {OrganizationOnHoldError}
    * @throws {RequestBodyEncodingInvalidError}
    * @throws {RequestBodyEncodingUnsupportedError}
@@ -9593,6 +9594,12 @@ export interface MessageCreateParamsBase {
    * to the profile, or has not allowed your organization to bill it, the request is
    * rejected rather than billed to you. Omit the field, or send `"bill_to": "self"`
    * (the default), to be billed as usual.
+   *
+   * Message Batches does not currently support billing the customer behind a user
+   * profile. In a batch, omit the field or send `"bill_to": "self"`. A request in a
+   * batch that sets `"bill_to": "user_profile"` gets an `errored` result with an
+   * `invalid_request_error`, nobody is billed for it, and the batch's other requests
+   * run as usual.
    */
   billing_policy?: BetaBillingPolicy | null;
 

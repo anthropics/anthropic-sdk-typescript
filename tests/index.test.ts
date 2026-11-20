@@ -4,6 +4,7 @@ import { APIError } from '@anthropic-ai/sdk/core/error';
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError, InternalServerError } from '@anthropic-ai/sdk';
+import { buildHeaders } from '@anthropic-ai/sdk/internal/headers';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
@@ -46,6 +47,50 @@ describe('instantiate client', () => {
         headers: { 'X-My-Default-Header': null },
       });
       expect(req.headers.has('x-my-default-header')).toBe(false);
+    });
+  });
+
+  describe('ANTHROPIC_CUSTOM_HEADERS', () => {
+    test.each([
+      ['a plain object', () => ({ 'X-My-Default-Header': '2' })],
+      ['a Headers object', () => new Headers({ 'X-My-Default-Header': '2' })],
+      ['an array of pairs', () => [['X-My-Default-Header', '2']]],
+    ])('is merged with defaultHeaders given as %s, and defaultHeaders win', async (_, makeDefaultHeaders) => {
+      process.env['ANTHROPIC_CUSTOM_HEADERS'] = 'X-My-Env-Header: 1\nX-My-Default-Header: env';
+      const client = new Anthropic({
+        baseURL: 'http://localhost:5000/',
+        defaultHeaders: makeDefaultHeaders(),
+        apiKey: 'my-anthropic-api-key',
+      });
+
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('x-my-env-header')).toEqual('1');
+      expect(req.headers.get('x-my-default-header')).toEqual('2');
+    });
+
+    test('can have a header removed by a `null` in defaultHeaders', async () => {
+      process.env['ANTHROPIC_CUSTOM_HEADERS'] = 'X-My-Env-Header: 1';
+      const client = new Anthropic({
+        baseURL: 'http://localhost:5000/',
+        defaultHeaders: [['X-My-Env-Header', null]],
+        apiKey: 'my-anthropic-api-key',
+      });
+
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.has('x-my-env-header')).toBe(false);
+    });
+
+    test('is not added to a buildHeaders() result', async () => {
+      process.env['ANTHROPIC_CUSTOM_HEADERS'] = 'X-My-Env-Header: 1';
+      const client = new Anthropic({
+        baseURL: 'http://localhost:5000/',
+        defaultHeaders: buildHeaders([{ 'X-My-Default-Header': '2' }]),
+        apiKey: 'my-anthropic-api-key',
+      });
+
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.has('x-my-env-header')).toBe(false);
+      expect(req.headers.get('x-my-default-header')).toEqual('2');
     });
   });
   describe('logging', () => {

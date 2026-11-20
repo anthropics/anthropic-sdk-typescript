@@ -418,6 +418,8 @@ import {
   FileDocumentSource,
   FileImageSource,
   ImageBlockParam,
+  ImageDimensionsTooLargeError,
+  ImageDimensionsTooLargeErrorDetails,
   ImageTransformationsParam,
   InputJSONDelta,
   JSONOutputFormat,
@@ -1114,7 +1116,10 @@ export class BaseAnthropic {
           parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
         }
       }
-      options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+      options.defaultHeaders =
+        options.defaultHeaders instanceof Headers || Array.isArray(options.defaultHeaders) ?
+          buildHeaders([parsed, options.defaultHeaders])
+        : { ...parsed, ...options.defaultHeaders };
     }
 
     const inherited = (opts as InternalClientOptions).__auth;
@@ -2259,6 +2264,7 @@ Anthropic.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
 Anthropic.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
 Anthropic.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
 Anthropic.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Anthropic.ImageDimensionsTooLargeError = ImageDimensionsTooLargeError;
 Anthropic.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
 Anthropic.ThreadContinueInFlightError = ThreadContinueInFlightError;
 Anthropic.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
@@ -2349,6 +2355,7 @@ export declare namespace Anthropic {
     CompactionSignatureInvalidError as CompactionSignatureInvalidError,
     CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
     CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ImageDimensionsTooLargeError as ImageDimensionsTooLargeError,
     ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
     ThreadContinueInFlightError as ThreadContinueInFlightError,
     ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
@@ -2607,6 +2614,7 @@ export declare namespace Anthropic {
     type FileDocumentSource as FileDocumentSource,
     type FileImageSource as FileImageSource,
     type ImageBlockParam as ImageBlockParam,
+    type ImageDimensionsTooLargeErrorDetails as ImageDimensionsTooLargeErrorDetails,
     type ImageTransformationsParam as ImageTransformationsParam,
     type InputJSONDelta as InputJSONDelta,
     type JSONOutputFormat as JSONOutputFormat,

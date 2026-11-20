@@ -80,17 +80,11 @@ function main() {
   const publishScriptPath = path.join(rootDir, 'bin', 'publish-npm');
   console.log('Using publish script at', publishScriptPath);
 
-  console.log('Ensuring root package is built');
-  console.log(`$ pnpm build`);
-  execSync(`pnpm build`, { cwd: rootDir, encoding: 'utf8', stdio: 'inherit' });
-
   for (const relPackagePath of paths) {
     console.log('\n');
 
     const packagePath = path.join(rootDir, relPackagePath);
     console.log(`Publishing in directory: ${packagePath}`);
-
-    process.env['ROOT_PACKAGE_BUILT'] = relPackagePath === '.' ? 'true' : '';
 
     console.log(`$ bash ${publishScriptPath}`);
     execSync(`bash ${publishScriptPath}`, { cwd: packagePath, encoding: 'utf8', stdio: 'inherit' });

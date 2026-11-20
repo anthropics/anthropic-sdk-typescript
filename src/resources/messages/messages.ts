@@ -148,6 +148,19 @@ export class CompactionToolChangesMismatchError extends BadRequestError {
 }
 
 /**
+ * The longest side of one or more images in the request exceeds the image size
+ * limit. Scale each image in `paths` so that neither side exceeds
+ * `max_side_length_pixels`, or remove it, then retry.
+ */
+export class ImageDimensionsTooLargeError extends BadRequestError {
+  declare readonly errorCode: 'image_dimensions_too_large';
+  declare readonly details: ImageDimensionsTooLargeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ImageDimensionsTooLargeError';
+}
+
+/**
  * The response that `previous_message_id` names has already been continued, and
  * each response can be continued only once. Continue from the Thread's most recent
  * response `id`.
@@ -274,6 +287,7 @@ export class Messages extends APIResource {
    * @throws {CompactionSignatureInvalidError}
    * @throws {CompactionTooManyToolReferencesError}
    * @throws {CompactionToolChangesMismatchError}
+   * @throws {ImageDimensionsTooLargeError}
    * @throws {OrganizationOnHoldError}
    * @throws {RequestBodyEncodingInvalidError}
    * @throws {RequestBodyEncodingUnsupportedError}
@@ -4947,6 +4961,28 @@ export interface ImageBlockParam {
 }
 
 /**
+ * The longest side of one or more images in the request exceeds the image size
+ * limit. Scale each image in `paths` so that neither side exceeds
+ * `max_side_length_pixels`, or remove it, then retry.
+ */
+export interface ImageDimensionsTooLargeErrorDetails {
+  error_code: 'image_dimensions_too_large';
+
+  /**
+   * The limit the images exceeded: the largest width or height, in pixels, that an
+   * image on this request may have.
+   */
+  max_side_length_pixels: number;
+
+  /**
+   * The position of every image over the limit, in the order you sent them, nested
+   * blocks included, such as `messages.0.content.1`, or
+   * `messages.0.content.1.content.0` for an image in a `tool_result` block.
+   */
+  paths: Array<string>;
+}
+
+/**
  * Configures the transformations the server applies to this image before the model
  * observes it. Each key names a condition the server transforms images for; its
  * value selects the transformation applied. Omitted keys keep their default
@@ -8185,6 +8221,7 @@ Messages.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
 Messages.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
 Messages.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
 Messages.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Messages.ImageDimensionsTooLargeError = ImageDimensionsTooLargeError;
 Messages.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
 Messages.ThreadContinueInFlightError = ThreadContinueInFlightError;
 Messages.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
@@ -8206,6 +8243,7 @@ export declare namespace Messages {
     CompactionSignatureInvalidError as CompactionSignatureInvalidError,
     CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
     CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ImageDimensionsTooLargeError as ImageDimensionsTooLargeError,
     ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
     ThreadContinueInFlightError as ThreadContinueInFlightError,
     ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
@@ -8463,6 +8501,7 @@ export declare namespace Messages {
     type FileDocumentSource as FileDocumentSource,
     type FileImageSource as FileImageSource,
     type ImageBlockParam as ImageBlockParam,
+    type ImageDimensionsTooLargeErrorDetails as ImageDimensionsTooLargeErrorDetails,
     type ImageTransformationsParam as ImageTransformationsParam,
     type InputJSONDelta as InputJSONDelta,
     type JSONOutputFormat as JSONOutputFormat,

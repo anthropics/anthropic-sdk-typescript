@@ -26,11 +26,10 @@ if [[ "$(npm view "$PACKAGE_NAME@$VERSION" version 2>/dev/null || true)" == "$VE
   exit 0
 fi
 
-# scripts/publish-packages.mts sets this only for the root package, which it has already built
-if [[ -z ${ROOT_PACKAGE_BUILT:-} ]]; then
-  pnpm build
-fi
-cd dist
+# The name that pnpm pack gives the tarball
+TARBALL_NAME="$(tr / - <<<"${PACKAGE_NAME#@}")-$VERSION.tgz"
+TARBALL="$(dirname "$0")/../packed/$TARBALL_NAME"
+node "$(dirname "$0")/../scripts/utils/check-tarball.cjs" "$TARBALL"
 
 # Get latest version from npm
 #
@@ -79,4 +78,4 @@ else
 fi
 
 # Publish with the appropriate tag
-pnpm publish --no-git-checks --tag "$TAG"
+npm publish "$TARBALL" --ignore-scripts --tag "$TAG"

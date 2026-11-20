@@ -315,6 +315,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">FileDocumentSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">FileImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ImageDimensionsTooLargeErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageTransformationsParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">JSONOutputFormat</a></code>
@@ -519,6 +520,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CompactionSignatureInvalidError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CompactionTooManyToolReferencesError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CompactionToolChangesMismatchError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ImageDimensionsTooLargeError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThreadAlreadyContinuedError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThreadContinueInFlightError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThreadFingerprintMismatchError</a></code>

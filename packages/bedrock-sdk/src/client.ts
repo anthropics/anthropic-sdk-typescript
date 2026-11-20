@@ -23,6 +23,7 @@ import { loggerFor } from './internal/utils/log';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const MODEL_ENDPOINTS = new Set<string>(['/v1/messages', '/v1/messages?beta=true']);
+const USER_PROFILE_ID_HEADER = 'anthropic-user-profile-id';
 
 const CREDENTIALS: PlatformCredentials = {
   accepts: ['apiKey'],
@@ -268,6 +269,14 @@ export class AnthropicBedrock extends BaseAnthropic {
     }
 
     if (options && MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
+      const userProfileID = headers.get(USER_PROFILE_ID_HEADER);
+      if (parsedBody && userProfileID != null) {
+        headers.delete(USER_PROFILE_ID_HEADER);
+        if (!('user_profile_id' in parsedBody)) {
+          parsedBody['user_profile_id'] = userProfileID;
+        }
+      }
+
       // Rewrite by canonical-suffix replacement so base URLs with path
       // prefixes keep working. If middleware rewrote the path away from the
       // canonical shape, it took control of the wire shape: skip the rewrite

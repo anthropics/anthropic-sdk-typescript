@@ -107,9 +107,7 @@ the changes aren't made through the automated pipeline, you may want to make rel
 
 You can release to package managers by manually running [the `Create releases` GitHub action](https://www.github.com/anthropics/anthropic-sdk-typescript/actions/workflows/create-releases.yml) with the path of the package to publish, e.g. `.` or `packages/vertex-sdk`. This requires a setup organization or repository secret to be set up.
 
-### Publish manually
-
-If you need to manually release a package, you can run the `bin/publish-npm` script with an `NPM_TOKEN` set on
+Don't publish from your own machine. `bin/publish-npm` is only for that workflow, even with an `NPM_TOKEN` set in
 the environment.
 
 ## License
