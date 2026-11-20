@@ -758,7 +758,7 @@ The SDK exposes a few building blocks for serving managed-agents sessions from a
 
 The tool implementations themselves live in a separate Node-only module — `@anthropic-ai/sdk/tools/agent-toolset/node` — alongside `@anthropic-ai/sdk/tools/memory/node`. `betaAgentToolset20260401(ctx)` returns the standard `agent_toolset_20260401` set (`bash`, `read`, `write`, `edit`, `glob`, `grep`) as `BetaRunnableTool` objects, the same shape `client.beta.messages.toolRunner` accepts. The individual factories — `betaBashTool`, `betaReadTool`, `betaWriteTool`, `betaEditTool`, `betaGlobTool`, `betaGrepTool` — are exported too.
 
-> **Node 22+ required.** The agent toolset uses the native `fs.glob` (added in Node 22) for its `glob` tool, so `@anthropic-ai/sdk/tools/agent-toolset/node` requires Node 22 or newer.
+> **Node 22+ required.** The agent toolset uses the native `fs.glob` (added in Node 22) for its `glob` tool, so `@anthropic-ai/sdk/tools/agent-toolset/node` requires Node 22 or newer. The rest of the SDK still supports Node 18+.
 
 ```ts
 import Anthropic from '@anthropic-ai/sdk';

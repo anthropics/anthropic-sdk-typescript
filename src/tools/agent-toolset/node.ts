@@ -9,7 +9,8 @@
  * the SDK — depending on it is an opt-in.
  *
  * **Node 22+ is required** for this module: the `glob` tool uses the native
- * `fs.glob`, added in Node 22.
+ * `fs.glob`, added in Node 22. The rest of the SDK still supports Node 18+; only
+ * the agent toolset has this requirement.
  *
  * The result of {@link betaAgentToolset20260401} is a plain `BetaRunnableTool[]`;
  * hand it to any tool runner — `client.beta.messages.toolRunner({ …, tools })`

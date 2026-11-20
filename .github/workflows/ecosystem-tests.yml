@@ -34,12 +34,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - shard: node 20
+            node: '20'
           - shard: node 22
             node: '22'
           - shard: node 24
             node: '24'
-          - shard: node 26
-            node: '26'
           - shard: non-node
     env:
       COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
