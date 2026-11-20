@@ -96,6 +96,7 @@ export class Messages extends APIResource {
    * @throws {CompactionSignatureInvalidError}
    * @throws {CompactionTooManyToolReferencesError}
    * @throws {CompactionToolChangesMismatchError}
+   * @throws {ImageDimensionsTooLargeError}
    * @throws {OrganizationOnHoldError}
    * @throws {RequestBodyEncodingInvalidError}
    * @throws {RequestBodyEncodingUnsupportedError}

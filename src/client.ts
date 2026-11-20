@@ -418,6 +418,8 @@ import {
   FileDocumentSource,
   FileImageSource,
   ImageBlockParam,
+  ImageDimensionsTooLargeError,
+  ImageDimensionsTooLargeErrorDetails,
   ImageTransformationsParam,
   InputJSONDelta,
   JSONOutputFormat,
@@ -2262,6 +2264,7 @@ Anthropic.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
 Anthropic.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
 Anthropic.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
 Anthropic.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Anthropic.ImageDimensionsTooLargeError = ImageDimensionsTooLargeError;
 Anthropic.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
 Anthropic.ThreadContinueInFlightError = ThreadContinueInFlightError;
 Anthropic.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
@@ -2352,6 +2355,7 @@ export declare namespace Anthropic {
     CompactionSignatureInvalidError as CompactionSignatureInvalidError,
     CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
     CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ImageDimensionsTooLargeError as ImageDimensionsTooLargeError,
     ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
     ThreadContinueInFlightError as ThreadContinueInFlightError,
     ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
@@ -2610,6 +2614,7 @@ export declare namespace Anthropic {
     type FileDocumentSource as FileDocumentSource,
     type FileImageSource as FileImageSource,
     type ImageBlockParam as ImageBlockParam,
+    type ImageDimensionsTooLargeErrorDetails as ImageDimensionsTooLargeErrorDetails,
     type ImageTransformationsParam as ImageTransformationsParam,
     type InputJSONDelta as InputJSONDelta,
     type JSONOutputFormat as JSONOutputFormat,

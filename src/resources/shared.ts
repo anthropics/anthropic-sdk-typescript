@@ -359,6 +359,7 @@ export type ErrorDetails =
   | MessagesAPI.CompactionSignatureInvalidErrorDetails
   | MessagesAPI.CompactionTooManyToolReferencesErrorDetails
   | MessagesAPI.CompactionToolChangesMismatchErrorDetails
+  | MessagesAPI.ImageDimensionsTooLargeErrorDetails
   | OrganizationOnHoldErrorDetails
   | RequestBodyEncodingInvalidErrorDetails
   | RequestBodyEncodingUnsupportedErrorDetails
