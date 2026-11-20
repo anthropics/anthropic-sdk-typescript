@@ -1008,6 +1008,8 @@ export {
   type BetaWebhookEventData,
   type BetaWebhookExternalKeyFailedEventData,
   type BetaWebhookExternalKeyRecoveredEventData,
+  type BetaWebhookExternalStorageFailedEventData,
+  type BetaWebhookExternalStorageRecoveredEventData,
   type BetaWebhookMemoryStoreArchivedEventData,
   type BetaWebhookMemoryStoreCreatedEventData,
   type BetaWebhookMemoryStoreDeletedEventData,

@@ -315,6 +315,8 @@ export interface BetaNewOrganizationWebhookEndpoint {
   enabled_events: Array<
     | 'external_key.failed'
     | 'external_key.recovered'
+    | 'external_storage.failed'
+    | 'external_storage.recovered'
     | 'user_profile.enforcement_action_opened'
     | 'user_profile.enforcement_action_resolved'
     | 'user_profile.program_status_updated'
@@ -380,6 +382,8 @@ export interface BetaOrganizationWebhookEndpoint {
   enabled_events: Array<
     | 'external_key.failed'
     | 'external_key.recovered'
+    | 'external_storage.failed'
+    | 'external_storage.recovered'
     | 'user_profile.enforcement_action_opened'
     | 'user_profile.enforcement_action_resolved'
     | 'user_profile.program_status_updated'
@@ -429,6 +433,8 @@ export interface WebhookCreateParams {
   enabled_events: Array<
     | 'external_key.failed'
     | 'external_key.recovered'
+    | 'external_storage.failed'
+    | 'external_storage.recovered'
     | 'user_profile.enforcement_action_opened'
     | 'user_profile.enforcement_action_resolved'
     | 'user_profile.program_status_updated'
@@ -477,6 +483,8 @@ export interface WebhookUpdateParams {
   enabled_events?: Array<
     | 'external_key.failed'
     | 'external_key.recovered'
+    | 'external_storage.failed'
+    | 'external_storage.recovered'
     | 'user_profile.enforcement_action_opened'
     | 'user_profile.enforcement_action_resolved'
     | 'user_profile.program_status_updated'

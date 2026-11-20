@@ -2524,6 +2524,8 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalKeyFailedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalKeyRecoveredEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalStorageFailedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookExternalStorageRecoveredEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreDeletedEventData</a></code>
