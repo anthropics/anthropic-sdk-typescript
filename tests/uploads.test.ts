@@ -43,6 +43,19 @@ describe('toFile', () => {
     expect(file.name).toEqual('audio.mp3');
   });
 
+  it('ignores the query string and fragment of a Response URL', async () => {
+    const response = mockResponse({ url: 'https://example.com/my/audio.mp3?token=secret#t=10' });
+    const file = await toFile(response);
+    expect(file.name).toEqual('audio.mp3');
+  });
+
+  it('uses the default name for a Response whose URL has no file name', async () => {
+    for (const url of ['https://example.com/my/', '']) {
+      const file = await toFile(mockResponse({ url }));
+      expect(file.name).toEqual('');
+    }
+  });
+
   it('extracts a file name from a File', async () => {
     const input = new File(['foo'], 'input.jsonl');
     const file = await toFile(input);
