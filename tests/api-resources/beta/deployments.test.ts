@@ -9,12 +9,15 @@ const client = new Anthropic({
 describe('resource deployments', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.deployments.create({
-      agent: 'string',
-      environment_id: 'x',
+      agent: { id: 'agent_011CZkYpogX7uDKUyvBTophP', type: 'agent' },
+      environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
       initial_events: [
-        { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
+        {
+          content: [{ text: "Compile yesterday's orders into report.md.", type: 'text' }],
+          type: 'user.message',
+        },
       ],
-      name: 'x',
+      name: 'Daily order report',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -27,12 +30,19 @@ describe('resource deployments', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.deployments.create({
-      agent: 'string',
-      environment_id: 'x',
+      agent: {
+        id: 'agent_011CZkYpogX7uDKUyvBTophP',
+        type: 'agent',
+        version: 0,
+      },
+      environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
       initial_events: [
-        { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
+        {
+          content: [{ text: "Compile yesterday's orders into report.md.", type: 'text' }],
+          type: 'user.message',
+        },
       ],
-      name: 'x',
+      name: 'Daily order report',
       budget: {
         max_list_cost: { amount: '2500', currency: 'USD' },
         type: 'limit',

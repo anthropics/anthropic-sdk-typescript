@@ -88,7 +88,7 @@ export class Workspaces extends APIResource {
    * const betaFederationRuleWorkspace =
    *   await client.beta.organization.federation.rules.workspaces.add(
    *     'federation_rule_id',
-   *     { workspace_id: 'workspace_id' },
+   *     { workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ' },
    *   );
    * ```
    */

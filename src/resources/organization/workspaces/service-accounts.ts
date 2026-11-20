@@ -186,7 +186,7 @@ export class ServiceAccounts extends APIResource {
    *   await client.organization.workspaces.serviceAccounts.add(
    *     'workspace_id',
    *     {
-   *       service_account_id: 'service_account_id',
+   *       service_account_id: 'svac_01SDCCSbTxrXDpWc1phhtcfK',
    *       workspace_role: 'workspace_admin',
    *     },
    *   );

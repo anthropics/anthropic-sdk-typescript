@@ -35,7 +35,7 @@ export class TelemetryDestinations extends APIResource {
    * const betaTelemetryDestination =
    *   await client.beta.organization.telemetryDestinations.create(
    *     {
-   *       endpoint_url: 'x',
+   *       endpoint_url: 'https://gateway.example.com',
    *       workspaces: { type: 'all' },
    *     },
    *   );

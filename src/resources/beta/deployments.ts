@@ -19,20 +19,23 @@ export class Deployments extends APIResource {
    * ```ts
    * const betaManagedAgentsDeployment =
    *   await client.beta.deployments.create({
-   *     agent: 'string',
-   *     environment_id: 'x',
+   *     agent: {
+   *       id: 'agent_011CZkYpogX7uDKUyvBTophP',
+   *       type: 'agent',
+   *     },
+   *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
    *     initial_events: [
    *       {
    *         content: [
    *           {
-   *             text: 'Where is my order #1234?',
+   *             text: "Compile yesterday's orders into report.md.",
    *             type: 'text',
    *           },
    *         ],
    *         type: 'user.message',
    *       },
    *     ],
-   *     name: 'x',
+   *     name: 'Daily order report',
    *   });
    * ```
    */

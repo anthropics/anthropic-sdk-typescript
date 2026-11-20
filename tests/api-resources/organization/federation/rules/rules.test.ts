@@ -8,10 +8,10 @@ const client = new Anthropic({
 describe('resource rules', () => {
   test('create: only required params', async () => {
     const responsePromise = client.organization.federation.rules.create({
-      issuer_id: 'issuer_id',
+      issuer_id: 'fdis_01SDCCSbTxrXDpWc1phhtcfK',
       match: {},
-      name: 'x',
-      oauth_scope: 'x',
+      name: 'prod-deploy-pipeline',
+      oauth_scope: 'workspace:developer',
       target: { service_account_id: 'svac_01SDCCSbTxrXDpWc1phhtcfK', type: 'service_account' },
     });
     const rawResponse = await responsePromise.asResponse();
@@ -25,15 +25,20 @@ describe('resource rules', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.organization.federation.rules.create({
-      issuer_id: 'issuer_id',
+      issuer_id: 'fdis_01SDCCSbTxrXDpWc1phhtcfK',
       match: {
         audience: 'audience',
-        claims: { foo: 'string' },
+        claims: {
+          event_name: 'push',
+          ref: 'refs/heads/main',
+          repository_id: '123456789',
+          repository_owner_id: '987654321',
+        },
         condition: 'condition',
         subject_prefix: 'subject_prefix',
       },
-      name: 'x',
-      oauth_scope: 'x',
+      name: 'prod-deploy-pipeline',
+      oauth_scope: 'workspace:developer',
       target: {
         service_account_id: 'svac_01SDCCSbTxrXDpWc1phhtcfK',
         type: 'service_account',
@@ -42,7 +47,7 @@ describe('resource rules', () => {
       applies_to_all_workspaces: true,
       description: 'description',
       token_lifetime_seconds: 60,
-      workspace_id: 'workspace_id',
+      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
     });
   });
 

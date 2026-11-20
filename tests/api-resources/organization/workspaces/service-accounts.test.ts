@@ -70,7 +70,7 @@ describe('resource serviceAccounts', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.organization.workspaces.serviceAccounts.add('workspace_id', {
-      service_account_id: 'service_account_id',
+      service_account_id: 'svac_01SDCCSbTxrXDpWc1phhtcfK',
       workspace_role: 'workspace_admin',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -84,7 +84,7 @@ describe('resource serviceAccounts', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.organization.workspaces.serviceAccounts.add('workspace_id', {
-      service_account_id: 'service_account_id',
+      service_account_id: 'svac_01SDCCSbTxrXDpWc1phhtcfK',
       workspace_role: 'workspace_admin',
     });
   });

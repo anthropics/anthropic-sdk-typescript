@@ -27,7 +27,7 @@ export class Targets extends APIResource {
    *     'capp_011CZkZjLP1cWxj5EtMmdgbq',
    *     {
    *       target: {
-   *         slack_channel_id: 'xxxxxxxx',
+   *         slack_channel_id: 'slch_01SvpyRQK3nN6eH9uhRA7n1q',
    *         type: 'slack_channel',
    *       },
    *     },

@@ -32,8 +32,9 @@ export class Issuers extends APIResource {
    * ```ts
    * const betaFederationIssuer =
    *   await client.beta.organization.federation.issuers.create({
-   *     issuer_url: 'x',
-   *     name: 'x',
+   *     issuer_url:
+   *       'https://token.actions.githubusercontent.com',
+   *     name: 'github-actions',
    *   });
    * ```
    */
