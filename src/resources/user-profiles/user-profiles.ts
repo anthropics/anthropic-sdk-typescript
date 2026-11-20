@@ -40,7 +40,7 @@ export class UserProfileRequiredError extends BadRequestError {
 }
 
 /**
- * The customer that the named user profile represents has not authorized the
+ * The customer that the request's user profile represents has not authorized the
  * caller to bill them, or the authorization that the request's credential uses has
  * ended. The response does not say which applies.
  */
@@ -53,8 +53,8 @@ export class UserProfileBillingNotAuthorizedError extends PermissionDeniedError 
 }
 
 /**
- * The caller is not allowed to bill the user profile that the request names. The
- * response gives no more specific error code and does not say what the reason is.
+ * The request's user profile cannot be billed. The response gives no more specific
+ * error code and does not say what the reason is.
  */
 export class UserProfileNotBillableError extends PermissionDeniedError {
   declare readonly errorCode: 'user_profile_not_billable';
@@ -331,7 +331,7 @@ export interface UserProfile {
 export type UserProfileAccessType = 'application' | 'passthrough';
 
 /**
- * The customer that the named user profile represents has not authorized the
+ * The customer that the request's user profile represents has not authorized the
  * caller to bill them, or the authorization that the request's credential uses has
  * ended. The response does not say which applies.
  */
@@ -698,8 +698,8 @@ export type UserProfileListOrder = 'asc' | 'desc';
 export type UserProfileListOrderBy = 'created_at' | 'name';
 
 /**
- * The caller is not allowed to bill the user profile that the request names. The
- * response gives no more specific error code and does not say what the reason is.
+ * The request's user profile cannot be billed. The response gives no more specific
+ * error code and does not say what the reason is.
  */
 export interface UserProfileNotBillableErrorDetails {
   error_code: 'user_profile_not_billable';

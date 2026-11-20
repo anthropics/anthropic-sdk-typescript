@@ -630,6 +630,35 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
     expect(signedProps.url).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
   });
 
+  test('sends the user profile ID in the body, not the header', async () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+    });
+
+    await client.messages.create({ ...createParams, user_profile_id: 'uprof_test' });
+
+    const [, wireInit] = mockFetch.mock.calls[0]!;
+    expect(new Headers(wireInit.headers).has('anthropic-user-profile-id')).toBe(false);
+    expect(JSON.parse(wireInit.body).user_profile_id).toBe('uprof_test');
+  });
+
+  test('no user profile ID sends no body field', async () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+    });
+
+    await client.messages.create(createParams);
+
+    const [, wireInit] = mockFetch.mock.calls[0]!;
+    expect(JSON.parse(wireInit.body)).not.toHaveProperty('user_profile_id');
+  });
+
   test('anthropic-beta headers set by middleware move into the body', async () => {
     const client = new AnthropicBedrock({
       awsRegion: 'us-east-1',
