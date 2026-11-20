@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.11.0...sdk-v1.12.0) (2026-11-20)
+
+### Features
+
+* **api:** add the image_dimensions_too_large error code
+
+
+### Bug Fixes
+
+* **client:** merge ANTHROPIC_CUSTOM_HEADERS with Headers or pairs in defaultHeaders
+
+
+### Chores
+
+* **docs:** clarify billing_policy in batches and two billing errors
+
 ## [1.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.10.0...sdk-v1.11.0) (2026-11-19)
 
 ### Features
