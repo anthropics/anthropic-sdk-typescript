@@ -33,7 +33,7 @@ import {
   ServiceAccounts,
 } from './service-accounts';
 import { APIPromise } from '../../../core/api-promise';
-import { BadRequestError } from '../../../core/error';
+import { BadRequestError, ConflictError, ServiceUnavailableError } from '../../../core/error';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
@@ -50,6 +50,18 @@ export class KeyProfileMismatchError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'KeyProfileMismatchError';
+}
+
+/**
+ * The Workspace's storage and its user profile don't match: the Workspace and its
+ * storage must have the same user profile, or both have none.
+ */
+export class StorageProfileMismatchError extends BadRequestError {
+  declare readonly errorCode: 'storage_profile_mismatch';
+  declare readonly details: StorageProfileMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'StorageProfileMismatchError';
 }
 
 /**
@@ -76,6 +88,32 @@ export class WorkspacePolicyViolationError extends BadRequestError {
   static override readonly _errorName: string = 'WorkspacePolicyViolationError';
 }
 
+/**
+ * The Workspace was archived, but External Storage was attached to it during the
+ * archive and is still attached. To detach it, archive the Workspace again as a
+ * caller with the `org:external-storage:use` permission.
+ */
+export class StorageAttachedDuringArchiveError extends ConflictError {
+  declare readonly errorCode: 'storage_attached_during_archive';
+  declare readonly details: StorageAttachedDuringArchiveErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'StorageAttachedDuringArchiveError';
+}
+
+/**
+ * The Workspace was created, but some of what the request asked for did not take
+ * effect, or may not have. Don't send the create again. The error's `message` says
+ * what to do with the Workspace at `workspace_id`.
+ */
+export class WorkspaceCreatedIncompleteError extends ServiceUnavailableError {
+  declare readonly errorCode: 'workspace_created_incomplete';
+  declare readonly details: WorkspaceCreatedIncompleteErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceCreatedIncompleteError';
+}
+
 export class Workspaces extends APIResource {
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
   members: MembersAPI.Members = new MembersAPI.Members(this._client);
@@ -91,6 +129,7 @@ export class Workspaces extends APIResource {
    * @throws {WorkspacePolicyViolationError}
    * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
+   * @throws {WorkspaceCreatedIncompleteError}
    *
    * @example
    * ```ts
@@ -138,10 +177,12 @@ export class Workspaces extends APIResource {
    * @throws {ExternalKeyValidationFailedError}
    * @throws {ExternalKeyValidationTimedOutError}
    * @throws {KeyProfileMismatchError}
+   * @throws {StorageProfileMismatchError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
    * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
+   * @throws {ChangeOutcomeUnknownError}
    *
    * @example
    * ```ts
@@ -192,6 +233,7 @@ export class Workspaces extends APIResource {
    * Archive Workspace
    *
    * @throws {SandboxEgressRestrictedError}
+   * @throws {StorageAttachedDuringArchiveError}
    *
    * @example
    * ```ts
@@ -286,6 +328,28 @@ export type NoBillingWorkspaceRole =
   | 'workspace_restricted_developer'
   | 'workspace_user';
 
+/**
+ * The Workspace was archived, but External Storage was attached to it during the
+ * archive and is still attached. To detach it, archive the Workspace again as a
+ * caller with the `org:external-storage:use` permission.
+ */
+export interface StorageAttachedDuringArchiveErrorDetails {
+  error_code: 'storage_attached_during_archive';
+}
+
+/**
+ * The Workspace's storage and its user profile don't match: the Workspace and its
+ * storage must have the same user profile, or both have none.
+ */
+export interface StorageProfileMismatchErrorDetails {
+  error_code: 'storage_profile_mismatch';
+
+  /**
+   * The storage setting that doesn't match the Workspace's user profile.
+   */
+  field: string;
+}
+
 export interface Workspace {
   /**
    * ID of the Workspace.
@@ -370,6 +434,20 @@ export interface Workspace {
   user_profile_id: string | null;
 }
 
+/**
+ * The Workspace was created, but some of what the request asked for did not take
+ * effect, or may not have. Don't send the create again. The error's `message` says
+ * what to do with the Workspace at `workspace_id`.
+ */
+export interface WorkspaceCreatedIncompleteErrorDetails {
+  error_code: 'workspace_created_incomplete';
+
+  /**
+   * ID of the Workspace the request created.
+   */
+  workspace_id: string;
+}
+
 export interface WorkspaceMember {
   /**
    * Object type.
@@ -412,7 +490,7 @@ export interface WorkspacePolicyViolationErrorDetails {
   error_code: 'workspace_policy_violation';
 
   /**
-   * The request field the broken rule applies to.
+   * The request field the broken rule applies to. Other values may be returned.
    */
   field: WorkspacePolicyField;
 }
@@ -542,8 +620,11 @@ export interface WorkspaceListParams extends PageParams {
 }
 
 Workspaces.KeyProfileMismatchError = KeyProfileMismatchError;
+Workspaces.StorageProfileMismatchError = StorageProfileMismatchError;
 Workspaces.WorkspaceMemberLimitExceededError = WorkspaceMemberLimitExceededError;
 Workspaces.WorkspacePolicyViolationError = WorkspacePolicyViolationError;
+Workspaces.StorageAttachedDuringArchiveError = StorageAttachedDuringArchiveError;
+Workspaces.WorkspaceCreatedIncompleteError = WorkspaceCreatedIncompleteError;
 Workspaces.RateLimits = RateLimits;
 Workspaces.Members = Members;
 Workspaces.ServiceAccounts = ServiceAccounts;
@@ -551,15 +632,21 @@ Workspaces.ServiceAccounts = ServiceAccounts;
 export declare namespace Workspaces {
   export {
     KeyProfileMismatchError as KeyProfileMismatchError,
+    StorageProfileMismatchError as StorageProfileMismatchError,
     WorkspaceMemberLimitExceededError as WorkspaceMemberLimitExceededError,
     WorkspacePolicyViolationError as WorkspacePolicyViolationError,
+    StorageAttachedDuringArchiveError as StorageAttachedDuringArchiveError,
+    WorkspaceCreatedIncompleteError as WorkspaceCreatedIncompleteError,
     type AllowedInferenceGeo as AllowedInferenceGeo,
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
     type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
+    type StorageAttachedDuringArchiveErrorDetails as StorageAttachedDuringArchiveErrorDetails,
+    type StorageProfileMismatchErrorDetails as StorageProfileMismatchErrorDetails,
     type Workspace as Workspace,
+    type WorkspaceCreatedIncompleteErrorDetails as WorkspaceCreatedIncompleteErrorDetails,
     type WorkspaceMember as WorkspaceMember,
     type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
     type WorkspacePolicyField as WorkspacePolicyField,

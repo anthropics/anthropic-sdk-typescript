@@ -14,6 +14,7 @@ import {
 } from './api-keys';
 import * as ComplianceSettingsAPI from './compliance-settings';
 import {
+  BetaAccessTransparency,
   BetaComplianceSettings,
   BetaComplianceSettingsState,
   BetaComplianceSettingsStateDisabled,
@@ -21,6 +22,7 @@ import {
   BetaComplianceSettingsStateEnabled,
   BetaComplianceSettingsStateEnabledParam,
   BetaComplianceSettingsStateParam,
+  ComplianceSettingRetrieveParams,
   ComplianceSettingUpdateParams,
   ComplianceSettings,
 } from './compliance-settings';
@@ -41,6 +43,54 @@ import {
   ExternalKeyValidateResponse,
   ExternalKeys,
 } from './external-keys';
+import * as ExternalStorageAPI from './external-storage';
+import {
+  BetaAWSExternalStorageConfig,
+  BetaAWSExternalStorageConfigParam,
+  BetaActiveExternalStorageStatus,
+  BetaAvailableExternalStorageStatus,
+  BetaDeletedExternalStorage,
+  BetaDrainingExternalStorageStatus,
+  BetaExternalStorage,
+  BetaExternalStorageFailedCheck,
+  BetaExternalStorageInUseError,
+  BetaExternalStorageInUseErrorDetails,
+  BetaExternalStorageInWorkspacePolicyError,
+  BetaExternalStorageInWorkspacePolicyErrorDetails,
+  BetaExternalStorageNotAvailableError,
+  BetaExternalStorageNotAvailableErrorDetails,
+  BetaExternalStoragesPageCursor,
+  BetaGCPExternalStorageConfig,
+  BetaGCPExternalStorageConfigParam,
+  BetaGrantRequiredError,
+  BetaGrantRequiredErrorDetails,
+  BetaInvalidStorageARNError,
+  BetaInvalidStorageARNErrorDetails,
+  BetaPendingConfigurationExternalStorageStatus,
+  BetaProviderNotAllowedError,
+  BetaProviderNotAllowedErrorDetails,
+  BetaStorageAlreadyRegisteredError,
+  BetaStorageAlreadyRegisteredErrorDetails,
+  BetaStorageAttachLimitReachedError,
+  BetaStorageAttachLimitReachedErrorDetails,
+  BetaStorageChangedConcurrentlyError,
+  BetaStorageChangedConcurrentlyErrorDetails,
+  BetaStorageNotAttachableError,
+  BetaStorageNotAttachableErrorDetails,
+  BetaStorageProfileStillRequiredError,
+  BetaStorageProfileStillRequiredErrorDetails,
+  BetaStorageVerificationFailedError,
+  BetaStorageVerificationFailedErrorDetails,
+  BetaUnsupportedRegionError,
+  BetaUnsupportedRegionErrorDetails,
+  ExternalStorage,
+  ExternalStorageActivateParams,
+  ExternalStorageCreateParams,
+  ExternalStorageDeleteParams,
+  ExternalStorageListParams,
+  ExternalStorageRetrieveParams,
+  ExternalStorageUpdateParams,
+} from './external-storage';
 import * as InvitesAPI from './invites';
 import {
   BetaOrganizationInvite,
@@ -381,22 +431,92 @@ import {
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   BetaAllowedInferenceGeo,
+  BetaAnthropicHumanReview,
+  BetaAnthropicHumanReviewParam,
   BetaDataResidency,
   BetaDataResidencyCreateConfig,
   BetaDataResidencyUpdateConfig,
+  BetaExternalStorageMember,
+  BetaExternalStorageMemberParam,
+  BetaHumanReviewOnWithExternalStorageError,
+  BetaHumanReviewOnWithExternalStorageErrorDetails,
+  BetaInferenceDataPrivacy,
+  BetaInferenceDataPrivacyCreateParam,
+  BetaInferenceDataPrivacyUpdateParam,
+  BetaInternalStorage,
+  BetaInternalStorageParam,
   BetaNoBillingWorkspaceRole,
+  BetaStorageMember,
+  BetaStorageMemberParam,
+  BetaTranscriptsStorageRequiredError,
+  BetaTranscriptsStorageRequiredErrorDetails,
   BetaWorkspace,
+  BetaWorkspaceChangedConcurrentlyError,
+  BetaWorkspaceChangedConcurrentlyErrorDetails,
+  BetaWorkspaceChangedConcurrentlyField,
   BetaWorkspaceMember,
   BetaWorkspaceRole,
   BetaWorkspacesPage,
+  WorkspaceArchiveParams,
   WorkspaceCreateParams,
   WorkspaceListParams,
+  WorkspaceRetrieveParams,
   WorkspaceUpdateParams,
   Workspaces,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
+import { BadRequestError, ServiceUnavailableError } from '../../../core/error';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
+
+/**
+ * Turning human review off needs Anthropic's approval for the organization, and
+ * the organization doesn't have it. Contact Anthropic support to request approval.
+ */
+export class BetaApprovalRequiredError extends BadRequestError {
+  declare readonly errorCode: 'approval_required';
+  declare readonly details: BetaApprovalRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaApprovalRequiredError';
+}
+
+/**
+ * Human review can't be set as requested on this Workspace, so the request changed
+ * nothing. The error's `message` says what to do instead.
+ */
+export class BetaHumanReviewNotAvailableError extends BadRequestError {
+  declare readonly errorCode: 'human_review_not_available';
+  declare readonly details: BetaHumanReviewNotAvailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaHumanReviewNotAvailableError';
+}
+
+/**
+ * The feature isn't offered to this organization. The error's `message` names the
+ * kind of organization or, when it names none, says to contact your Anthropic
+ * account team.
+ */
+export class BetaOrganizationNotEligibleError extends BadRequestError {
+  declare readonly errorCode: 'organization_not_eligible';
+  declare readonly details: BetaOrganizationNotEligibleErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaOrganizationNotEligibleError';
+}
+
+/**
+ * One of the organization's approvals from Anthropic could not be read right now,
+ * so nothing was done. Retry after the `Retry-After` delay.
+ */
+export class BetaAuthorizationCheckUnavailableError extends ServiceUnavailableError {
+  declare readonly errorCode: 'authorization_check_unavailable';
+  declare readonly details: BetaAuthorizationCheckUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaAuthorizationCheckUnavailableError';
+}
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -404,6 +524,7 @@ export class Organization extends APIResource {
   federation: FederationAPI.Federation = new FederationAPI.Federation(this._client);
   invites: InvitesAPI.Invites = new InvitesAPI.Invites(this._client);
   serviceAccounts: ServiceAccountsAPI.ServiceAccounts = new ServiceAccountsAPI.ServiceAccounts(this._client);
+  externalStorage: ExternalStorageAPI.ExternalStorage = new ExternalStorageAPI.ExternalStorage(this._client);
   users: UsersAPI.Users = new UsersAPI.Users(this._client);
   workspaces: WorkspacesAPI.Workspaces = new WorkspacesAPI.Workspaces(this._client);
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
@@ -445,6 +566,35 @@ export class Organization extends APIResource {
   }
 }
 
+/**
+ * Turning human review off needs Anthropic's approval for the organization, and
+ * the organization doesn't have it. Contact Anthropic support to request approval.
+ */
+export interface BetaApprovalRequiredErrorDetails {
+  error_code: 'approval_required';
+
+  /**
+   * The request field that needs the approval.
+   */
+  field: string;
+}
+
+/**
+ * One of the organization's approvals from Anthropic could not be read right now,
+ * so nothing was done. Retry after the `Retry-After` delay.
+ */
+export interface BetaAuthorizationCheckUnavailableErrorDetails {
+  error_code: 'authorization_check_unavailable';
+}
+
+/**
+ * Human review can't be set as requested on this Workspace, so the request changed
+ * nothing. The error's `message` says what to do instead.
+ */
+export interface BetaHumanReviewNotAvailableErrorDetails {
+  error_code: 'human_review_not_available';
+}
+
 export interface BetaOrganization {
   /**
    * ID of the Organization.
@@ -464,6 +614,15 @@ export interface BetaOrganization {
   type: 'organization';
 }
 
+/**
+ * The feature isn't offered to this organization. The error's `message` names the
+ * kind of organization or, when it names none, says to contact your Anthropic
+ * account team.
+ */
+export interface BetaOrganizationNotEligibleErrorDetails {
+  error_code: 'organization_not_eligible';
+}
+
 export type BetaOrganizationRole =
   | 'admin'
   | 'billing'
@@ -475,11 +634,29 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
+Organization.BetaApprovalRequiredError = BetaApprovalRequiredError;
+Organization.BetaHumanReviewNotAvailableError = BetaHumanReviewNotAvailableError;
+Organization.BetaOrganizationNotEligibleError = BetaOrganizationNotEligibleError;
+Organization.BetaAuthorizationCheckUnavailableError = BetaAuthorizationCheckUnavailableError;
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
 Organization.Invites = Invites;
 Organization.ServiceAccounts = ServiceAccounts;
+Organization.ExternalStorage = ExternalStorage;
+Organization.BetaExternalStorageInUseError = BetaExternalStorageInUseError;
+Organization.BetaExternalStorageInWorkspacePolicyError = BetaExternalStorageInWorkspacePolicyError;
+Organization.BetaExternalStorageNotAvailableError = BetaExternalStorageNotAvailableError;
+Organization.BetaGrantRequiredError = BetaGrantRequiredError;
+Organization.BetaInvalidStorageARNError = BetaInvalidStorageARNError;
+Organization.BetaProviderNotAllowedError = BetaProviderNotAllowedError;
+Organization.BetaStorageAttachLimitReachedError = BetaStorageAttachLimitReachedError;
+Organization.BetaStorageNotAttachableError = BetaStorageNotAttachableError;
+Organization.BetaStorageProfileStillRequiredError = BetaStorageProfileStillRequiredError;
+Organization.BetaStorageVerificationFailedError = BetaStorageVerificationFailedError;
+Organization.BetaUnsupportedRegionError = BetaUnsupportedRegionError;
+Organization.BetaStorageAlreadyRegisteredError = BetaStorageAlreadyRegisteredError;
+Organization.BetaStorageChangedConcurrentlyError = BetaStorageChangedConcurrentlyError;
 Organization.Users = Users;
 Organization.BetaCannotSignOutPrimaryOwnerError = BetaCannotSignOutPrimaryOwnerError;
 Organization.BetaCannotSignOutSelfError = BetaCannotSignOutSelfError;
@@ -488,6 +665,9 @@ Organization.BetaCannotSignOutMembershipAdminError = BetaCannotSignOutMembership
 Organization.BetaCannotSignOutOwnerError = BetaCannotSignOutOwnerError;
 Organization.BetaCannotSignOutPrivilegedMemberError = BetaCannotSignOutPrivilegedMemberError;
 Organization.Workspaces = Workspaces;
+Organization.BetaHumanReviewOnWithExternalStorageError = BetaHumanReviewOnWithExternalStorageError;
+Organization.BetaTranscriptsStorageRequiredError = BetaTranscriptsStorageRequiredError;
+Organization.BetaWorkspaceChangedConcurrentlyError = BetaWorkspaceChangedConcurrentlyError;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
 Organization.Analytics = Analytics;
@@ -518,7 +698,18 @@ Organization.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSet
 Organization.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 
 export declare namespace Organization {
-  export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
+  export {
+    BetaApprovalRequiredError as BetaApprovalRequiredError,
+    BetaHumanReviewNotAvailableError as BetaHumanReviewNotAvailableError,
+    BetaOrganizationNotEligibleError as BetaOrganizationNotEligibleError,
+    BetaAuthorizationCheckUnavailableError as BetaAuthorizationCheckUnavailableError,
+    type BetaApprovalRequiredErrorDetails as BetaApprovalRequiredErrorDetails,
+    type BetaAuthorizationCheckUnavailableErrorDetails as BetaAuthorizationCheckUnavailableErrorDetails,
+    type BetaHumanReviewNotAvailableErrorDetails as BetaHumanReviewNotAvailableErrorDetails,
+    type BetaOrganization as BetaOrganization,
+    type BetaOrganizationNotEligibleErrorDetails as BetaOrganizationNotEligibleErrorDetails,
+    type BetaOrganizationRole as BetaOrganizationRole,
+  };
 
   export {
     APIKeys as APIKeys,
@@ -574,6 +765,54 @@ export declare namespace Organization {
   };
 
   export {
+    ExternalStorage as ExternalStorage,
+    BetaExternalStorageInUseError as BetaExternalStorageInUseError,
+    BetaExternalStorageInWorkspacePolicyError as BetaExternalStorageInWorkspacePolicyError,
+    BetaExternalStorageNotAvailableError as BetaExternalStorageNotAvailableError,
+    BetaGrantRequiredError as BetaGrantRequiredError,
+    BetaInvalidStorageARNError as BetaInvalidStorageARNError,
+    BetaProviderNotAllowedError as BetaProviderNotAllowedError,
+    BetaStorageAttachLimitReachedError as BetaStorageAttachLimitReachedError,
+    BetaStorageNotAttachableError as BetaStorageNotAttachableError,
+    BetaStorageProfileStillRequiredError as BetaStorageProfileStillRequiredError,
+    BetaStorageVerificationFailedError as BetaStorageVerificationFailedError,
+    BetaUnsupportedRegionError as BetaUnsupportedRegionError,
+    BetaStorageAlreadyRegisteredError as BetaStorageAlreadyRegisteredError,
+    BetaStorageChangedConcurrentlyError as BetaStorageChangedConcurrentlyError,
+    type BetaActiveExternalStorageStatus as BetaActiveExternalStorageStatus,
+    type BetaAvailableExternalStorageStatus as BetaAvailableExternalStorageStatus,
+    type BetaAWSExternalStorageConfig as BetaAWSExternalStorageConfig,
+    type BetaAWSExternalStorageConfigParam as BetaAWSExternalStorageConfigParam,
+    type BetaDeletedExternalStorage as BetaDeletedExternalStorage,
+    type BetaDrainingExternalStorageStatus as BetaDrainingExternalStorageStatus,
+    type BetaExternalStorage as BetaExternalStorage,
+    type BetaExternalStorageFailedCheck as BetaExternalStorageFailedCheck,
+    type BetaExternalStorageInUseErrorDetails as BetaExternalStorageInUseErrorDetails,
+    type BetaExternalStorageInWorkspacePolicyErrorDetails as BetaExternalStorageInWorkspacePolicyErrorDetails,
+    type BetaExternalStorageNotAvailableErrorDetails as BetaExternalStorageNotAvailableErrorDetails,
+    type BetaGCPExternalStorageConfig as BetaGCPExternalStorageConfig,
+    type BetaGCPExternalStorageConfigParam as BetaGCPExternalStorageConfigParam,
+    type BetaGrantRequiredErrorDetails as BetaGrantRequiredErrorDetails,
+    type BetaInvalidStorageARNErrorDetails as BetaInvalidStorageARNErrorDetails,
+    type BetaPendingConfigurationExternalStorageStatus as BetaPendingConfigurationExternalStorageStatus,
+    type BetaProviderNotAllowedErrorDetails as BetaProviderNotAllowedErrorDetails,
+    type BetaStorageAlreadyRegisteredErrorDetails as BetaStorageAlreadyRegisteredErrorDetails,
+    type BetaStorageAttachLimitReachedErrorDetails as BetaStorageAttachLimitReachedErrorDetails,
+    type BetaStorageChangedConcurrentlyErrorDetails as BetaStorageChangedConcurrentlyErrorDetails,
+    type BetaStorageNotAttachableErrorDetails as BetaStorageNotAttachableErrorDetails,
+    type BetaStorageProfileStillRequiredErrorDetails as BetaStorageProfileStillRequiredErrorDetails,
+    type BetaStorageVerificationFailedErrorDetails as BetaStorageVerificationFailedErrorDetails,
+    type BetaUnsupportedRegionErrorDetails as BetaUnsupportedRegionErrorDetails,
+    type BetaExternalStoragesPageCursor as BetaExternalStoragesPageCursor,
+    type ExternalStorageCreateParams as ExternalStorageCreateParams,
+    type ExternalStorageRetrieveParams as ExternalStorageRetrieveParams,
+    type ExternalStorageUpdateParams as ExternalStorageUpdateParams,
+    type ExternalStorageListParams as ExternalStorageListParams,
+    type ExternalStorageDeleteParams as ExternalStorageDeleteParams,
+    type ExternalStorageActivateParams as ExternalStorageActivateParams,
+  };
+
+  export {
     Users as Users,
     BetaCannotSignOutPrimaryOwnerError as BetaCannotSignOutPrimaryOwnerError,
     BetaCannotSignOutSelfError as BetaCannotSignOutSelfError,
@@ -597,18 +836,38 @@ export declare namespace Organization {
 
   export {
     Workspaces as Workspaces,
+    BetaHumanReviewOnWithExternalStorageError as BetaHumanReviewOnWithExternalStorageError,
+    BetaTranscriptsStorageRequiredError as BetaTranscriptsStorageRequiredError,
+    BetaWorkspaceChangedConcurrentlyError as BetaWorkspaceChangedConcurrentlyError,
     type BetaAllowedInferenceGeo as BetaAllowedInferenceGeo,
+    type BetaAnthropicHumanReview as BetaAnthropicHumanReview,
+    type BetaAnthropicHumanReviewParam as BetaAnthropicHumanReviewParam,
     type BetaDataResidency as BetaDataResidency,
     type BetaDataResidencyCreateConfig as BetaDataResidencyCreateConfig,
     type BetaDataResidencyUpdateConfig as BetaDataResidencyUpdateConfig,
+    type BetaExternalStorageMember as BetaExternalStorageMember,
+    type BetaExternalStorageMemberParam as BetaExternalStorageMemberParam,
+    type BetaHumanReviewOnWithExternalStorageErrorDetails as BetaHumanReviewOnWithExternalStorageErrorDetails,
+    type BetaInferenceDataPrivacy as BetaInferenceDataPrivacy,
+    type BetaInferenceDataPrivacyCreateParam as BetaInferenceDataPrivacyCreateParam,
+    type BetaInferenceDataPrivacyUpdateParam as BetaInferenceDataPrivacyUpdateParam,
+    type BetaInternalStorage as BetaInternalStorage,
+    type BetaInternalStorageParam as BetaInternalStorageParam,
     type BetaNoBillingWorkspaceRole as BetaNoBillingWorkspaceRole,
+    type BetaStorageMember as BetaStorageMember,
+    type BetaStorageMemberParam as BetaStorageMemberParam,
+    type BetaTranscriptsStorageRequiredErrorDetails as BetaTranscriptsStorageRequiredErrorDetails,
     type BetaWorkspace as BetaWorkspace,
+    type BetaWorkspaceChangedConcurrentlyErrorDetails as BetaWorkspaceChangedConcurrentlyErrorDetails,
+    type BetaWorkspaceChangedConcurrentlyField as BetaWorkspaceChangedConcurrentlyField,
     type BetaWorkspaceMember as BetaWorkspaceMember,
     type BetaWorkspaceRole as BetaWorkspaceRole,
     type BetaWorkspacesPage as BetaWorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,
+    type WorkspaceRetrieveParams as WorkspaceRetrieveParams,
     type WorkspaceUpdateParams as WorkspaceUpdateParams,
     type WorkspaceListParams as WorkspaceListParams,
+    type WorkspaceArchiveParams as WorkspaceArchiveParams,
   };
 
   export {
@@ -627,6 +886,7 @@ export declare namespace Organization {
 
   export {
     ComplianceSettings as ComplianceSettings,
+    type BetaAccessTransparency as BetaAccessTransparency,
     type BetaComplianceSettings as BetaComplianceSettings,
     type BetaComplianceSettingsState as BetaComplianceSettingsState,
     type BetaComplianceSettingsStateDisabled as BetaComplianceSettingsStateDisabled,
@@ -634,6 +894,7 @@ export declare namespace Organization {
     type BetaComplianceSettingsStateEnabled as BetaComplianceSettingsStateEnabled,
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
     type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
+    type ComplianceSettingRetrieveParams as ComplianceSettingRetrieveParams,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
   };
 

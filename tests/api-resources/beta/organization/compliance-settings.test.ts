@@ -18,6 +18,16 @@ describe('resource complianceSettings', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
+  test('retrieve: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.organization.complianceSettings.retrieve(
+        { betas: ['computer-use-2024-10-22'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
   test('update: only required params', async () => {
     const responsePromise = client.beta.organization.complianceSettings.update({
       state: { type: 'enabled' },
@@ -32,6 +42,9 @@ describe('resource complianceSettings', () => {
   });
 
   test('update: required and optional params', async () => {
-    const response = await client.beta.organization.complianceSettings.update({ state: { type: 'enabled' } });
+    const response = await client.beta.organization.complianceSettings.update({
+      state: { type: 'enabled' },
+      betas: ['computer-use-2024-10-22'],
+    });
   });
 });

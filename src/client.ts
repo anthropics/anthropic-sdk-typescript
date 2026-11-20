@@ -624,6 +624,8 @@ import {
   WebSearchToolResultErrorObject,
 } from './resources/messages/messages';
 import {
+  ChangeOutcomeUnknownError,
+  ChangeOutcomeUnknownErrorDetails,
   ConcurrentMembershipChangeError,
   ConcurrentMembershipChangeErrorDetails,
   OrgMemberLimitExceededError,
@@ -2289,6 +2291,7 @@ Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
+Anthropic.ChangeOutcomeUnknownError = ChangeOutcomeUnknownError;
 Anthropic.Beta = Beta;
 Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
 Anthropic.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
@@ -2906,6 +2909,8 @@ export declare namespace Anthropic {
     OrgMemberLimitExceededError as OrgMemberLimitExceededError,
     RBACRoleNotFoundError as RBACRoleNotFoundError,
     ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
+    ChangeOutcomeUnknownError as ChangeOutcomeUnknownError,
+    type ChangeOutcomeUnknownErrorDetails as ChangeOutcomeUnknownErrorDetails,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,

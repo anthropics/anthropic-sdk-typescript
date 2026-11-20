@@ -62,6 +62,7 @@ import {
   InviteAlreadyExistsError,
 } from '../resources/organization/invites';
 import {
+  ChangeOutcomeUnknownError,
   ConcurrentMembershipChangeError,
   OrgMemberLimitExceededError,
   RBACRoleNotFoundError,
@@ -84,6 +85,27 @@ import {
 } from '../resources/beta/environments/environments';
 import { BetaHeartbeatPreconditionFailedError } from '../resources/beta/environments/work';
 import {
+  BetaExternalStorageInUseError,
+  BetaExternalStorageInWorkspacePolicyError,
+  BetaExternalStorageNotAvailableError,
+  BetaGrantRequiredError,
+  BetaInvalidStorageARNError,
+  BetaProviderNotAllowedError,
+  BetaStorageAlreadyRegisteredError,
+  BetaStorageAttachLimitReachedError,
+  BetaStorageChangedConcurrentlyError,
+  BetaStorageNotAttachableError,
+  BetaStorageProfileStillRequiredError,
+  BetaStorageVerificationFailedError,
+  BetaUnsupportedRegionError,
+} from '../resources/beta/organization/external-storage';
+import {
+  BetaApprovalRequiredError,
+  BetaAuthorizationCheckUnavailableError,
+  BetaHumanReviewNotAvailableError,
+  BetaOrganizationNotEligibleError,
+} from '../resources/beta/organization/organization';
+import {
   BetaCannotSignOutManagedMemberError,
   BetaCannotSignOutMembershipAdminError,
   BetaCannotSignOutOwnerError,
@@ -97,6 +119,9 @@ import {
 } from '../resources/organization/rbac-groups/rbac-groups';
 import {
   KeyProfileMismatchError,
+  StorageAttachedDuringArchiveError,
+  StorageProfileMismatchError,
+  WorkspaceCreatedIncompleteError,
   WorkspaceMemberLimitExceededError,
   WorkspacePolicyViolationError,
 } from '../resources/organization/workspaces/workspaces';
@@ -121,6 +146,11 @@ import {
 import { BetaRBACGroupNotFoundError } from '../resources/beta/organization/rbac-groups/rbac-groups';
 import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/organization/spend-limits/spend-limits';
 import {
+  BetaHumanReviewOnWithExternalStorageError,
+  BetaTranscriptsStorageRequiredError,
+  BetaWorkspaceChangedConcurrentlyError,
+} from '../resources/beta/organization/workspaces/workspaces';
+import {
   BetaCMEKFeatureUnsupportedError,
   BetaRBACGroupManagedSettingsNotFoundError,
   BetaRBACGroupOrderLimitExceededError,
@@ -131,6 +161,7 @@ import {
 /** @internal */
 export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
   ['400 already_member', AlreadyMemberError],
+  ['400 approval_required', BetaApprovalRequiredError],
   ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
   ['400 bundle_attachment_not_supported', BetaBundleAttachmentNotSupportedError],
   ['400 bundle_on_call', BetaBundleOnCallError],
@@ -156,18 +187,27 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 external_key_in_workspace_policy', ExternalKeyInWorkspacePolicyError],
   ['400 external_key_validation_failed', ExternalKeyValidationFailedError],
   ['400 external_key_validation_timed_out', ExternalKeyValidationTimedOutError],
+  ['400 external_storage_in_use', BetaExternalStorageInUseError],
+  ['400 external_storage_in_workspace_policy', BetaExternalStorageInWorkspacePolicyError],
+  ['400 external_storage_not_available', BetaExternalStorageNotAvailableError],
   ['400 file_not_downloadable', FileNotDownloadableError],
+  ['400 grant_required', BetaGrantRequiredError],
+  ['400 human_review_not_available', BetaHumanReviewNotAvailableError],
+  ['400 human_review_on_with_external_storage', BetaHumanReviewOnWithExternalStorageError],
   ['400 image_dimensions_too_large', ImageDimensionsTooLargeError],
   ['400 invalid_config_type_change', BetaInvalidConfigTypeChangeError],
   ['400 invalid_metadata', BetaInvalidMetadataError],
+  ['400 invalid_storage_arn', BetaInvalidStorageARNError],
   ['400 invite_already_exists', InviteAlreadyExistsError],
   ['400 key_profile_mismatch', KeyProfileMismatchError],
   ['400 org_api_key_limit_exceeded', OrgAPIKeyLimitExceededError],
   ['400 org_member_limit_exceeded', OrgMemberLimitExceededError],
+  ['400 organization_not_eligible', BetaOrganizationNotEligibleError],
   ['400 organization_not_enrolled_in_beta', BetaOrganizationNotEnrolledInBetaError],
   ['400 organization_on_hold', OrganizationOnHoldError],
   ['400 organization_type_not_supported', OrganizationTypeNotSupportedError],
   ['400 parent_organization_required', ParentOrganizationRequiredError],
+  ['400 provider_not_allowed', BetaProviderNotAllowedError],
   ['400 rbac_group_grants_owner_access', RBACGroupGrantsOwnerAccessError],
   ['400 rbac_group_order_limit_exceeded', BetaRBACGroupOrderLimitExceededError],
   ['400 rbac_group_owner_access_unconfirmed', RBACGroupOwnerAccessUnconfirmedError],
@@ -178,14 +218,21 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 settings_document_limit_exceeded', BetaSettingsDocumentLimitExceededError],
   ['400 settings_history_limit_exceeded', BetaSettingsHistoryLimitExceededError],
   ['400 slack_channel_set_up_settings_refused', BetaSlackChannelSetUpSettingsRefusedError],
+  ['400 storage_attach_limit_reached', BetaStorageAttachLimitReachedError],
+  ['400 storage_not_attachable', BetaStorageNotAttachableError],
+  ['400 storage_profile_mismatch', StorageProfileMismatchError],
+  ['400 storage_profile_still_required', BetaStorageProfileStillRequiredError],
   ['400 storage_quota_exceeded', StorageQuotaExceededError],
+  ['400 storage_verification_failed', BetaStorageVerificationFailedError],
   ['400 thread_already_continued', ThreadAlreadyContinuedError],
   ['400 thread_continue_in_flight', ThreadContinueInFlightError],
   ['400 thread_fingerprint_mismatch', ThreadFingerprintMismatchError],
   ['400 thread_unsupported_request', ThreadUnsupportedRequestError],
   ['400 tool_name_conflict', ToolNameConflictError],
   ['400 tool_reference_unresolved', ToolReferenceUnresolvedError],
+  ['400 transcripts_storage_required', BetaTranscriptsStorageRequiredError],
   ['400 unsupported_charset', BetaUnsupportedCharsetError],
+  ['400 unsupported_region', BetaUnsupportedRegionError],
   ['400 user_profile_not_found', UserProfileNotFoundError],
   ['400 user_profile_required', UserProfileRequiredError],
   ['400 workspace_api_key_limit_exceeded', WorkspaceAPIKeyLimitExceededError],
@@ -221,13 +268,20 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['409 skill_name_taken', BetaSkillNameTakenError],
   ['409 skill_read_blocked_undecryptable', SkillReadBlockedUndecryptableError],
   ['409 slack_channel_set_up_settings_conflict', BetaSlackChannelSetUpSettingsConflictError],
+  ['409 storage_already_registered', BetaStorageAlreadyRegisteredError],
+  ['409 storage_attached_during_archive', StorageAttachedDuringArchiveError],
+  ['409 storage_changed_concurrently', BetaStorageChangedConcurrentlyError],
+  ['409 workspace_changed_concurrently', BetaWorkspaceChangedConcurrentlyError],
   ['412 heartbeat_precondition_failed', BetaHeartbeatPreconditionFailedError],
   ['413 request_body_too_large_after_decoding', RequestBodyTooLargeAfterDecodingError],
   ['429 contract_spend_limit_reached', ContractSpendLimitReachedError],
   ['429 enforced_spend_limit_reached', EnforcedSpendLimitReachedError],
   ['429 ramp_limit_exceeded', RampLimitExceededError],
+  ['503 authorization_check_unavailable', BetaAuthorizationCheckUnavailableError],
+  ['503 change_outcome_unknown', ChangeOutcomeUnknownError],
   ['503 cmek_context_unavailable', CMEKContextUnavailableError],
   ['503 cmek_key_unreachable', CMEKKeyUnreachableError],
   ['503 registration_pending', BetaRegistrationPendingError],
+  ['503 workspace_created_incomplete', WorkspaceCreatedIncompleteError],
   ['529 compaction_unavailable', CompactionUnavailableError],
 ]);

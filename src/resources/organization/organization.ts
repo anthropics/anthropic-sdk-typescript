@@ -209,8 +209,14 @@ import {
   KeyProfileMismatchError,
   KeyProfileMismatchErrorDetails,
   NoBillingWorkspaceRole,
+  StorageAttachedDuringArchiveError,
+  StorageAttachedDuringArchiveErrorDetails,
+  StorageProfileMismatchError,
+  StorageProfileMismatchErrorDetails,
   Workspace,
   WorkspaceCreateParams,
+  WorkspaceCreatedIncompleteError,
+  WorkspaceCreatedIncompleteErrorDetails,
   WorkspaceListParams,
   WorkspaceMember,
   WorkspaceMemberLimitExceededError,
@@ -224,7 +230,7 @@ import {
   WorkspacesPage,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../core/api-promise';
-import { BadRequestError, ConflictError, NotFoundError } from '../../core/error';
+import { BadRequestError, ConflictError, NotFoundError, ServiceUnavailableError } from '../../core/error';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 
@@ -263,6 +269,18 @@ export class ConcurrentMembershipChangeError extends ConflictError {
   static override readonly _errorName: string = 'ConcurrentMembershipChangeError';
 }
 
+/**
+ * Some of the request's changes may have been saved and others not. Send the same
+ * request again to finish it; changes already saved aren't repeated.
+ */
+export class ChangeOutcomeUnknownError extends ServiceUnavailableError {
+  declare readonly errorCode: 'change_outcome_unknown';
+  declare readonly details: ChangeOutcomeUnknownErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ChangeOutcomeUnknownError';
+}
+
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
   externalKeys: ExternalKeysAPI.ExternalKeys = new ExternalKeysAPI.ExternalKeys(this._client);
@@ -298,6 +316,14 @@ export class Organization extends APIResource {
       }),
     });
   }
+}
+
+/**
+ * Some of the request's changes may have been saved and others not. Send the same
+ * request again to finish it; changes already saved aren't repeated.
+ */
+export interface ChangeOutcomeUnknownErrorDetails {
+  error_code: 'change_outcome_unknown';
 }
 
 /**
@@ -356,6 +382,7 @@ export interface RBACRoleNotFoundErrorDetails {
 Organization.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Organization.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Organization.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
+Organization.ChangeOutcomeUnknownError = ChangeOutcomeUnknownError;
 Organization.APIKeys = APIKeys;
 Organization.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
 Organization.WorkspaceAPIKeyLimitExceededError = WorkspaceAPIKeyLimitExceededError;
@@ -375,8 +402,11 @@ Organization.Users = Users;
 Organization.CannotRemoveLastMemberError = CannotRemoveLastMemberError;
 Organization.Workspaces = Workspaces;
 Organization.KeyProfileMismatchError = KeyProfileMismatchError;
+Organization.StorageProfileMismatchError = StorageProfileMismatchError;
 Organization.WorkspaceMemberLimitExceededError = WorkspaceMemberLimitExceededError;
 Organization.WorkspacePolicyViolationError = WorkspacePolicyViolationError;
+Organization.StorageAttachedDuringArchiveError = StorageAttachedDuringArchiveError;
+Organization.WorkspaceCreatedIncompleteError = WorkspaceCreatedIncompleteError;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
 Organization.Analytics = Analytics;
@@ -391,6 +421,8 @@ export declare namespace Organization {
     OrgMemberLimitExceededError as OrgMemberLimitExceededError,
     RBACRoleNotFoundError as RBACRoleNotFoundError,
     ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
+    ChangeOutcomeUnknownError as ChangeOutcomeUnknownError,
+    type ChangeOutcomeUnknownErrorDetails as ChangeOutcomeUnknownErrorDetails,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
@@ -483,15 +515,21 @@ export declare namespace Organization {
   export {
     Workspaces as Workspaces,
     KeyProfileMismatchError as KeyProfileMismatchError,
+    StorageProfileMismatchError as StorageProfileMismatchError,
     WorkspaceMemberLimitExceededError as WorkspaceMemberLimitExceededError,
     WorkspacePolicyViolationError as WorkspacePolicyViolationError,
+    StorageAttachedDuringArchiveError as StorageAttachedDuringArchiveError,
+    WorkspaceCreatedIncompleteError as WorkspaceCreatedIncompleteError,
     type AllowedInferenceGeo as AllowedInferenceGeo,
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
     type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
+    type StorageAttachedDuringArchiveErrorDetails as StorageAttachedDuringArchiveErrorDetails,
+    type StorageProfileMismatchErrorDetails as StorageProfileMismatchErrorDetails,
     type Workspace as Workspace,
+    type WorkspaceCreatedIncompleteErrorDetails as WorkspaceCreatedIncompleteErrorDetails,
     type WorkspaceMember as WorkspaceMember,
     type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
     type WorkspacePolicyField as WorkspacePolicyField,
