@@ -291,8 +291,8 @@ importers:
         specifier: ^1.4.1
         version: 1.9.1
       google-auth-library:
-        specifier: ^10.2.0
-        version: 10.9.0
+        specifier: ^11.3.1
+        version: 11.3.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.6
@@ -337,8 +337,8 @@ importers:
         specifier: ^1.4.1
         version: 1.9.1
       google-auth-library:
-        specifier: ^10.2.0
-        version: 10.7.0
+        specifier: ^11.3.1
+        version: 11.3.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.6
@@ -3330,26 +3330,19 @@ packages:
         integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==,
       }
 
-  gaxios@7.1.5:
+  gaxios@8.3.2:
     resolution:
       {
-        integrity: sha512-5FZy72Rh8LhtjmvDrKkI+lVhrsQrVKVsItxMoDm5mNQE+xR0WVIIs+jzPSJgBvKVsLi24fZhXJIsNI0bihDzFg==,
+        integrity: sha512-7VsaTExxjbDv2ZK1YuC4jbgfN33NI/6/7zdYWUHB6mcg51v4tCBZe+xzjqPzOpVzI+C5k1Kk9OQ80WVrXAHOqw==,
       }
-    engines: { node: '>=18' }
+    engines: { node: '>=22' }
 
-  gaxios@7.2.0:
+  gcp-metadata@9.2.2:
     resolution:
       {
-        integrity: sha512-CUVb4wcYe+771XevyH6HtGmXFAGGKkIC3kswAP8Z1JCe0j80JMaTPZH930DWFrvo0atjh18Arc0pEyUCWa5bfg==,
+        integrity: sha512-hlaHpCBoNCzoUjMnBZq0LbUiYqPAhXFaAgyNwQqwWU44TZIYJK3RD3o2wkNdvPs8nnUXqJjTudnodLJkLMBjow==,
       }
-    engines: { node: '>=18' }
-
-  gcp-metadata@8.1.2:
-    resolution:
-      {
-        integrity: sha512-zV/5HKTfCeKWnxG0Dmrw51hEWFGfcF2xiXqcA3+J90WDuP0SvoiSO5ORvcBsifmx/FoIjgQN3oNOGaQ5PhLFkg==,
-      }
-    engines: { node: '>=18' }
+    engines: { node: '>=22' }
 
   generator-function@2.0.1:
     resolution:
@@ -3434,33 +3427,19 @@ packages:
       }
     engines: { node: '>=10' }
 
-  google-auth-library@10.7.0:
+  google-auth-library@11.3.1:
     resolution:
       {
-        integrity: sha512-QpTAbNJ36TliZLx3TTtahR8HG0hN9RllL1e3FymOvQSIKK8JmgV58H924ub2wa2DsS3ANjjP1Aw1N+Ramc8hqQ==,
+        integrity: sha512-mQS0R2Ev/DKkzuWSYtDeq15uhDeaWuT2qzLYqJ41LmooxVKHmn5ut3pc6dlHY6wfHW/D7FBmOYjAtkjaD1A7qA==,
       }
-    engines: { node: '>=18' }
+    engines: { node: '>=22' }
 
-  google-auth-library@10.9.0:
+  google-logging-utils@2.1.0:
     resolution:
       {
-        integrity: sha512-xtvUqvINPhTaBm7nXqlYPcrMHJPm1lCNdSovxnKKhTm+4JsvQ+KGVYJViLoH9Yxu8w+T0Qv5HubzYT9BLrppJg==,
+        integrity: sha512-1R6uiq6XhXW2ZrcGtZpGgVDsYGzSmveVOn8Pp37qe1fbThHZ34e3t3eXj5mVu6PFSVx9fvB1KNVnYgVtq/BRcA==,
       }
-    engines: { node: '>=18' }
-
-  google-logging-utils@1.1.3:
-    resolution:
-      {
-        integrity: sha512-eAmLkjDjAFCVXg7A1unxHsLf961m6y17QFqXqAXGj/gVkKFrEICfStRfwUlGNfeCEjNRa32JEWOUTlYXPyyKvA==,
-      }
-    engines: { node: '>=14' }
-
-  google-logging-utils@1.1.4:
-    resolution:
-      {
-        integrity: sha512-LXxE6ND+JHhDPYtPFt3oeWrjxFPrnRZCZ4At6lpbi1ZDSAN7bmGET9s53vvARbxT93p+xpeDUbc/nCR4C+7vcw==,
-      }
-    engines: { node: '>=14' }
+    engines: { node: '>=22' }
 
   gopd@1.2.0:
     resolution:
@@ -3973,6 +3952,7 @@ packages:
         integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==,
       }
     engines: { node: '>=10.5.0' }
+    deprecated: Use your platform's native DOMException instead
 
   node-fetch@3.3.2:
     resolution:
@@ -7638,7 +7618,7 @@ snapshots:
 
   function-bind@1.1.2: {}
 
-  gaxios@7.1.5:
+  gaxios@8.3.2:
     dependencies:
       extend: 3.0.2
       https-proxy-agent: 7.0.2
@@ -7646,18 +7626,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  gaxios@7.2.0:
+  gcp-metadata@9.2.2:
     dependencies:
-      extend: 3.0.2
-      https-proxy-agent: 7.0.2
-      node-fetch: 3.3.2
-    transitivePeerDependencies:
-      - supports-color
-
-  gcp-metadata@8.1.2:
-    dependencies:
-      gaxios: 7.2.0
-      google-logging-utils: 1.1.4
+      gaxios: 8.3.2
+      google-logging-utils: 2.1.0
       json-bigint: 1.0.0
     transitivePeerDependencies:
       - supports-color
@@ -7729,31 +7701,18 @@ snapshots:
       merge2: 1.4.1
       slash: 3.0.0
 
-  google-auth-library@10.7.0:
+  google-auth-library@11.3.1:
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.1.5
-      gcp-metadata: 8.1.2
-      google-logging-utils: 1.1.3
+      gaxios: 8.3.2
+      gcp-metadata: 9.2.2
+      google-logging-utils: 2.1.0
       jws: 4.0.0
     transitivePeerDependencies:
       - supports-color
 
-  google-auth-library@10.9.0:
-    dependencies:
-      base64-js: 1.5.1
-      ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.2.0
-      gcp-metadata: 8.1.2
-      google-logging-utils: 1.1.3
-      jws: 4.0.0
-    transitivePeerDependencies:
-      - supports-color
-
-  google-logging-utils@1.1.3: {}
-
-  google-logging-utils@1.1.4: {}
+  google-logging-utils@2.1.0: {}
 
   gopd@1.2.0: {}
 
