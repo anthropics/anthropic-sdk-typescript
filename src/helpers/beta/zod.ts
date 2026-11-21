@@ -24,11 +24,29 @@ export function betaZodOutputFormat<ZodInput extends z.ZodType>(
       ...jsonSchema,
     },
     parse: (content) => {
-      const output = zodObject.safeParse(JSON.parse(content));
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(content);
+      } catch (error) {
+        throw new AnthropicError(
+          `Failed to parse structured output as JSON: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+
+      const output = zodObject.safeParse(parsed);
 
       if (!output.success) {
+        const formattedIssues = output.error.issues
+          .slice(0, 5)
+          .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
+          .join('\n');
+        const issueCount = output.error.issues.length;
+        const suffix = issueCount > 5 ? `\n  ... and ${issueCount - 5} more issue(s)` : '';
+
         throw new AnthropicError(
-          `Failed to parse structured output: ${output.error.message} cause: ${output.error.issues}`,
+          `Failed to parse structured output: ${output.error.message}\nValidation issues:\n${formattedIssues}${suffix}`,
         );
       }
 
