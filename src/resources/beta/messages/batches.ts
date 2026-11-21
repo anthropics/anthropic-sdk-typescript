@@ -24,6 +24,7 @@ export class Batches extends APIResource {
    * @throws {ClaudeCodeKeyCreatorNotMemberError}
    * @throws {CMEKKeyDisabledError}
    * @throws {OrganizationOnHoldError}
+   * @throws {WorkspaceHumanReviewDisabledError}
    * @throws {EnforcedSpendLimitReachedError}
    *
    * @example

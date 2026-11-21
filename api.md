@@ -35,6 +35,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">WorkspaceHumanReviewDisabledErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
@@ -52,6 +53,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">ParentOrganizationRequiredError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">WorkspaceHumanReviewDisabledError</a></code>
 - <code><a href="./src/resources/shared.ts">LinkedOrganizationBillingUnavailableError</a></code>
 - <code><a href="./src/resources/shared.ts">LinkedOrganizationSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>

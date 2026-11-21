@@ -19,6 +19,7 @@ import {
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
   SandboxEgressRestrictedError,
+  WorkspaceHumanReviewDisabledError,
 } from '../resources/shared';
 import {
   BetaOrganizationNotEnrolledInBetaError,
@@ -236,6 +237,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 user_profile_not_found', UserProfileNotFoundError],
   ['400 user_profile_required', UserProfileRequiredError],
   ['400 workspace_api_key_limit_exceeded', WorkspaceAPIKeyLimitExceededError],
+  ['400 workspace_human_review_disabled', WorkspaceHumanReviewDisabledError],
   ['400 workspace_member_limit_exceeded', WorkspaceMemberLimitExceededError],
   ['400 workspace_policy_violation', WorkspacePolicyViolationError],
   ['402 linked_organization_billing_unavailable', LinkedOrganizationBillingUnavailableError],

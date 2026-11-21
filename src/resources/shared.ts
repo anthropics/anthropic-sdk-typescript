@@ -138,6 +138,18 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 }
 
 /**
+ * The request's Workspace has Human Review turned off, and this operation is not
+ * available there. Use a Workspace with Human Review on.
+ */
+export class WorkspaceHumanReviewDisabledError extends BadRequestError {
+  declare readonly errorCode: 'workspace_human_review_disabled';
+  declare readonly details: WorkspaceHumanReviewDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceHumanReviewDisabledError';
+}
+
+/**
  * Anthropic cannot currently bill the organization linked to the request's user
  * profile, for a reason that lies with that organization's own account. The
  * response does not say what the reason is.
@@ -385,6 +397,7 @@ export type ErrorDetails =
   | RampLimitExceededErrorDetails
   | CMEKKeyUnreachableErrorDetails
   | MessagesAPI.CompactionUnavailableErrorDetails
+  | WorkspaceHumanReviewDisabledErrorDetails
   | FilesAPI.StorageQuotaExceededErrorDetails
   | FilesAPI.FileNotDownloadableErrorDetails
   | FilesAPI.FileExpiredErrorDetails
@@ -666,6 +679,14 @@ export interface RequestBodyTooLargeAfterDecodingErrorDetails {
  */
 export interface SandboxEgressRestrictedErrorDetails {
   error_code: 'sandbox_egress_restricted';
+}
+
+/**
+ * The request's Workspace has Human Review turned off, and this operation is not
+ * available there. Use a Workspace with Human Review on.
+ */
+export interface WorkspaceHumanReviewDisabledErrorDetails {
+  error_code: 'workspace_human_review_disabled';
 }
 
 /**

@@ -121,6 +121,7 @@ import {
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
   SandboxEgressRestrictedError,
+  WorkspaceHumanReviewDisabledError,
 } from './resources/shared';
 import {
   AnthropicBeta,
@@ -2308,6 +2309,7 @@ Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
 Anthropic.ParentOrganizationRequiredError = ParentOrganizationRequiredError;
 Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.WorkspaceHumanReviewDisabledError = WorkspaceHumanReviewDisabledError;
 Anthropic.LinkedOrganizationBillingUnavailableError = LinkedOrganizationBillingUnavailableError;
 Anthropic.LinkedOrganizationSpendLimitReachedError = LinkedOrganizationSpendLimitReachedError;
 Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
@@ -2965,6 +2967,7 @@ export declare namespace Anthropic {
     ParentOrganizationRequiredError as ParentOrganizationRequiredError,
     RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    WorkspaceHumanReviewDisabledError as WorkspaceHumanReviewDisabledError,
     LinkedOrganizationBillingUnavailableError as LinkedOrganizationBillingUnavailableError,
     LinkedOrganizationSpendLimitReachedError as LinkedOrganizationSpendLimitReachedError,
     SandboxEgressRestrictedError as SandboxEgressRestrictedError,
@@ -3009,6 +3012,7 @@ export declare namespace Anthropic {
   export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;
   export type RequestBodyTooLargeAfterDecodingErrorDetails = API.RequestBodyTooLargeAfterDecodingErrorDetails;
   export type SandboxEgressRestrictedErrorDetails = API.SandboxEgressRestrictedErrorDetails;
+  export type WorkspaceHumanReviewDisabledErrorDetails = API.WorkspaceHumanReviewDisabledErrorDetails;
   export type AuthenticationError = API.AuthenticationError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type BillingError = API.BillingError;
