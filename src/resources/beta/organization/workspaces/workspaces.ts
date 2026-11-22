@@ -411,8 +411,7 @@ export interface BetaHumanReviewOnWithExternalStorageErrorDetails {
 export interface BetaInferenceDataPrivacy {
   /**
    * The Workspace's human review setting. Human review is off only while this is
-   * `disabled` and Anthropic's approval stands. If Anthropic withdraws approval,
-   * review is back on, though this field still reads `disabled`.
+   * `disabled` and Anthropic's approval stands.
    */
   human_review?: BetaAnthropicHumanReview;
 
