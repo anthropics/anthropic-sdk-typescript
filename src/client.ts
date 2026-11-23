@@ -121,6 +121,7 @@ import {
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
   SandboxEgressRestrictedError,
+  WorkspaceHumanReviewDisabledError,
 } from './resources/shared';
 import {
   AnthropicBeta,
@@ -624,6 +625,8 @@ import {
   WebSearchToolResultErrorObject,
 } from './resources/messages/messages';
 import {
+  ChangeOutcomeUnknownError,
+  ChangeOutcomeUnknownErrorDetails,
   ConcurrentMembershipChangeError,
   ConcurrentMembershipChangeErrorDetails,
   OrgMemberLimitExceededError,
@@ -2249,6 +2252,9 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
   skills: API.Skills = new API.Skills(this);
+  /**
+   * Register the end customers that your platform serves, so each request can name who it's for. To get started, see the [User profiles guide](https://platform.claude.com/docs/en/manage-claude/user-profiles).
+   */
   userProfiles: API.UserProfiles = new API.UserProfiles(this);
   organization: API.Organization = new API.Organization(this);
   beta: API.Beta = new API.Beta(this);
@@ -2289,6 +2295,7 @@ Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
+Anthropic.ChangeOutcomeUnknownError = ChangeOutcomeUnknownError;
 Anthropic.Beta = Beta;
 Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
 Anthropic.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
@@ -2302,6 +2309,7 @@ Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
 Anthropic.ParentOrganizationRequiredError = ParentOrganizationRequiredError;
 Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.WorkspaceHumanReviewDisabledError = WorkspaceHumanReviewDisabledError;
 Anthropic.LinkedOrganizationBillingUnavailableError = LinkedOrganizationBillingUnavailableError;
 Anthropic.LinkedOrganizationSpendLimitReachedError = LinkedOrganizationSpendLimitReachedError;
 Anthropic.SandboxEgressRestrictedError = SandboxEgressRestrictedError;
@@ -2906,6 +2914,8 @@ export declare namespace Anthropic {
     OrgMemberLimitExceededError as OrgMemberLimitExceededError,
     RBACRoleNotFoundError as RBACRoleNotFoundError,
     ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
+    ChangeOutcomeUnknownError as ChangeOutcomeUnknownError,
+    type ChangeOutcomeUnknownErrorDetails as ChangeOutcomeUnknownErrorDetails,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
@@ -2957,6 +2967,7 @@ export declare namespace Anthropic {
     ParentOrganizationRequiredError as ParentOrganizationRequiredError,
     RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    WorkspaceHumanReviewDisabledError as WorkspaceHumanReviewDisabledError,
     LinkedOrganizationBillingUnavailableError as LinkedOrganizationBillingUnavailableError,
     LinkedOrganizationSpendLimitReachedError as LinkedOrganizationSpendLimitReachedError,
     SandboxEgressRestrictedError as SandboxEgressRestrictedError,
@@ -3001,6 +3012,7 @@ export declare namespace Anthropic {
   export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;
   export type RequestBodyTooLargeAfterDecodingErrorDetails = API.RequestBodyTooLargeAfterDecodingErrorDetails;
   export type SandboxEgressRestrictedErrorDetails = API.SandboxEgressRestrictedErrorDetails;
+  export type WorkspaceHumanReviewDisabledErrorDetails = API.WorkspaceHumanReviewDisabledErrorDetails;
   export type AuthenticationError = API.AuthenticationError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type BillingError = API.BillingError;

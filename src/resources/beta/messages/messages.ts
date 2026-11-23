@@ -4,6 +4,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
 import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
+import { DEPRECATED_MODELS, MODELS_TO_WARN_WITH_THINKING_ENABLED } from '../../../internal/data';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
@@ -37,7 +38,6 @@ import {
   BetaToolRunnerRequestOptions,
 } from '../../../lib/tools/BetaToolRunner';
 import { ToolError } from '../../../lib/tools/ToolError';
-import type { Model } from '../../messages/messages';
 import * as BetaMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
@@ -60,15 +60,6 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-
-const DEPRECATED_MODELS: {
-  [K in Model]?: string;
-} = {
-  'claude-sonnet-4-5': 'November 30th, 2026',
-  'claude-sonnet-4-5-20250929': 'November 30th, 2026',
-};
-
-const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);

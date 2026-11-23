@@ -9,7 +9,7 @@ const client = new Anthropic({
 describe('resource slackChannels', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.organization.claudeTag.slackChannels.create({
-      slack: { channel_id: 'xx', workspace_id: 'xx' },
+      slack: { channel_id: 'C0456EFGH', workspace_id: 'T0123ABCD' },
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -22,7 +22,7 @@ describe('resource slackChannels', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.organization.claudeTag.slackChannels.create({
-      slack: { channel_id: 'xx', workspace_id: 'xx' },
+      slack: { channel_id: 'C0456EFGH', workspace_id: 'T0123ABCD' },
       settings: {
         enabled: true,
         environment_id: 'x',

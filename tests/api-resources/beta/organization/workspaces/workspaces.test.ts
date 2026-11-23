@@ -28,6 +28,11 @@ describe('resource workspaces', () => {
       },
       display_color: '#6C5BB9',
       external_key_id: 'ekey_01SDCCSbTxrXDpWc1phhtcfK',
+      inference_data_privacy: {
+        human_review: { type: 'disabled' },
+        safeguards_storage: { type: 'internal' },
+        transcripts_storage: { type: 'internal' },
+      },
       tags: { env: 'prod', team: 'platform' },
       user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
       betas: ['computer-use-2024-10-22'],
@@ -43,6 +48,17 @@ describe('resource workspaces', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('retrieve: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.organization.workspaces.retrieve(
+        'workspace_id',
+        { betas: ['computer-use-2024-10-22'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('update', async () => {
@@ -78,6 +94,7 @@ describe('resource workspaces', () => {
           include_archived: true,
           include_default: true,
           limit: 1,
+          betas: ['computer-use-2024-10-22'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -93,5 +110,16 @@ describe('resource workspaces', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('archive: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.organization.workspaces.archive(
+        'workspace_id',
+        { betas: ['computer-use-2024-10-22'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 });

@@ -9,7 +9,7 @@ const client = new Anthropic({
 describe('resource telemetryDestinations', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.organization.telemetryDestinations.create({
-      endpoint_url: 'x',
+      endpoint_url: 'https://gateway.example.com',
       workspaces: { type: 'all' },
     });
     const rawResponse = await responsePromise.asResponse();
@@ -23,7 +23,7 @@ describe('resource telemetryDestinations', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.organization.telemetryDestinations.create({
-      endpoint_url: 'x',
+      endpoint_url: 'https://gateway.example.com',
       workspaces: { type: 'all' },
       display_name: 'display_name',
       headers: { foo: 'string' },

@@ -1,6 +1,7 @@
 import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
+import { DEPRECATED_MODELS, MODELS_TO_WARN_WITH_THINKING_ENABLED } from '../../internal/data';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
@@ -5330,14 +5331,6 @@ export interface OutputTokensDetails {
    */
   thinking_tokens: number;
 }
-const DEPRECATED_MODELS: {
-  [K in Model]?: string;
-} = {
-  'claude-sonnet-4-5': 'November 30th, 2026',
-  'claude-sonnet-4-5-20250929': 'November 30th, 2026',
-};
-
-const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;

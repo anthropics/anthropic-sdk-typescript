@@ -34,7 +34,12 @@ export class SlackChannels extends APIResource {
    * ```ts
    * const betaClaudeTagSlackChannel =
    *   await client.beta.organization.claudeTag.slackChannels.create(
-   *     { slack: { channel_id: 'xx', workspace_id: 'xx' } },
+   *     {
+   *       slack: {
+   *         channel_id: 'C0456EFGH',
+   *         workspace_id: 'T0123ABCD',
+   *       },
+   *     },
    *   );
    * ```
    */

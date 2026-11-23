@@ -186,6 +186,8 @@ import {
   BetaWebhookEventData,
   BetaWebhookExternalKeyFailedEventData,
   BetaWebhookExternalKeyRecoveredEventData,
+  BetaWebhookExternalStorageFailedEventData,
+  BetaWebhookExternalStorageRecoveredEventData,
   BetaWebhookMemoryStoreArchivedEventData,
   BetaWebhookMemoryStoreCreatedEventData,
   BetaWebhookMemoryStoreDeletedEventData,
@@ -894,7 +896,19 @@ import {
   BetaMCPToolDefaultConfig,
 } from './messages/messages';
 import * as OrganizationAPI from './organization/organization';
-import { BetaOrganization, BetaOrganizationRole, Organization } from './organization/organization';
+import {
+  BetaApprovalRequiredError,
+  BetaApprovalRequiredErrorDetails,
+  BetaAuthorizationCheckUnavailableError,
+  BetaAuthorizationCheckUnavailableErrorDetails,
+  BetaHumanReviewNotAvailableError,
+  BetaHumanReviewNotAvailableErrorDetails,
+  BetaOrganization,
+  BetaOrganizationNotEligibleError,
+  BetaOrganizationNotEligibleErrorDetails,
+  BetaOrganizationRole,
+  Organization,
+} from './organization/organization';
 import * as SessionsAPI from './sessions/sessions';
 import {
   BetaManagedAgentsAdvisorParams,
@@ -1123,6 +1137,7 @@ export type AnthropicBeta =
   | 'cache-diagnosis-2026-04-07'
   | 'ce-user-management-2026-07-13'
   | 'ce-claude-code-managed-settings-2026-10-06'
+  | 'efs-2026-10-01'
   | 'user-profiles-billing-2026-10-01';
 
 export interface BetaAPIErrorObject {
@@ -1381,6 +1396,10 @@ Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
 Beta.Organization = Organization;
+Beta.BetaApprovalRequiredError = BetaApprovalRequiredError;
+Beta.BetaHumanReviewNotAvailableError = BetaHumanReviewNotAvailableError;
+Beta.BetaOrganizationNotEligibleError = BetaOrganizationNotEligibleError;
+Beta.BetaAuthorizationCheckUnavailableError = BetaAuthorizationCheckUnavailableError;
 
 export declare namespace Beta {
   export {
@@ -2324,6 +2343,8 @@ export declare namespace Beta {
     type BetaWebhookEventData as BetaWebhookEventData,
     type BetaWebhookExternalKeyFailedEventData as BetaWebhookExternalKeyFailedEventData,
     type BetaWebhookExternalKeyRecoveredEventData as BetaWebhookExternalKeyRecoveredEventData,
+    type BetaWebhookExternalStorageFailedEventData as BetaWebhookExternalStorageFailedEventData,
+    type BetaWebhookExternalStorageRecoveredEventData as BetaWebhookExternalStorageRecoveredEventData,
     type BetaWebhookMemoryStoreArchivedEventData as BetaWebhookMemoryStoreArchivedEventData,
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
@@ -2418,7 +2439,15 @@ export declare namespace Beta {
 
   export {
     Organization as Organization,
+    BetaApprovalRequiredError as BetaApprovalRequiredError,
+    BetaHumanReviewNotAvailableError as BetaHumanReviewNotAvailableError,
+    BetaOrganizationNotEligibleError as BetaOrganizationNotEligibleError,
+    BetaAuthorizationCheckUnavailableError as BetaAuthorizationCheckUnavailableError,
+    type BetaApprovalRequiredErrorDetails as BetaApprovalRequiredErrorDetails,
+    type BetaAuthorizationCheckUnavailableErrorDetails as BetaAuthorizationCheckUnavailableErrorDetails,
+    type BetaHumanReviewNotAvailableErrorDetails as BetaHumanReviewNotAvailableErrorDetails,
     type BetaOrganization as BetaOrganization,
+    type BetaOrganizationNotEligibleErrorDetails as BetaOrganizationNotEligibleErrorDetails,
     type BetaOrganizationRole as BetaOrganizationRole,
   };
 }

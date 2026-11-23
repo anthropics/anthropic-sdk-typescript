@@ -10,6 +10,8 @@ import * as SkillsAPI from './skills/skills';
 import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
+import * as ExternalStorageAPI from './beta/organization/external-storage';
+import * as BetaOrganizationAPI from './beta/organization/organization';
 import * as OrganizationUsersAPI from './beta/organization/users';
 import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
@@ -17,6 +19,7 @@ import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
 import * as PluginsAPI from './beta/organization/plugins/plugins';
 import * as OrganizationRBACGroupsAPI from './beta/organization/rbac-groups/rbac-groups';
 import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
+import * as OrganizationWorkspacesAPI from './beta/organization/workspaces/workspaces';
 import * as ManagedSettingsAPI from './beta/organization/claude-code/managed-settings/managed-settings';
 import {
   BadRequestError,
@@ -132,6 +135,18 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
+}
+
+/**
+ * The request's Workspace has Human Review turned off, and this operation is not
+ * available there. Use a Workspace with Human Review on.
+ */
+export class WorkspaceHumanReviewDisabledError extends BadRequestError {
+  declare readonly errorCode: 'workspace_human_review_disabled';
+  declare readonly details: WorkspaceHumanReviewDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceHumanReviewDisabledError';
 }
 
 /**
@@ -382,6 +397,7 @@ export type ErrorDetails =
   | RampLimitExceededErrorDetails
   | CMEKKeyUnreachableErrorDetails
   | MessagesAPI.CompactionUnavailableErrorDetails
+  | WorkspaceHumanReviewDisabledErrorDetails
   | FilesAPI.StorageQuotaExceededErrorDetails
   | FilesAPI.FileNotDownloadableErrorDetails
   | FilesAPI.FileExpiredErrorDetails
@@ -405,6 +421,10 @@ export type ErrorDetails =
   | WorkspacesAPI.KeyProfileMismatchErrorDetails
   | WorkspacesAPI.WorkspacePolicyViolationErrorDetails
   | ExternalKeysAPI.ExternalKeyChangedErrorDetails
+  | WorkspacesAPI.WorkspaceCreatedIncompleteErrorDetails
+  | WorkspacesAPI.StorageProfileMismatchErrorDetails
+  | OrganizationAPI.ChangeOutcomeUnknownErrorDetails
+  | WorkspacesAPI.StorageAttachedDuringArchiveErrorDetails
   | WorkspacesAPI.WorkspaceMemberLimitExceededErrorDetails
   | OrganizationTypeNotSupportedErrorDetails
   | ParentOrganizationRequiredErrorDetails
@@ -415,6 +435,16 @@ export type ErrorDetails =
   | EnvironmentsAPI.BetaEnvironmentUpdateDisabledErrorDetails
   | WorkAPI.BetaHeartbeatPreconditionFailedErrorDetails
   | EnvironmentsAPI.BetaInvalidMetadataErrorDetails
+  | ExternalStorageAPI.BetaGrantRequiredErrorDetails
+  | BetaOrganizationAPI.BetaOrganizationNotEligibleErrorDetails
+  | ExternalStorageAPI.BetaProviderNotAllowedErrorDetails
+  | ExternalStorageAPI.BetaUnsupportedRegionErrorDetails
+  | ExternalStorageAPI.BetaStorageAlreadyRegisteredErrorDetails
+  | BetaOrganizationAPI.BetaAuthorizationCheckUnavailableErrorDetails
+  | ExternalStorageAPI.BetaInvalidStorageARNErrorDetails
+  | ExternalStorageAPI.BetaExternalStorageInUseErrorDetails
+  | ExternalStorageAPI.BetaExternalStorageInWorkspacePolicyErrorDetails
+  | ExternalStorageAPI.BetaStorageVerificationFailedErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutPrimaryOwnerErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutSelfErrorDetails
   | BetaAPI.BetaOrganizationNotEnrolledInBetaErrorDetails
@@ -422,6 +452,16 @@ export type ErrorDetails =
   | OrganizationUsersAPI.BetaCannotSignOutMembershipAdminErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutOwnerErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutPrivilegedMemberErrorDetails
+  | BetaOrganizationAPI.BetaApprovalRequiredErrorDetails
+  | ExternalStorageAPI.BetaExternalStorageNotAvailableErrorDetails
+  | BetaOrganizationAPI.BetaHumanReviewNotAvailableErrorDetails
+  | OrganizationWorkspacesAPI.BetaHumanReviewOnWithExternalStorageErrorDetails
+  | ExternalStorageAPI.BetaStorageNotAttachableErrorDetails
+  | OrganizationWorkspacesAPI.BetaTranscriptsStorageRequiredErrorDetails
+  | ExternalStorageAPI.BetaStorageAttachLimitReachedErrorDetails
+  | ExternalStorageAPI.BetaStorageProfileStillRequiredErrorDetails
+  | ExternalStorageAPI.BetaStorageChangedConcurrentlyErrorDetails
+  | OrganizationWorkspacesAPI.BetaWorkspaceChangedConcurrentlyErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
   | BetaAPI.BetaUnsupportedCharsetErrorDetails
   | PluginsAPI.BetaPluginNameTakenErrorDetails
@@ -639,6 +679,14 @@ export interface RequestBodyTooLargeAfterDecodingErrorDetails {
  */
 export interface SandboxEgressRestrictedErrorDetails {
   error_code: 'sandbox_egress_restricted';
+}
+
+/**
+ * The request's Workspace has Human Review turned off, and this operation is not
+ * available there. Use a Workspace with Human Review on.
+ */
+export interface WorkspaceHumanReviewDisabledErrorDetails {
+  error_code: 'workspace_human_review_disabled';
 }
 
 /**

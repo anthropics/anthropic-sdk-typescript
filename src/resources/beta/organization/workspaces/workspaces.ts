@@ -34,11 +34,56 @@ import {
   ServiceAccounts,
 } from './service-accounts';
 import { APIPromise } from '../../../../core/api-promise';
+import { BadRequestError, ConflictError } from '../../../../core/error';
 import { Page, type PageParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The request would leave the Workspace with
+ * `inference_data_privacy.safeguards_storage` set to External Storage and
+ * `inference_data_privacy.human_review` enabled. Anthropic doesn't offer human
+ * review of data in a customer's own storage. Set `human_review` to `disabled`, or
+ * `safeguards_storage` to `internal`.
+ */
+export class BetaHumanReviewOnWithExternalStorageError extends BadRequestError {
+  declare readonly errorCode: 'human_review_on_with_external_storage';
+  declare readonly details: BetaHumanReviewOnWithExternalStorageErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaHumanReviewOnWithExternalStorageError';
+}
+
+/**
+ * In an organization managed through AWS or Google Cloud, the request would leave
+ * the Workspace with `inference_data_privacy.human_review` disabled and
+ * `inference_data_privacy.transcripts_storage` not set to External Storage. With
+ * human review disabled, the organization reviews its own flagged requests, and it
+ * receives them only in that storage.
+ */
+export class BetaTranscriptsStorageRequiredError extends BadRequestError {
+  declare readonly errorCode: 'transcripts_storage_required';
+  declare readonly details: BetaTranscriptsStorageRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaTranscriptsStorageRequiredError';
+}
+
+/**
+ * Another request changed the Workspace, so this request left the setting named in
+ * `field` as it is. The error's `message` says which of this request's other
+ * changes are in place. Read the Workspace and send the request again if you still
+ * want the change.
+ */
+export class BetaWorkspaceChangedConcurrentlyError extends ConflictError {
+  declare readonly errorCode: 'workspace_changed_concurrently';
+  declare readonly details: BetaWorkspaceChangedConcurrentlyErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaWorkspaceChangedConcurrentlyError';
+}
 
 export class Workspaces extends APIResource {
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
@@ -48,13 +93,26 @@ export class Workspaces extends APIResource {
   /**
    * Create Workspace
    *
+   * @throws {BetaApprovalRequiredError}
    * @throws {ExternalKeyValidationFailedError}
    * @throws {ExternalKeyValidationTimedOutError}
+   * @throws {BetaExternalStorageNotAvailableError}
+   * @throws {BetaGrantRequiredError}
+   * @throws {BetaHumanReviewNotAvailableError}
+   * @throws {BetaHumanReviewOnWithExternalStorageError}
+   * @throws {BetaInvalidStorageARNError}
    * @throws {KeyProfileMismatchError}
+   * @throws {BetaOrganizationNotEligibleError}
+   * @throws {BetaStorageNotAttachableError}
+   * @throws {StorageProfileMismatchError}
+   * @throws {BetaStorageVerificationFailedError}
+   * @throws {BetaTranscriptsStorageRequiredError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
    * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
+   * @throws {BetaAuthorizationCheckUnavailableError}
+   * @throws {WorkspaceCreatedIncompleteError}
    *
    * @example
    * ```ts
@@ -92,9 +150,18 @@ export class Workspaces extends APIResource {
    *   );
    * ```
    */
-  retrieve(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
+  retrieve(
+    workspaceID: string,
+    params: WorkspaceRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaWorkspace> {
+    const { betas } = params ?? {};
     return this._client.get(path`/v1/organizations/workspaces/${workspaceID}`, {
       ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.retrieve', options, {
         route: '/v1/organizations/workspaces/{workspace_id}',
@@ -106,13 +173,30 @@ export class Workspaces extends APIResource {
   /**
    * Update Workspace
    *
+   * @throws {BetaApprovalRequiredError}
    * @throws {ExternalKeyValidationFailedError}
    * @throws {ExternalKeyValidationTimedOutError}
+   * @throws {BetaExternalStorageNotAvailableError}
+   * @throws {BetaGrantRequiredError}
+   * @throws {BetaHumanReviewNotAvailableError}
+   * @throws {BetaHumanReviewOnWithExternalStorageError}
+   * @throws {BetaInvalidStorageARNError}
    * @throws {KeyProfileMismatchError}
+   * @throws {BetaOrganizationNotEligibleError}
+   * @throws {BetaStorageAttachLimitReachedError}
+   * @throws {BetaStorageNotAttachableError}
+   * @throws {StorageProfileMismatchError}
+   * @throws {BetaStorageProfileStillRequiredError}
+   * @throws {BetaStorageVerificationFailedError}
+   * @throws {BetaTranscriptsStorageRequiredError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
    * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
+   * @throws {BetaStorageChangedConcurrentlyError}
+   * @throws {BetaWorkspaceChangedConcurrentlyError}
+   * @throws {BetaAuthorizationCheckUnavailableError}
+   * @throws {ChangeOutcomeUnknownError}
    *
    * @example
    * ```ts
@@ -125,12 +209,17 @@ export class Workspaces extends APIResource {
    */
   update(
     workspaceID: string,
-    body: WorkspaceUpdateParams,
+    params: WorkspaceUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaWorkspace> {
+    const { betas, ...body } = params;
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}`, {
       body,
       ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.update', options, {
         route: '/v1/organizations/workspaces/{workspace_id}',
@@ -151,12 +240,17 @@ export class Workspaces extends APIResource {
    * ```
    */
   list(
-    query: WorkspaceListParams | null | undefined = {},
+    params: WorkspaceListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaWorkspacesPage, BetaWorkspace> {
+    const { betas, ...query } = params ?? {};
     return this._client.getAPIList('/v1/organizations/workspaces', Page<BetaWorkspace>, {
       query,
       ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
         route: '/v1/organizations/workspaces',
@@ -169,6 +263,7 @@ export class Workspaces extends APIResource {
    * Archive Workspace
    *
    * @throws {SandboxEgressRestrictedError}
+   * @throws {StorageAttachedDuringArchiveError}
    *
    * @example
    * ```ts
@@ -178,9 +273,18 @@ export class Workspaces extends APIResource {
    *   );
    * ```
    */
-  archive(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
+  archive(
+    workspaceID: string,
+    params: WorkspaceArchiveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaWorkspace> {
+    const { betas } = params ?? {};
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive`, {
       ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.archive', options, {
         route: '/v1/organizations/workspaces/{workspace_id}/archive',
@@ -195,6 +299,20 @@ export type BetaWorkspacesPage = Page<BetaWorkspace>;
 export type BetaWorkspaceMembersPage = Page<BetaWorkspaceMember>;
 
 export type BetaAllowedInferenceGeo = 'global' | 'us';
+
+/**
+ * The Workspace's human review setting.
+ */
+export interface BetaAnthropicHumanReview {
+  type: 'disabled' | 'enabled';
+}
+
+/**
+ * Whether Anthropic's human review applies to the Workspace's inference data.
+ */
+export interface BetaAnthropicHumanReviewParam {
+  type: 'disabled' | 'enabled';
+}
 
 export interface BetaDataResidency {
   /**
@@ -249,11 +367,168 @@ export interface BetaDataResidencyUpdateConfig {
   default_inference_geo?: 'global' | 'us' | null;
 }
 
+/**
+ * The organization's External Storage that `external_storage_id` names.
+ */
+export interface BetaExternalStorageMember {
+  /**
+   * The External Storage ID, which starts with `estrg_`. Through Claude Platform on
+   * AWS, storage whose `provider_config.type` is `aws` has its bucket ARN as its ID
+   * instead: `arn:<partition>:s3:::<bucket_name>`, where `<partition>` is the
+   * partition of the bucket's region.
+   */
+  external_storage_id: string;
+
+  type: 'external';
+}
+
+/**
+ * The organization's External Storage that `external_storage_id` names.
+ */
+export interface BetaExternalStorageMemberParam {
+  /**
+   * The External Storage ID, which starts with `estrg_`. Through Claude Platform on
+   * AWS, storage whose `provider_config.type` is `aws` has its bucket ARN as its ID
+   * instead: `arn:<partition>:s3:::<bucket_name>`, where `<partition>` is the
+   * partition of the bucket's region.
+   */
+  external_storage_id: string;
+
+  type: 'external';
+}
+
+/**
+ * The request would leave the Workspace with
+ * `inference_data_privacy.safeguards_storage` set to External Storage and
+ * `inference_data_privacy.human_review` enabled. Anthropic doesn't offer human
+ * review of data in a customer's own storage. Set `human_review` to `disabled`, or
+ * `safeguards_storage` to `internal`.
+ */
+export interface BetaHumanReviewOnWithExternalStorageErrorDetails {
+  error_code: 'human_review_on_with_external_storage';
+}
+
+export interface BetaInferenceDataPrivacy {
+  /**
+   * The Workspace's human review setting. Human review is off only while this is
+   * `disabled` and Anthropic's approval stands.
+   */
+  human_review?: BetaAnthropicHumanReview;
+
+  /**
+   * Where the data Anthropic's safeguards systems retain for the Workspace goes.
+   * `external` sends it to the External Storage that `external_storage_id` names.
+   * `internal` means no External Storage: it goes to Anthropic's storage or, on a
+   * cloud provider's platform, to that provider's storage. A recent change may not
+   * have taken effect yet.
+   */
+  safeguards_storage?: BetaStorageMember;
+
+  /**
+   * Where copies of the Workspace's transcripts and its cases (Anthropic's safety
+   * findings about those transcripts) go. `external` sends them to the External
+   * Storage that `external_storage_id` names. `internal` means no External Storage,
+   * so no copies are made. A recent change may not have taken effect yet.
+   */
+  transcripts_storage?: BetaStorageMember;
+}
+
+/**
+ * Where the Workspace's retained inference data and transcript copies go, and
+ * whether Anthropic's human review applies. A member cannot be null; omit it
+ * instead.
+ */
+export interface BetaInferenceDataPrivacyCreateParam {
+  /**
+   * Whether Anthropic's human review applies to the Workspace. `disabled` needs
+   * Anthropic's approval. When omitted, `enabled`. Cannot be null.
+   */
+  human_review?: BetaAnthropicHumanReviewParam;
+
+  /**
+   * Where the data Anthropic's safeguards systems retain for the Workspace goes.
+   * `external` sends it, once the attach takes effect, to the External Storage that
+   * `external_storage_id` names. `internal` means no External Storage: it goes to
+   * Anthropic's storage or, on a cloud provider's platform, to that provider's
+   * storage. When omitted, `internal`. Cannot be null.
+   */
+  safeguards_storage?: BetaStorageMemberParam;
+
+  /**
+   * Where copies of the Workspace's transcripts and its cases (Anthropic's safety
+   * findings about those transcripts) go. `external` sends them, once the attach
+   * takes effect, to the External Storage that `external_storage_id` names.
+   * `internal` means no External Storage, so no copies are made. When omitted,
+   * `internal`. Cannot be null.
+   */
+  transcripts_storage?: BetaStorageMemberParam;
+}
+
+/**
+ * Changes to where the Workspace's retained inference data and transcript copies
+ * go, and to whether Anthropic's human review applies. An omitted member is
+ * unchanged; a member cannot be null.
+ */
+export interface BetaInferenceDataPrivacyUpdateParam {
+  /**
+   * Whether Anthropic's human review applies to the Workspace from now on.
+   * `disabled` needs Anthropic's approval. When omitted, unchanged. Cannot be null.
+   */
+  human_review?: BetaAnthropicHumanReviewParam;
+
+  /**
+   * Where the data Anthropic's safeguards systems retain for the Workspace goes once
+   * the change takes effect. `external` sends it to the External Storage that
+   * `external_storage_id` names. `internal` means no External Storage: it goes to
+   * Anthropic's storage or, on a cloud provider's platform, to that provider's
+   * storage. When omitted, unchanged. Cannot be null.
+   */
+  safeguards_storage?: BetaStorageMemberParam;
+
+  /**
+   * Where copies of the Workspace's transcripts and its cases (Anthropic's safety
+   * findings about those transcripts) go once the change takes effect. `external`
+   * sends them to the External Storage that `external_storage_id` names. `internal`
+   * means no External Storage, so no more copies are made. When omitted, unchanged.
+   * Cannot be null.
+   */
+  transcripts_storage?: BetaStorageMemberParam;
+}
+
+/**
+ * No External Storage for this purpose.
+ */
+export interface BetaInternalStorage {
+  type: 'internal';
+}
+
+/**
+ * No External Storage for this purpose.
+ */
+export interface BetaInternalStorageParam {
+  type: 'internal';
+}
+
 export type BetaNoBillingWorkspaceRole =
   | 'workspace_admin'
   | 'workspace_developer'
   | 'workspace_restricted_developer'
   | 'workspace_user';
+
+export type BetaStorageMember = BetaInternalStorage | BetaExternalStorageMember;
+
+export type BetaStorageMemberParam = BetaInternalStorageParam | BetaExternalStorageMemberParam;
+
+/**
+ * In an organization managed through AWS or Google Cloud, the request would leave
+ * the Workspace with `inference_data_privacy.human_review` disabled and
+ * `inference_data_privacy.transcripts_storage` not set to External Storage. With
+ * human review disabled, the organization reviews its own flagged requests, and it
+ * receives them only in that storage.
+ */
+export interface BetaTranscriptsStorageRequiredErrorDetails {
+  error_code: 'transcripts_storage_required';
+}
 
 export interface BetaWorkspace {
   /**
@@ -337,7 +612,33 @@ export interface BetaWorkspace {
    * profile.
    */
   user_profile_id: string | null;
+
+  /**
+   * Where the Workspace's retained inference data and transcript copies go, and
+   * whether Anthropic's human review applies. Returned only to requests that send
+   * the `efs-2026-10-01` `anthropic-beta` value, and each member only to
+   * organizations enabled for it.
+   */
+  inference_data_privacy?: BetaInferenceDataPrivacy;
 }
+
+/**
+ * Another request changed the Workspace, so this request left the setting named in
+ * `field` as it is. The error's `message` says which of this request's other
+ * changes are in place. Read the Workspace and send the request again if you still
+ * want the change.
+ */
+export interface BetaWorkspaceChangedConcurrentlyErrorDetails {
+  error_code: 'workspace_changed_concurrently';
+
+  /**
+   * The request field whose change was refused. Other values may be returned. The
+   * value is a name with no data of its own.
+   */
+  field: BetaWorkspaceChangedConcurrentlyField;
+}
+
+export type BetaWorkspaceChangedConcurrentlyField = 'inference_data_privacy.human_review';
 
 export interface BetaWorkspaceMember {
   /**
@@ -406,6 +707,16 @@ export interface WorkspaceCreateParams {
   external_key_id?: string | null;
 
   /**
+   * Body param: Where the Workspace's retained inference data and transcript copies
+   * go, and whether Anthropic's human review applies. Requires the `efs-2026-10-01`
+   * `anthropic-beta` value. When omitted, `safeguards_storage` and
+   * `transcripts_storage` are `internal` and `human_review` is `enabled`. Cannot be
+   * null. An Admin API key can't set this field, because it doesn't belong to a user
+   * or a service account. Use an API key that belongs to one, or an OAuth token.
+   */
+  inference_data_privacy?: BetaInferenceDataPrivacyCreateParam | null;
+
+  /**
    * Body param: User-defined tags as string key-value pairs. Keys may not begin with
    * `anthropic`.
    */
@@ -425,92 +736,158 @@ export interface WorkspaceCreateParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface WorkspaceRetrieveParams {
+  /**
+   * Optional. Send `efs-2026-10-01` in this header to use this endpoint's beta
+   * features: additional parameters, accepted values and response fields.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export interface WorkspaceUpdateParams {
   /**
-   * Data residency configuration for the workspace.
+   * Body param: Data residency configuration for the workspace.
    */
   data_residency?: BetaDataResidencyUpdateConfig | null;
 
   /**
-   * Hex color code representing the Workspace in the Anthropic Console.
+   * Body param: Hex color code representing the Workspace in the Anthropic Console.
    */
   display_color?: string;
 
   /**
-   * ID of the customer-managed encryption key (CMEK) configuration to use for this
-   * Workspace. Setting this field requires CMEK to be enabled for your organization.
-   * When set, data stored for this Workspace is encrypted with the referenced key.
-   * Create key configurations with the External Keys API. On Claude Platform on AWS
-   * the value for an AWS KMS key is the key's ARN, and your organization's own key
-   * must be a single-Region key in the same Region as the Workspace. If that key is
-   * outside the Workspace's AWS account, it can be attached only by updating an
-   * active Workspace. On that platform the key is validated against this Workspace
-   * when it is attached, so a key-policy problem is reported as an error on this
-   * request. This field is write-once: once a key is attached to a Workspace it
-   * cannot be detached or replaced. To rotate key material, rotate the underlying
-   * key on your cloud KMS; the `external_key_id` stays the same.
+   * Body param: ID of the customer-managed encryption key (CMEK) configuration to
+   * use for this Workspace. Setting this field requires CMEK to be enabled for your
+   * organization. When set, data stored for this Workspace is encrypted with the
+   * referenced key. Create key configurations with the External Keys API. On Claude
+   * Platform on AWS the value for an AWS KMS key is the key's ARN, and your
+   * organization's own key must be a single-Region key in the same Region as the
+   * Workspace. If that key is outside the Workspace's AWS account, it can be
+   * attached only by updating an active Workspace. On that platform the key is
+   * validated against this Workspace when it is attached, so a key-policy problem is
+   * reported as an error on this request. This field is write-once: once a key is
+   * attached to a Workspace it cannot be detached or replaced. To rotate key
+   * material, rotate the underlying key on your cloud KMS; the `external_key_id`
+   * stays the same.
    */
   external_key_id?: string;
 
   /**
-   * Name of the Workspace.
+   * Body param: Changes to where the Workspace's retained inference data and
+   * transcript copies go, and to whether Anthropic's human review applies. Requires
+   * the `efs-2026-10-01` `anthropic-beta` value. An omitted member is unchanged.
+   * Cannot be null. An Admin API key can't set this field, because it doesn't belong
+   * to a user or a service account. Use an API key that belongs to one, or an OAuth
+   * token.
+   */
+  inference_data_privacy?: BetaInferenceDataPrivacyUpdateParam | null;
+
+  /**
+   * Body param: Name of the Workspace.
    */
   name?: string;
 
   /**
-   * User-defined tags as string key-value pairs. Keys may not begin with
+   * Body param: User-defined tags as string key-value pairs. Keys may not begin with
    * `anthropic`.
    */
   tags?: { [key: string]: string | null } | null;
 
   /**
-   * ID of a user profile to attach to the Workspace. Every inference request through
-   * the Workspace must then name this user profile; the API rejects a request that
-   * names none or a different one. Once set, it can't be replaced or removed
-   * (sending the same ID again changes nothing); only deleting the user profile
-   * clears it. It can't be set on a Workspace whose External Key isn't bound to this
-   * user profile. The default Workspace can't have a user profile.
+   * Body param: ID of a user profile to attach to the Workspace. Every inference
+   * request through the Workspace must then name this user profile; the API rejects
+   * a request that names none or a different one. Once set, it can't be replaced or
+   * removed (sending the same ID again changes nothing); only deleting the user
+   * profile clears it. It can't be set on a Workspace whose External Key isn't bound
+   * to this user profile. The default Workspace can't have a user profile.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional. Send `efs-2026-10-01` in this header to use this
+   * endpoint's beta features: additional parameters, accepted values and response
+   * fields.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export interface WorkspaceListParams extends PageParams {
   /**
-   * Only the Workspaces with these IDs, at most 100. `include_archived` and
-   * `include_default` still apply, and IDs of Workspaces the caller can't list are
-   * left out.
+   * Query param: Only the Workspaces with these IDs, at most 100. `include_archived`
+   * and `include_default` still apply, and IDs of Workspaces the caller can't list
+   * are left out.
    */
   ids?: Array<string>;
 
   /**
-   * Whether to include Workspaces that have been archived in the response
+   * Query param: Whether to include Workspaces that have been archived in the
+   * response
    */
   include_archived?: boolean;
 
   /**
-   * Whether to include the organization's default Workspace in the response
+   * Query param: Whether to include the organization's default Workspace in the
+   * response
    */
   include_default?: boolean;
+
+  /**
+   * Header param: Optional. Send `efs-2026-10-01` in this header to use this
+   * endpoint's beta features: additional parameters, accepted values and response
+   * fields.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface WorkspaceArchiveParams {
+  /**
+   * Optional. Send `efs-2026-10-01` in this header to use this endpoint's beta
+   * features: additional parameters, accepted values and response fields.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
+Workspaces.BetaHumanReviewOnWithExternalStorageError = BetaHumanReviewOnWithExternalStorageError;
+Workspaces.BetaTranscriptsStorageRequiredError = BetaTranscriptsStorageRequiredError;
+Workspaces.BetaWorkspaceChangedConcurrentlyError = BetaWorkspaceChangedConcurrentlyError;
 Workspaces.RateLimits = RateLimits;
 Workspaces.Members = Members;
 Workspaces.ServiceAccounts = ServiceAccounts;
 
 export declare namespace Workspaces {
   export {
+    BetaHumanReviewOnWithExternalStorageError as BetaHumanReviewOnWithExternalStorageError,
+    BetaTranscriptsStorageRequiredError as BetaTranscriptsStorageRequiredError,
+    BetaWorkspaceChangedConcurrentlyError as BetaWorkspaceChangedConcurrentlyError,
     type BetaAllowedInferenceGeo as BetaAllowedInferenceGeo,
+    type BetaAnthropicHumanReview as BetaAnthropicHumanReview,
+    type BetaAnthropicHumanReviewParam as BetaAnthropicHumanReviewParam,
     type BetaDataResidency as BetaDataResidency,
     type BetaDataResidencyCreateConfig as BetaDataResidencyCreateConfig,
     type BetaDataResidencyUpdateConfig as BetaDataResidencyUpdateConfig,
+    type BetaExternalStorageMember as BetaExternalStorageMember,
+    type BetaExternalStorageMemberParam as BetaExternalStorageMemberParam,
+    type BetaHumanReviewOnWithExternalStorageErrorDetails as BetaHumanReviewOnWithExternalStorageErrorDetails,
+    type BetaInferenceDataPrivacy as BetaInferenceDataPrivacy,
+    type BetaInferenceDataPrivacyCreateParam as BetaInferenceDataPrivacyCreateParam,
+    type BetaInferenceDataPrivacyUpdateParam as BetaInferenceDataPrivacyUpdateParam,
+    type BetaInternalStorage as BetaInternalStorage,
+    type BetaInternalStorageParam as BetaInternalStorageParam,
     type BetaNoBillingWorkspaceRole as BetaNoBillingWorkspaceRole,
+    type BetaStorageMember as BetaStorageMember,
+    type BetaStorageMemberParam as BetaStorageMemberParam,
+    type BetaTranscriptsStorageRequiredErrorDetails as BetaTranscriptsStorageRequiredErrorDetails,
     type BetaWorkspace as BetaWorkspace,
+    type BetaWorkspaceChangedConcurrentlyErrorDetails as BetaWorkspaceChangedConcurrentlyErrorDetails,
+    type BetaWorkspaceChangedConcurrentlyField as BetaWorkspaceChangedConcurrentlyField,
     type BetaWorkspaceMember as BetaWorkspaceMember,
     type BetaWorkspaceRole as BetaWorkspaceRole,
     type BetaWorkspacesPage as BetaWorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,
+    type WorkspaceRetrieveParams as WorkspaceRetrieveParams,
     type WorkspaceUpdateParams as WorkspaceUpdateParams,
     type WorkspaceListParams as WorkspaceListParams,
+    type WorkspaceArchiveParams as WorkspaceArchiveParams,
   };
 
   export {

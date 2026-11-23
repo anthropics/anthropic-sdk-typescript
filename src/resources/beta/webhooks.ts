@@ -315,7 +315,9 @@ export type BetaWebhookEventData =
   | BetaWebhookUserProfileEnforcementActionResolvedEventData
   | BetaWebhookUserProfileProgramStatusUpdatedEventData
   | BetaWebhookExternalKeyFailedEventData
-  | BetaWebhookExternalKeyRecoveredEventData;
+  | BetaWebhookExternalKeyRecoveredEventData
+  | BetaWebhookExternalStorageFailedEventData
+  | BetaWebhookExternalStorageRecoveredEventData;
 
 export interface BetaWebhookExternalKeyFailedEventData {
   /**
@@ -337,6 +339,30 @@ export interface BetaWebhookExternalKeyRecoveredEventData {
   organization_id: string;
 
   type: 'external_key.recovered';
+}
+
+export interface BetaWebhookExternalStorageFailedEventData {
+  /**
+   * ID (`estrg_...`) of the External Storage whose bucket failed Anthropic's check
+   * or passes it again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_storage.failed';
+}
+
+export interface BetaWebhookExternalStorageRecoveredEventData {
+  /**
+   * ID (`estrg_...`) of the External Storage whose bucket failed Anthropic's check
+   * or passes it again.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'external_storage.recovered';
 }
 
 export interface BetaWebhookMemoryStoreArchivedEventData {
@@ -796,6 +822,8 @@ export declare namespace Webhooks {
     type BetaWebhookEventData as BetaWebhookEventData,
     type BetaWebhookExternalKeyFailedEventData as BetaWebhookExternalKeyFailedEventData,
     type BetaWebhookExternalKeyRecoveredEventData as BetaWebhookExternalKeyRecoveredEventData,
+    type BetaWebhookExternalStorageFailedEventData as BetaWebhookExternalStorageFailedEventData,
+    type BetaWebhookExternalStorageRecoveredEventData as BetaWebhookExternalStorageRecoveredEventData,
     type BetaWebhookMemoryStoreArchivedEventData as BetaWebhookMemoryStoreArchivedEventData,
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,

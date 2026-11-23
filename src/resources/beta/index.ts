@@ -635,6 +635,19 @@ export {
   type BetaToolResultContentBlockParam,
 } from './messages/index';
 export {
+  BetaApprovalRequiredError,
+  BetaHumanReviewNotAvailableError,
+  BetaOrganizationNotEligibleError,
+  BetaAuthorizationCheckUnavailableError,
+  Organization,
+  type BetaApprovalRequiredErrorDetails,
+  type BetaAuthorizationCheckUnavailableErrorDetails,
+  type BetaHumanReviewNotAvailableErrorDetails,
+  type BetaOrganization,
+  type BetaOrganizationNotEligibleErrorDetails,
+  type BetaOrganizationRole,
+} from './organization/index';
+export {
   BetaEnvironmentArchivedError,
   BetaInvalidConfigTypeChangeError,
   BetaInvalidMetadataError,
@@ -871,7 +884,6 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
-export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization/index';
 export {
   Sessions,
   type BetaManagedAgentsAdvisorParams,
@@ -996,6 +1008,8 @@ export {
   type BetaWebhookEventData,
   type BetaWebhookExternalKeyFailedEventData,
   type BetaWebhookExternalKeyRecoveredEventData,
+  type BetaWebhookExternalStorageFailedEventData,
+  type BetaWebhookExternalStorageRecoveredEventData,
   type BetaWebhookMemoryStoreArchivedEventData,
   type BetaWebhookMemoryStoreCreatedEventData,
   type BetaWebhookMemoryStoreDeletedEventData,

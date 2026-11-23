@@ -10,7 +10,7 @@ describe('resource targets', () => {
   test('create: only required params', async () => {
     const responsePromise = client.beta.organization.claudeTag.bundles.targets.create(
       'capp_011CZkZjLP1cWxj5EtMmdgbq',
-      { target: { slack_channel_id: 'xxxxxxxx', type: 'slack_channel' } },
+      { target: { slack_channel_id: 'slch_01SvpyRQK3nN6eH9uhRA7n1q', type: 'slack_channel' } },
     );
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -25,7 +25,7 @@ describe('resource targets', () => {
     const response = await client.beta.organization.claudeTag.bundles.targets.create(
       'capp_011CZkZjLP1cWxj5EtMmdgbq',
       {
-        target: { slack_channel_id: 'xxxxxxxx', type: 'slack_channel' },
+        target: { slack_channel_id: 'slch_01SvpyRQK3nN6eH9uhRA7n1q', type: 'slack_channel' },
         betas: ['computer-use-2024-10-22'],
       },
     );

@@ -30,8 +30,9 @@ export class Issuers extends APIResource {
    * ```ts
    * const federationIssuer =
    *   await client.organization.federation.issuers.create({
-   *     issuer_url: 'x',
-   *     name: 'x',
+   *     issuer_url:
+   *       'https://token.actions.githubusercontent.com',
+   *     name: 'github-actions',
    *   });
    * ```
    */

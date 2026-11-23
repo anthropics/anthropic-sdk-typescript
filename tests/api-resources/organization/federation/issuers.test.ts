@@ -7,7 +7,10 @@ const client = new Anthropic({
 
 describe('resource issuers', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.organization.federation.issuers.create({ issuer_url: 'x', name: 'x' });
+    const responsePromise = client.organization.federation.issuers.create({
+      issuer_url: 'https://token.actions.githubusercontent.com',
+      name: 'github-actions',
+    });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,8 +22,8 @@ describe('resource issuers', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.organization.federation.issuers.create({
-      issuer_url: 'x',
-      name: 'x',
+      issuer_url: 'https://token.actions.githubusercontent.com',
+      name: 'github-actions',
       check_jti: true,
       jwks: {
         type: 'discovery',

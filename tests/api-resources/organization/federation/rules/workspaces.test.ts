@@ -30,7 +30,7 @@ describe('resource workspaces', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.organization.federation.rules.workspaces.add('federation_rule_id', {
-      workspace_id: 'workspace_id',
+      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -43,7 +43,7 @@ describe('resource workspaces', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.organization.federation.rules.workspaces.add('federation_rule_id', {
-      workspace_id: 'workspace_id',
+      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
     });
   });
 
