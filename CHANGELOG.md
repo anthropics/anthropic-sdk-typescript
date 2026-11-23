@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.12.0...sdk-v1.13.0) (2026-11-23)
+
+### Features
+
+* **api:** add an error code to Message Batches creation
+* **api:** add External Storage to the Admin API beta
+* **api:** add webhook events for external storage failure and recovery
+
+
+### Bug Fixes
+
+* **api:** type beta batch request params as message create params
+
+
+### Chores
+
+* **api:** mark Claude Opus 4.5 as deprecated (end-of-life January 22, 2027)
+* **client:** read deprecated models from generated data and warn on claude-mythos-preview again
+* **docs:** clarify when plugin archive downloads are recorded and who gave a share
+* **docs:** correct organization-type notes in usage and cost reports
+* **docs:** describe the user profile endpoints and link to the guide
+* **docs:** use realistic example values in more request bodies
+
+
+### Documentation
+
+* **api:** shorten the human_review description
+
 ## [1.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.11.0...sdk-v1.12.0) (2026-11-20)
 
 ### Features
