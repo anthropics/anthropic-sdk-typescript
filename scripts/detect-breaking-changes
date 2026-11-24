@@ -92,6 +92,10 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/service-accounts/service-accounts.test.ts
 	tests/api-resources/beta/organization/service-accounts/workspaces.test.ts
 	tests/api-resources/beta/organization/external-storage.test.ts
+	tests/api-resources/beta/organization/providers/providers.test.ts
+	tests/api-resources/beta/organization/providers/google/google.test.ts
+	tests/api-resources/beta/organization/providers/google/projects/projects.test.ts
+	tests/api-resources/beta/organization/providers/google/projects/data-controls.test.ts
 	tests/api-resources/beta/organization/users.test.ts
 	tests/api-resources/beta/organization/workspaces/workspaces.test.ts
 	tests/api-resources/beta/organization/workspaces/rate-limits.test.ts

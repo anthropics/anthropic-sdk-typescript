@@ -382,6 +382,7 @@ export {
   type PluginMarketplaceValidateRepositoryParams,
   type BetaPluginMarketplacesPageCursor,
 } from './plugin-marketplaces';
+export { Providers } from './providers/index';
 export {
   RBACRoles,
   type BetaRBACRole,

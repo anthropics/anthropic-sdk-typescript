@@ -1,0 +1,83 @@
+import { APIResource } from '../../../../../../core/resource';
+import * as DataControlsAPI from './data-controls';
+import {
+  BetaGoogleManagedProjectBucketReference,
+  BetaGoogleManagedProjectCMEKControl,
+  BetaGoogleManagedProjectCMEKControlParams,
+  BetaGoogleManagedProjectCMEKDisabled,
+  BetaGoogleManagedProjectCMEKDisabledParams,
+  BetaGoogleManagedProjectCMEKEnabled,
+  BetaGoogleManagedProjectCMEKEnabledParams,
+  BetaGoogleManagedProjectCMEKRegionActive,
+  BetaGoogleManagedProjectCMEKRegionFailed,
+  BetaGoogleManagedProjectCMEKRegionNotConfigured,
+  BetaGoogleManagedProjectCMEKRegionPending,
+  BetaGoogleManagedProjectCMEKRegionStatus,
+  BetaGoogleManagedProjectCMEKRegionSuspended,
+  BetaGoogleManagedProjectDataControls,
+  BetaGoogleManagedProjectEffectiveBucket,
+  BetaGoogleManagedProjectRetiredBucket,
+  BetaGoogleManagedProjectRetiredKey,
+  BetaGoogleManagedProjectStorageBucket,
+  BetaGoogleManagedProjectStorageControl,
+  BetaGoogleManagedProjectStorageControlParams,
+  BetaGoogleManagedProjectStorageDisabled,
+  BetaGoogleManagedProjectStorageDisabledParams,
+  BetaGoogleManagedProjectStorageEnabled,
+  BetaGoogleManagedProjectStorageEnabledParams,
+  BetaGoogleManagedProjectStorageFailedCheck,
+  BetaGoogleManagedProjectStorageRegionActive,
+  BetaGoogleManagedProjectStorageRegionFailed,
+  BetaGoogleManagedProjectStorageRegionNotConfigured,
+  BetaGoogleManagedProjectStorageRegionPending,
+  BetaGoogleManagedProjectStorageRegionStatus,
+  BetaGoogleManagedProjectStorageRegionSuspended,
+  DataControlRetrieveParams,
+  DataControlUpdateParams,
+  DataControls,
+} from './data-controls';
+
+export class Projects extends APIResource {
+  dataControls: DataControlsAPI.DataControls = new DataControlsAPI.DataControls(this._client);
+}
+
+Projects.DataControls = DataControls;
+
+export declare namespace Projects {
+  export {
+    DataControls as DataControls,
+    type BetaGoogleManagedProjectBucketReference as BetaGoogleManagedProjectBucketReference,
+    type BetaGoogleManagedProjectCMEKControl as BetaGoogleManagedProjectCMEKControl,
+    type BetaGoogleManagedProjectCMEKControlParams as BetaGoogleManagedProjectCMEKControlParams,
+    type BetaGoogleManagedProjectCMEKDisabled as BetaGoogleManagedProjectCMEKDisabled,
+    type BetaGoogleManagedProjectCMEKDisabledParams as BetaGoogleManagedProjectCMEKDisabledParams,
+    type BetaGoogleManagedProjectCMEKEnabled as BetaGoogleManagedProjectCMEKEnabled,
+    type BetaGoogleManagedProjectCMEKEnabledParams as BetaGoogleManagedProjectCMEKEnabledParams,
+    type BetaGoogleManagedProjectCMEKRegionActive as BetaGoogleManagedProjectCMEKRegionActive,
+    type BetaGoogleManagedProjectCMEKRegionFailed as BetaGoogleManagedProjectCMEKRegionFailed,
+    type BetaGoogleManagedProjectCMEKRegionNotConfigured as BetaGoogleManagedProjectCMEKRegionNotConfigured,
+    type BetaGoogleManagedProjectCMEKRegionPending as BetaGoogleManagedProjectCMEKRegionPending,
+    type BetaGoogleManagedProjectCMEKRegionStatus as BetaGoogleManagedProjectCMEKRegionStatus,
+    type BetaGoogleManagedProjectCMEKRegionSuspended as BetaGoogleManagedProjectCMEKRegionSuspended,
+    type BetaGoogleManagedProjectDataControls as BetaGoogleManagedProjectDataControls,
+    type BetaGoogleManagedProjectEffectiveBucket as BetaGoogleManagedProjectEffectiveBucket,
+    type BetaGoogleManagedProjectRetiredBucket as BetaGoogleManagedProjectRetiredBucket,
+    type BetaGoogleManagedProjectRetiredKey as BetaGoogleManagedProjectRetiredKey,
+    type BetaGoogleManagedProjectStorageBucket as BetaGoogleManagedProjectStorageBucket,
+    type BetaGoogleManagedProjectStorageControl as BetaGoogleManagedProjectStorageControl,
+    type BetaGoogleManagedProjectStorageControlParams as BetaGoogleManagedProjectStorageControlParams,
+    type BetaGoogleManagedProjectStorageDisabled as BetaGoogleManagedProjectStorageDisabled,
+    type BetaGoogleManagedProjectStorageDisabledParams as BetaGoogleManagedProjectStorageDisabledParams,
+    type BetaGoogleManagedProjectStorageEnabled as BetaGoogleManagedProjectStorageEnabled,
+    type BetaGoogleManagedProjectStorageEnabledParams as BetaGoogleManagedProjectStorageEnabledParams,
+    type BetaGoogleManagedProjectStorageFailedCheck as BetaGoogleManagedProjectStorageFailedCheck,
+    type BetaGoogleManagedProjectStorageRegionActive as BetaGoogleManagedProjectStorageRegionActive,
+    type BetaGoogleManagedProjectStorageRegionFailed as BetaGoogleManagedProjectStorageRegionFailed,
+    type BetaGoogleManagedProjectStorageRegionNotConfigured as BetaGoogleManagedProjectStorageRegionNotConfigured,
+    type BetaGoogleManagedProjectStorageRegionPending as BetaGoogleManagedProjectStorageRegionPending,
+    type BetaGoogleManagedProjectStorageRegionStatus as BetaGoogleManagedProjectStorageRegionStatus,
+    type BetaGoogleManagedProjectStorageRegionSuspended as BetaGoogleManagedProjectStorageRegionSuspended,
+    type DataControlRetrieveParams as DataControlRetrieveParams,
+    type DataControlUpdateParams as DataControlUpdateParams,
+  };
+}

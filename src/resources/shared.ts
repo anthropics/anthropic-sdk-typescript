@@ -445,6 +445,14 @@ export type ErrorDetails =
   | ExternalStorageAPI.BetaExternalStorageInUseErrorDetails
   | ExternalStorageAPI.BetaExternalStorageInWorkspacePolicyErrorDetails
   | ExternalStorageAPI.BetaStorageVerificationFailedErrorDetails
+  | BetaAPI.BetaCMEKNotApprovedErrorDetails
+  | BetaAPI.BetaExternalKeyNotFoundErrorDetails
+  | BetaAPI.BetaExternalKeyProviderMismatchErrorDetails
+  | BetaAPI.BetaGCPProjectNotVerifiedErrorDetails
+  | BetaAPI.BetaRegionNotSupportedErrorDetails
+  | BetaAPI.BetaStorageNotApprovedErrorDetails
+  | BetaAPI.BetaGCPProjectControlledByAnotherOrganizationErrorDetails
+  | BetaAPI.BetaStorageInUseErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutPrimaryOwnerErrorDetails
   | OrganizationUsersAPI.BetaCannotSignOutSelfErrorDetails
   | BetaAPI.BetaOrganizationNotEnrolledInBetaErrorDetails

@@ -1192,10 +1192,15 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAuthenticationErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaBillingErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaCMEKNotApprovedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaCurrency</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaErrorResponse</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaExternalKeyNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaExternalKeyProviderMismatchErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGCPProjectControlledByAnotherOrganizationErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGCPProjectNotVerifiedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundErrorObject</a></code>
@@ -1203,7 +1208,10 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionErrorObject</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitErrorObject</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaRegionNotSupportedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRequestBodyTimeoutErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaStorageInUseErrorDetails</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaStorageNotApprovedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIError</a></code>
@@ -1215,9 +1223,17 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaCMEKNotApprovedError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaExternalKeyNotFoundError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaExternalKeyProviderMismatchError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGCPProjectNotVerifiedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaRegionNotSupportedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRequestBodyTimeoutError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaStorageNotApprovedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaUnsupportedCharsetError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGCPProjectControlledByAnotherOrganizationError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaStorageInUseError</a></code>
 
 ## Models
 
@@ -2900,6 +2916,53 @@ Methods:
 - <code title="get /v1/organizations/external_storage">client.beta.organization.externalStorage.<a href="./src/resources/beta/organization/external-storage.ts">list</a>({ ...params }) -> BetaExternalStoragesPageCursor</code>
 - <code title="delete /v1/organizations/external_storage/{external_storage_id}">client.beta.organization.externalStorage.<a href="./src/resources/beta/organization/external-storage.ts">delete</a>(externalStorageID, { ...params }) -> BetaDeletedExternalStorage</code>
 - <code title="post /v1/organizations/external_storage/{external_storage_id}/activate">client.beta.organization.externalStorage.<a href="./src/resources/beta/organization/external-storage.ts">activate</a>(externalStorageID, { ...params }) -> BetaExternalStorage</code>
+
+### Providers
+
+#### Google
+
+##### Projects
+
+###### DataControls
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectBucketReference</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKControl</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKControlParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKDisabled</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKDisabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKEnabled</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKEnabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionActive</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionFailed</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionNotConfigured</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionPending</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionStatus</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectCMEKRegionSuspended</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectDataControls</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectEffectiveBucket</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectRetiredBucket</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectRetiredKey</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageBucket</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageControl</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageControlParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageDisabled</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageDisabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageEnabled</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageEnabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageFailedCheck</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionActive</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionFailed</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionNotConfigured</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionPending</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionStatus</a></code>
+- <code><a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">BetaGoogleManagedProjectStorageRegionSuspended</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/providers/google/projects/{project_number}/data_controls">client.beta.organization.providers.google.projects.dataControls.<a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">retrieve</a>(projectNumber, { ...params }) -> BetaGoogleManagedProjectDataControls</code>
+- <code title="post /v1/organizations/providers/google/projects/{project_number}/data_controls">client.beta.organization.providers.google.projects.dataControls.<a href="./src/resources/beta/organization/providers/google/projects/data-controls.ts">update</a>(projectNumber, { ...params }) -> BetaGoogleManagedProjectDataControls</code>
 
 ### Users
 
