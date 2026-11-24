@@ -339,6 +339,8 @@ import {
   BetaManagedAgentsWriteToolConfig,
   BetaManagedAgentsWriteToolConfigParams,
 } from './agents/agents';
+import * as ComplianceAPI from './compliance/compliance';
+import { Compliance } from './compliance/compliance';
 import * as EnvironmentsAPI from './environments/environments';
 import {
   BetaCloudConfig,
@@ -1166,6 +1168,7 @@ export class Beta extends APIResource {
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
   dreams: DreamsAPI.Dreams = new DreamsAPI.Dreams(this._client);
   tunnels: TunnelsAPI.Tunnels = new TunnelsAPI.Tunnels(this._client);
+  compliance: ComplianceAPI.Compliance = new ComplianceAPI.Compliance(this._client);
   organization: OrganizationAPI.Organization = new OrganizationAPI.Organization(this._client);
 }
 
@@ -1566,6 +1569,7 @@ Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
+Beta.Compliance = Compliance;
 Beta.Organization = Organization;
 Beta.BetaApprovalRequiredError = BetaApprovalRequiredError;
 Beta.BetaHumanReviewNotAvailableError = BetaHumanReviewNotAvailableError;
@@ -2623,6 +2627,8 @@ export declare namespace Beta {
     type TunnelRevealTokenParams as TunnelRevealTokenParams,
     type TunnelRotateTokenParams as TunnelRotateTokenParams,
   };
+
+  export { Compliance as Compliance };
 
   export {
     Organization as Organization,

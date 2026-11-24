@@ -2717,6 +2717,69 @@ Methods:
 - <code title="get /v1/tunnels/{tunnel_id}/certificates">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">list</a>(tunnelID, { ...params }) -> BetaTunnelCertificatesPageCursor</code>
 - <code title="post /v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">archive</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
 
+## Compliance
+
+### Review
+
+Types:
+
+- <code><a href="./src/resources/beta/compliance/review/review.ts">BetaComplianceReviewOrder</a></code>
+
+#### Cases
+
+Types:
+
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCase</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseCloseReason</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseClosed</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseOpen</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseOrderBy</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseStatus</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewCaseStatusFilter</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewDetermination</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewEnforcementAction</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewPolicyCategory</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewTranscript</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewVerdictParam</a></code>
+- <code><a href="./src/resources/beta/compliance/review/cases.ts">BetaComplianceReviewViolatedPolicyCategory</a></code>
+
+Methods:
+
+- <code title="get /v1/compliance/review/cases/{case_id}">client.beta.compliance.review.cases.<a href="./src/resources/beta/compliance/review/cases.ts">retrieve</a>(caseID, { ...params }) -> BetaComplianceReviewCase</code>
+- <code title="get /v1/compliance/review/cases">client.beta.compliance.review.cases.<a href="./src/resources/beta/compliance/review/cases.ts">list</a>({ ...params }) -> BetaComplianceReviewCasesPageCursor</code>
+- <code title="post /v1/compliance/review/cases/{case_id}/respond">client.beta.compliance.review.cases.<a href="./src/resources/beta/compliance/review/cases.ts">respond</a>(caseID, { ...params }) -> BetaComplianceReviewCase</code>
+
+#### Notices
+
+Types:
+
+- <code><a href="./src/resources/beta/compliance/review/notices.ts">BetaComplianceReviewNotice</a></code>
+- <code><a href="./src/resources/beta/compliance/review/notices.ts">BetaComplianceReviewNoticeKind</a></code>
+
+Methods:
+
+- <code title="get /v1/compliance/review/notices">client.beta.compliance.review.notices.<a href="./src/resources/beta/compliance/review/notices.ts">list</a>({ ...params }) -> BetaComplianceReviewNoticesPageCursor</code>
+
+#### Items
+
+Types:
+
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewActor</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewAPIActor</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewContentNotCaptured</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewContentUnavailableReason</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewCreateMessageContent</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewItem</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewMessageDetails</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewSafeguardsReason</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewServiceAccountActor</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewStoredCopyUnavailable</a></code>
+- <code><a href="./src/resources/beta/compliance/review/items.ts">BetaComplianceReviewUserActor</a></code>
+
+Methods:
+
+- <code title="get /v1/compliance/review/items/{item_id}">client.beta.compliance.review.items.<a href="./src/resources/beta/compliance/review/items.ts">retrieve</a>(itemID, { ...params }) -> BetaComplianceReviewItem</code>
+
 ## Organization
 
 Types:

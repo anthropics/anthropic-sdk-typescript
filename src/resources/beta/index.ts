@@ -729,6 +729,7 @@ export {
   type EnvironmentArchiveParams,
   type BetaEnvironmentsPageCursor,
 } from './environments/index';
+export { Compliance } from './compliance/index';
 export {
   DeploymentRuns,
   type BetaManagedAgentsAgentArchivedRunErrorObject,

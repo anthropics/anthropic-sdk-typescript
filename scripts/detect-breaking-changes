@@ -81,6 +81,11 @@ TEST_PATHS=(
 	tests/api-resources/beta/dreams.test.ts
 	tests/api-resources/beta/tunnels/tunnels.test.ts
 	tests/api-resources/beta/tunnels/certificates.test.ts
+	tests/api-resources/beta/compliance/compliance.test.ts
+	tests/api-resources/beta/compliance/review/review.test.ts
+	tests/api-resources/beta/compliance/review/cases.test.ts
+	tests/api-resources/beta/compliance/review/notices.test.ts
+	tests/api-resources/beta/compliance/review/items.test.ts
 	tests/api-resources/beta/organization/organization.test.ts
 	tests/api-resources/beta/organization/api-keys.test.ts
 	tests/api-resources/beta/organization/external-keys.test.ts
