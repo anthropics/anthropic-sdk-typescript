@@ -378,6 +378,38 @@ describe('SessionToolRunner', () => {
     expect(out).toEqual([]);
   });
 
+  test.each(['session.status_terminated', 'session.deleted'])(
+    '%s in history stops before dispatching an unanswered tool',
+    async (terminal) => {
+      let runs = 0;
+      const tool = makeOkTool('side_effect', async () => {
+        runs++;
+        return 'ran';
+      });
+      const { client, calls } = makeFake({
+        list: [[toolUse('tu_stale', 'side_effect'), { type: terminal, id: 'ev_terminal' }]],
+        streams: [[]],
+      });
+      const runner = new SessionToolRunner('s', { client, tools: [tool], maxIdleMs: 0 });
+      let timedOut = false;
+      const watchdog = setTimeout(() => {
+        timedOut = true;
+        runner.abort();
+      }, 2_000);
+      const out: DispatchedToolCall[] = [];
+      try {
+        for await (const call of runner) out.push(call);
+      } finally {
+        clearTimeout(watchdog);
+      }
+
+      expect(timedOut).toBe(false);
+      expect(runs).toBe(0);
+      expect(calls.send).toHaveLength(0);
+      expect(out).toHaveLength(0);
+    },
+  );
+
   test('runs each tool.close() once when iteration ends, even when the consumer breaks early', async () => {
     let closed = 0;
     const tool: BetaRunnableTool = {
