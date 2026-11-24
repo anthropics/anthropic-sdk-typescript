@@ -49,7 +49,7 @@ describe('resource rules', () => {
       attributes: { foo: 'string' },
       description: 'description',
       token_lifetime_seconds: 60,
-      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
+      workspace_id: 'wrkspc_01AbCdEfGhJkLmNpQrStUvWx',
       betas: ['computer-use-2024-10-22'],
     });
   });

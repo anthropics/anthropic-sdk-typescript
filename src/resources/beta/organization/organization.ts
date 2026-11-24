@@ -332,6 +332,8 @@ import {
   PluginUpdateParams,
   Plugins,
 } from './plugins/plugins';
+import * as ProvidersAPI from './providers/providers';
+import { Providers } from './providers/providers';
 import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
 import {
   BetaDeletedRBACGroup,
@@ -525,6 +527,7 @@ export class Organization extends APIResource {
   invites: InvitesAPI.Invites = new InvitesAPI.Invites(this._client);
   serviceAccounts: ServiceAccountsAPI.ServiceAccounts = new ServiceAccountsAPI.ServiceAccounts(this._client);
   externalStorage: ExternalStorageAPI.ExternalStorage = new ExternalStorageAPI.ExternalStorage(this._client);
+  providers: ProvidersAPI.Providers = new ProvidersAPI.Providers(this._client);
   users: UsersAPI.Users = new UsersAPI.Users(this._client);
   workspaces: WorkspacesAPI.Workspaces = new WorkspacesAPI.Workspaces(this._client);
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
@@ -657,6 +660,7 @@ Organization.BetaStorageVerificationFailedError = BetaStorageVerificationFailedE
 Organization.BetaUnsupportedRegionError = BetaUnsupportedRegionError;
 Organization.BetaStorageAlreadyRegisteredError = BetaStorageAlreadyRegisteredError;
 Organization.BetaStorageChangedConcurrentlyError = BetaStorageChangedConcurrentlyError;
+Organization.Providers = Providers;
 Organization.Users = Users;
 Organization.BetaCannotSignOutPrimaryOwnerError = BetaCannotSignOutPrimaryOwnerError;
 Organization.BetaCannotSignOutSelfError = BetaCannotSignOutSelfError;
@@ -811,6 +815,8 @@ export declare namespace Organization {
     type ExternalStorageDeleteParams as ExternalStorageDeleteParams,
     type ExternalStorageActivateParams as ExternalStorageActivateParams,
   };
+
+  export { Providers as Providers };
 
   export {
     Users as Users,

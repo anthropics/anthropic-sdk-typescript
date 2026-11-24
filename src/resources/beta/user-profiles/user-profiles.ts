@@ -7,6 +7,8 @@ import {
   BetaUserProfileActionURL,
   BetaUserProfileEnrollEndUserAction,
 } from './action-urls';
+import * as ProvidersAPI from './providers/providers';
+import { Providers } from './providers/providers';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -19,6 +21,7 @@ import { path } from '../../../internal/utils/path';
  */
 export class UserProfiles extends APIResource {
   actionURLs: ActionURLsAPI.ActionURLs = new ActionURLsAPI.ActionURLs(this._client);
+  providers: ProvidersAPI.Providers = new ProvidersAPI.Providers(this._client);
 
   /**
    * Register one of your end customers and get the ID to send on the requests you
@@ -733,6 +736,7 @@ export interface UserProfileCreateEnrollmentURLParams {
 }
 
 UserProfiles.ActionURLs = ActionURLs;
+UserProfiles.Providers = Providers;
 
 export declare namespace UserProfiles {
   export {
@@ -757,4 +761,6 @@ export declare namespace UserProfiles {
     type BetaUserProfileEnrollEndUserAction as BetaUserProfileEnrollEndUserAction,
     type ActionURLCreateParams as ActionURLCreateParams,
   };
+
+  export { Providers as Providers };
 }

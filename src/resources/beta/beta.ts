@@ -339,6 +339,8 @@ import {
   BetaManagedAgentsWriteToolConfig,
   BetaManagedAgentsWriteToolConfigParams,
 } from './agents/agents';
+import * as ComplianceAPI from './compliance/compliance';
+import { Compliance } from './compliance/compliance';
 import * as EnvironmentsAPI from './environments/environments';
 import {
   BetaCloudConfig,
@@ -1015,7 +1017,56 @@ import {
   VaultUpdateParams,
   Vaults,
 } from './vaults/vaults';
-import { BadRequestError } from '../../core/error';
+import { BadRequestError, ConflictError } from '../../core/error';
+
+/**
+ * Anthropic has not approved customer-managed encryption keys for the
+ * organization, project or user profile this request applies to, or has paused or
+ * withdrawn its approval. If you did not expect this, contact Anthropic.
+ */
+export class BetaCMEKNotApprovedError extends BadRequestError {
+  declare readonly errorCode: 'cmek_not_approved';
+  declare readonly details: BetaCMEKNotApprovedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaCMEKNotApprovedError';
+}
+
+/**
+ * The organization has no active External Key with this ID. The message names the
+ * field.
+ */
+export class BetaExternalKeyNotFoundError extends BadRequestError {
+  declare readonly errorCode: 'external_key_not_found';
+  declare readonly details: BetaExternalKeyNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaExternalKeyNotFoundError';
+}
+
+/**
+ * The External Key is held by a key management service that this endpoint does not
+ * take. The message names the field and the service it takes.
+ */
+export class BetaExternalKeyProviderMismatchError extends BadRequestError {
+  declare readonly errorCode: 'external_key_provider_mismatch';
+  declare readonly details: BetaExternalKeyProviderMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaExternalKeyProviderMismatchError';
+}
+
+/**
+ * The organization has not proved that it owns the Google Cloud project that holds
+ * the key or bucket. The message names the field.
+ */
+export class BetaGCPProjectNotVerifiedError extends BadRequestError {
+  declare readonly errorCode: 'gcp_project_not_verified';
+  declare readonly details: BetaGCPProjectNotVerifiedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaGCPProjectNotVerifiedError';
+}
 
 /**
  * The beta that the endpoint requires is not enabled for the organization. The
@@ -1027,6 +1078,18 @@ export class BetaOrganizationNotEnrolledInBetaError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'BetaOrganizationNotEnrolledInBetaError';
+}
+
+/**
+ * The request names a region code that the control does not take from this
+ * organization. The message names the field.
+ */
+export class BetaRegionNotSupportedError extends BadRequestError {
+  declare readonly errorCode: 'region_not_supported';
+  declare readonly details: BetaRegionNotSupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRegionNotSupportedError';
 }
 
 /**
@@ -1042,6 +1105,19 @@ export class BetaRequestBodyTimeoutError extends BadRequestError {
 }
 
 /**
+ * Anthropic has not approved keeping data in a customer-owned storage bucket for
+ * the organization, project or user profile this request applies to, or has paused
+ * or withdrawn its approval. If you did not expect this, contact Anthropic.
+ */
+export class BetaStorageNotApprovedError extends BadRequestError {
+  declare readonly errorCode: 'storage_not_approved';
+  declare readonly details: BetaStorageNotApprovedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaStorageNotApprovedError';
+}
+
+/**
  * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
  * or US-ASCII. Send the request with no charset, or with one of these.
  */
@@ -1051,6 +1127,29 @@ export class BetaUnsupportedCharsetError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'BetaUnsupportedCharsetError';
+}
+
+/**
+ * Another organization has data controls turned on for this Google Cloud project,
+ * or turned them off recently. The message says how long to wait.
+ */
+export class BetaGCPProjectControlledByAnotherOrganizationError extends ConflictError {
+  declare readonly errorCode: 'gcp_project_controlled_by_another_organization';
+  declare readonly details: BetaGCPProjectControlledByAnotherOrganizationErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaGCPProjectControlledByAnotherOrganizationError';
+}
+
+/**
+ * The bucket is already in use, or was in use recently. Name a different bucket.
+ */
+export class BetaStorageInUseError extends ConflictError {
+  declare readonly errorCode: 'storage_in_use';
+  declare readonly details: BetaStorageInUseErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaStorageInUseError';
 }
 
 export class Beta extends APIResource {
@@ -1069,6 +1168,7 @@ export class Beta extends APIResource {
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
   dreams: DreamsAPI.Dreams = new DreamsAPI.Dreams(this._client);
   tunnels: TunnelsAPI.Tunnels = new TunnelsAPI.Tunnels(this._client);
+  compliance: ComplianceAPI.Compliance = new ComplianceAPI.Compliance(this._client);
   organization: OrganizationAPI.Organization = new OrganizationAPI.Organization(this._client);
 }
 
@@ -1138,6 +1238,7 @@ export type AnthropicBeta =
   | 'ce-user-management-2026-07-13'
   | 'ce-claude-code-managed-settings-2026-10-06'
   | 'efs-2026-10-01'
+  | 'google-managed-data-controls-2026-09-01'
   | 'user-profiles-billing-2026-10-01';
 
 export interface BetaAPIErrorObject {
@@ -1179,6 +1280,15 @@ export interface BetaBillingErrorObject {
   type: 'billing_error';
 }
 
+/**
+ * Anthropic has not approved customer-managed encryption keys for the
+ * organization, project or user profile this request applies to, or has paused or
+ * withdrawn its approval. If you did not expect this, contact Anthropic.
+ */
+export interface BetaCMEKNotApprovedErrorDetails {
+  error_code: 'cmek_not_approved';
+}
+
 export type BetaCurrency = 'USD';
 
 export type BetaErrorObject =
@@ -1200,6 +1310,22 @@ export interface BetaErrorResponse {
   type: 'error';
 }
 
+/**
+ * The organization has no active External Key with this ID. The message names the
+ * field.
+ */
+export interface BetaExternalKeyNotFoundErrorDetails {
+  error_code: 'external_key_not_found';
+}
+
+/**
+ * The External Key is held by a key management service that this endpoint does not
+ * take. The message names the field and the service it takes.
+ */
+export interface BetaExternalKeyProviderMismatchErrorDetails {
+  error_code: 'external_key_provider_mismatch';
+}
+
 export interface BetaGatewayTimeoutErrorObject {
   /**
    * A human-readable explanation of the error. Its wording can change, so don't
@@ -1211,6 +1337,22 @@ export interface BetaGatewayTimeoutErrorObject {
    * The broad category of the error.
    */
   type: 'timeout_error';
+}
+
+/**
+ * Another organization has data controls turned on for this Google Cloud project,
+ * or turned them off recently. The message says how long to wait.
+ */
+export interface BetaGCPProjectControlledByAnotherOrganizationErrorDetails {
+  error_code: 'gcp_project_controlled_by_another_organization';
+}
+
+/**
+ * The organization has not proved that it owns the Google Cloud project that holds
+ * the key or bucket. The message names the field.
+ */
+export interface BetaGCPProjectNotVerifiedErrorDetails {
+  error_code: 'gcp_project_not_verified';
 }
 
 export interface BetaInvalidRequestErrorObject {
@@ -1306,11 +1448,35 @@ export interface BetaRateLimitErrorObject {
 }
 
 /**
+ * The request names a region code that the control does not take from this
+ * organization. The message names the field.
+ */
+export interface BetaRegionNotSupportedErrorDetails {
+  error_code: 'region_not_supported';
+}
+
+/**
  * The request body did not finish arriving in time, so nothing was done. Send a
  * smaller body, or send it over a faster connection.
  */
 export interface BetaRequestBodyTimeoutErrorDetails {
   error_code: 'request_body_timeout';
+}
+
+/**
+ * The bucket is already in use, or was in use recently. Name a different bucket.
+ */
+export interface BetaStorageInUseErrorDetails {
+  error_code: 'storage_in_use';
+}
+
+/**
+ * Anthropic has not approved keeping data in a customer-owned storage bucket for
+ * the organization, project or user profile this request applies to, or has paused
+ * or withdrawn its approval. If you did not expect this, contact Anthropic.
+ */
+export interface BetaStorageNotApprovedErrorDetails {
+  error_code: 'storage_not_approved';
 }
 
 /**
@@ -1371,9 +1537,17 @@ export type BetaPermissionError = BetaPermissionErrorObject;
  */
 export type BetaRateLimitError = BetaRateLimitErrorObject;
 
+Beta.BetaCMEKNotApprovedError = BetaCMEKNotApprovedError;
+Beta.BetaExternalKeyNotFoundError = BetaExternalKeyNotFoundError;
+Beta.BetaExternalKeyProviderMismatchError = BetaExternalKeyProviderMismatchError;
+Beta.BetaGCPProjectNotVerifiedError = BetaGCPProjectNotVerifiedError;
 Beta.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Beta.BetaRegionNotSupportedError = BetaRegionNotSupportedError;
 Beta.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
+Beta.BetaStorageNotApprovedError = BetaStorageNotApprovedError;
 Beta.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
+Beta.BetaGCPProjectControlledByAnotherOrganizationError = BetaGCPProjectControlledByAnotherOrganizationError;
+Beta.BetaStorageInUseError = BetaStorageInUseError;
 Beta.Models = Models;
 Beta.Messages = Messages;
 Beta.Agents = Agents;
@@ -1395,6 +1569,7 @@ Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
+Beta.Compliance = Compliance;
 Beta.Organization = Organization;
 Beta.BetaApprovalRequiredError = BetaApprovalRequiredError;
 Beta.BetaHumanReviewNotAvailableError = BetaHumanReviewNotAvailableError;
@@ -1403,17 +1578,30 @@ Beta.BetaAuthorizationCheckUnavailableError = BetaAuthorizationCheckUnavailableE
 
 export declare namespace Beta {
   export {
+    BetaCMEKNotApprovedError as BetaCMEKNotApprovedError,
+    BetaExternalKeyNotFoundError as BetaExternalKeyNotFoundError,
+    BetaExternalKeyProviderMismatchError as BetaExternalKeyProviderMismatchError,
+    BetaGCPProjectNotVerifiedError as BetaGCPProjectNotVerifiedError,
     BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaRegionNotSupportedError as BetaRegionNotSupportedError,
     BetaRequestBodyTimeoutError as BetaRequestBodyTimeoutError,
+    BetaStorageNotApprovedError as BetaStorageNotApprovedError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
+    BetaGCPProjectControlledByAnotherOrganizationError as BetaGCPProjectControlledByAnotherOrganizationError,
+    BetaStorageInUseError as BetaStorageInUseError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIErrorObject as BetaAPIErrorObject,
     type BetaAuthenticationErrorObject as BetaAuthenticationErrorObject,
     type BetaBillingErrorObject as BetaBillingErrorObject,
+    type BetaCMEKNotApprovedErrorDetails as BetaCMEKNotApprovedErrorDetails,
     type BetaCurrency as BetaCurrency,
     type BetaErrorObject as BetaErrorObject,
     type BetaErrorResponse as BetaErrorResponse,
+    type BetaExternalKeyNotFoundErrorDetails as BetaExternalKeyNotFoundErrorDetails,
+    type BetaExternalKeyProviderMismatchErrorDetails as BetaExternalKeyProviderMismatchErrorDetails,
     type BetaGatewayTimeoutErrorObject as BetaGatewayTimeoutErrorObject,
+    type BetaGCPProjectControlledByAnotherOrganizationErrorDetails as BetaGCPProjectControlledByAnotherOrganizationErrorDetails,
+    type BetaGCPProjectNotVerifiedErrorDetails as BetaGCPProjectNotVerifiedErrorDetails,
     type BetaInvalidRequestErrorObject as BetaInvalidRequestErrorObject,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundErrorObject as BetaNotFoundErrorObject,
@@ -1421,7 +1609,10 @@ export declare namespace Beta {
     type BetaOverloadedErrorObject as BetaOverloadedErrorObject,
     type BetaPermissionErrorObject as BetaPermissionErrorObject,
     type BetaRateLimitErrorObject as BetaRateLimitErrorObject,
+    type BetaRegionNotSupportedErrorDetails as BetaRegionNotSupportedErrorDetails,
     type BetaRequestBodyTimeoutErrorDetails as BetaRequestBodyTimeoutErrorDetails,
+    type BetaStorageInUseErrorDetails as BetaStorageInUseErrorDetails,
+    type BetaStorageNotApprovedErrorDetails as BetaStorageNotApprovedErrorDetails,
     type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
     type BetaError as BetaError,
     type BetaAPIError as BetaAPIError,
@@ -2436,6 +2627,8 @@ export declare namespace Beta {
     type TunnelRevealTokenParams as TunnelRevealTokenParams,
     type TunnelRotateTokenParams as TunnelRotateTokenParams,
   };
+
+  export { Compliance as Compliance };
 
   export {
     Organization as Organization,

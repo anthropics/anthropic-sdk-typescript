@@ -132,10 +132,20 @@ import {
   BetaAuthenticationErrorObject,
   BetaBillingError,
   BetaBillingErrorObject,
+  BetaCMEKNotApprovedError,
+  BetaCMEKNotApprovedErrorDetails,
   BetaCurrency,
   BetaError,
   BetaErrorObject,
   BetaErrorResponse,
+  BetaExternalKeyNotFoundError,
+  BetaExternalKeyNotFoundErrorDetails,
+  BetaExternalKeyProviderMismatchError,
+  BetaExternalKeyProviderMismatchErrorDetails,
+  BetaGCPProjectControlledByAnotherOrganizationError,
+  BetaGCPProjectControlledByAnotherOrganizationErrorDetails,
+  BetaGCPProjectNotVerifiedError,
+  BetaGCPProjectNotVerifiedErrorDetails,
   BetaGatewayTimeoutError,
   BetaGatewayTimeoutErrorObject,
   BetaInvalidRequestError,
@@ -151,8 +161,14 @@ import {
   BetaPermissionErrorObject,
   BetaRateLimitError,
   BetaRateLimitErrorObject,
+  BetaRegionNotSupportedError,
+  BetaRegionNotSupportedErrorDetails,
   BetaRequestBodyTimeoutError,
   BetaRequestBodyTimeoutErrorDetails,
+  BetaStorageInUseError,
+  BetaStorageInUseErrorDetails,
+  BetaStorageNotApprovedError,
+  BetaStorageNotApprovedErrorDetails,
   BetaUnsupportedCharsetError,
   BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
@@ -2297,9 +2313,18 @@ Anthropic.RBACRoleNotFoundError = RBACRoleNotFoundError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.ChangeOutcomeUnknownError = ChangeOutcomeUnknownError;
 Anthropic.Beta = Beta;
+Anthropic.BetaCMEKNotApprovedError = BetaCMEKNotApprovedError;
+Anthropic.BetaExternalKeyNotFoundError = BetaExternalKeyNotFoundError;
+Anthropic.BetaExternalKeyProviderMismatchError = BetaExternalKeyProviderMismatchError;
+Anthropic.BetaGCPProjectNotVerifiedError = BetaGCPProjectNotVerifiedError;
 Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
+Anthropic.BetaRegionNotSupportedError = BetaRegionNotSupportedError;
 Anthropic.BetaRequestBodyTimeoutError = BetaRequestBodyTimeoutError;
+Anthropic.BetaStorageNotApprovedError = BetaStorageNotApprovedError;
 Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
+Anthropic.BetaGCPProjectControlledByAnotherOrganizationError =
+  BetaGCPProjectControlledByAnotherOrganizationError;
+Anthropic.BetaStorageInUseError = BetaStorageInUseError;
 Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
 Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
 Anthropic.CMEKKeyDisabledError = CMEKKeyDisabledError;
@@ -2925,17 +2950,30 @@ export declare namespace Anthropic {
 
   export {
     Beta as Beta,
+    BetaCMEKNotApprovedError as BetaCMEKNotApprovedError,
+    BetaExternalKeyNotFoundError as BetaExternalKeyNotFoundError,
+    BetaExternalKeyProviderMismatchError as BetaExternalKeyProviderMismatchError,
+    BetaGCPProjectNotVerifiedError as BetaGCPProjectNotVerifiedError,
     BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
+    BetaRegionNotSupportedError as BetaRegionNotSupportedError,
     BetaRequestBodyTimeoutError as BetaRequestBodyTimeoutError,
+    BetaStorageNotApprovedError as BetaStorageNotApprovedError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
+    BetaGCPProjectControlledByAnotherOrganizationError as BetaGCPProjectControlledByAnotherOrganizationError,
+    BetaStorageInUseError as BetaStorageInUseError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIErrorObject as BetaAPIErrorObject,
     type BetaAuthenticationErrorObject as BetaAuthenticationErrorObject,
     type BetaBillingErrorObject as BetaBillingErrorObject,
+    type BetaCMEKNotApprovedErrorDetails as BetaCMEKNotApprovedErrorDetails,
     type BetaCurrency as BetaCurrency,
     type BetaErrorObject as BetaErrorObject,
     type BetaErrorResponse as BetaErrorResponse,
+    type BetaExternalKeyNotFoundErrorDetails as BetaExternalKeyNotFoundErrorDetails,
+    type BetaExternalKeyProviderMismatchErrorDetails as BetaExternalKeyProviderMismatchErrorDetails,
     type BetaGatewayTimeoutErrorObject as BetaGatewayTimeoutErrorObject,
+    type BetaGCPProjectControlledByAnotherOrganizationErrorDetails as BetaGCPProjectControlledByAnotherOrganizationErrorDetails,
+    type BetaGCPProjectNotVerifiedErrorDetails as BetaGCPProjectNotVerifiedErrorDetails,
     type BetaInvalidRequestErrorObject as BetaInvalidRequestErrorObject,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundErrorObject as BetaNotFoundErrorObject,
@@ -2943,7 +2981,10 @@ export declare namespace Anthropic {
     type BetaOverloadedErrorObject as BetaOverloadedErrorObject,
     type BetaPermissionErrorObject as BetaPermissionErrorObject,
     type BetaRateLimitErrorObject as BetaRateLimitErrorObject,
+    type BetaRegionNotSupportedErrorDetails as BetaRegionNotSupportedErrorDetails,
     type BetaRequestBodyTimeoutErrorDetails as BetaRequestBodyTimeoutErrorDetails,
+    type BetaStorageInUseErrorDetails as BetaStorageInUseErrorDetails,
+    type BetaStorageNotApprovedErrorDetails as BetaStorageNotApprovedErrorDetails,
     type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
     type BetaError as BetaError,
     type BetaAPIError as BetaAPIError,
