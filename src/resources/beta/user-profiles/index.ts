@@ -4,6 +4,7 @@ export {
   type BetaUserProfileEnrollEndUserAction,
   type ActionURLCreateParams,
 } from './action-urls';
+export { Providers } from './providers/index';
 export {
   UserProfiles,
   type BetaDeletedUserProfile,

@@ -1,0 +1,81 @@
+import { APIResource } from '../../../../../core/resource';
+import * as DataControlsAPI from './data-controls';
+import {
+  BetaGoogleManagedBucketReference,
+  BetaGoogleManagedCMEKControl,
+  BetaGoogleManagedCMEKControlParams,
+  BetaGoogleManagedCMEKDisabled,
+  BetaGoogleManagedCMEKDisabledParams,
+  BetaGoogleManagedCMEKEnabled,
+  BetaGoogleManagedCMEKEnabledParams,
+  BetaGoogleManagedCMEKRegionActive,
+  BetaGoogleManagedCMEKRegionFailed,
+  BetaGoogleManagedCMEKRegionNotConfigured,
+  BetaGoogleManagedCMEKRegionPending,
+  BetaGoogleManagedCMEKRegionStatus,
+  BetaGoogleManagedCMEKRegionSuspended,
+  BetaGoogleManagedDataControls,
+  BetaGoogleManagedRetiredBucket,
+  BetaGoogleManagedRetiredKey,
+  BetaGoogleManagedStorageBucket,
+  BetaGoogleManagedStorageControl,
+  BetaGoogleManagedStorageControlParams,
+  BetaGoogleManagedStorageDisabled,
+  BetaGoogleManagedStorageDisabledParams,
+  BetaGoogleManagedStorageEnabled,
+  BetaGoogleManagedStorageEnabledParams,
+  BetaGoogleManagedStorageFailedCheck,
+  BetaGoogleManagedStorageRegionActive,
+  BetaGoogleManagedStorageRegionFailed,
+  BetaGoogleManagedStorageRegionNotConfigured,
+  BetaGoogleManagedStorageRegionPending,
+  BetaGoogleManagedStorageRegionStatus,
+  BetaGoogleManagedStorageRegionSuspended,
+  DataControlRetrieveParams,
+  DataControlUpdateParams,
+  DataControls,
+} from './data-controls';
+
+export class Google extends APIResource {
+  dataControls: DataControlsAPI.DataControls = new DataControlsAPI.DataControls(this._client);
+}
+
+Google.DataControls = DataControls;
+
+export declare namespace Google {
+  export {
+    DataControls as DataControls,
+    type BetaGoogleManagedBucketReference as BetaGoogleManagedBucketReference,
+    type BetaGoogleManagedCMEKControl as BetaGoogleManagedCMEKControl,
+    type BetaGoogleManagedCMEKControlParams as BetaGoogleManagedCMEKControlParams,
+    type BetaGoogleManagedCMEKDisabled as BetaGoogleManagedCMEKDisabled,
+    type BetaGoogleManagedCMEKDisabledParams as BetaGoogleManagedCMEKDisabledParams,
+    type BetaGoogleManagedCMEKEnabled as BetaGoogleManagedCMEKEnabled,
+    type BetaGoogleManagedCMEKEnabledParams as BetaGoogleManagedCMEKEnabledParams,
+    type BetaGoogleManagedCMEKRegionActive as BetaGoogleManagedCMEKRegionActive,
+    type BetaGoogleManagedCMEKRegionFailed as BetaGoogleManagedCMEKRegionFailed,
+    type BetaGoogleManagedCMEKRegionNotConfigured as BetaGoogleManagedCMEKRegionNotConfigured,
+    type BetaGoogleManagedCMEKRegionPending as BetaGoogleManagedCMEKRegionPending,
+    type BetaGoogleManagedCMEKRegionStatus as BetaGoogleManagedCMEKRegionStatus,
+    type BetaGoogleManagedCMEKRegionSuspended as BetaGoogleManagedCMEKRegionSuspended,
+    type BetaGoogleManagedDataControls as BetaGoogleManagedDataControls,
+    type BetaGoogleManagedRetiredBucket as BetaGoogleManagedRetiredBucket,
+    type BetaGoogleManagedRetiredKey as BetaGoogleManagedRetiredKey,
+    type BetaGoogleManagedStorageBucket as BetaGoogleManagedStorageBucket,
+    type BetaGoogleManagedStorageControl as BetaGoogleManagedStorageControl,
+    type BetaGoogleManagedStorageControlParams as BetaGoogleManagedStorageControlParams,
+    type BetaGoogleManagedStorageDisabled as BetaGoogleManagedStorageDisabled,
+    type BetaGoogleManagedStorageDisabledParams as BetaGoogleManagedStorageDisabledParams,
+    type BetaGoogleManagedStorageEnabled as BetaGoogleManagedStorageEnabled,
+    type BetaGoogleManagedStorageEnabledParams as BetaGoogleManagedStorageEnabledParams,
+    type BetaGoogleManagedStorageFailedCheck as BetaGoogleManagedStorageFailedCheck,
+    type BetaGoogleManagedStorageRegionActive as BetaGoogleManagedStorageRegionActive,
+    type BetaGoogleManagedStorageRegionFailed as BetaGoogleManagedStorageRegionFailed,
+    type BetaGoogleManagedStorageRegionNotConfigured as BetaGoogleManagedStorageRegionNotConfigured,
+    type BetaGoogleManagedStorageRegionPending as BetaGoogleManagedStorageRegionPending,
+    type BetaGoogleManagedStorageRegionStatus as BetaGoogleManagedStorageRegionStatus,
+    type BetaGoogleManagedStorageRegionSuspended as BetaGoogleManagedStorageRegionSuspended,
+    type DataControlRetrieveParams as DataControlRetrieveParams,
+    type DataControlUpdateParams as DataControlUpdateParams,
+  };
+}

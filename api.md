@@ -2596,6 +2596,50 @@ Methods:
 
 - <code title="post /v1/user_profiles/{user_profile_id}/action_urls">client.beta.userProfiles.actionURLs.<a href="./src/resources/beta/user-profiles/action-urls.ts">create</a>(userProfileID, { ...params }) -> BetaUserProfileActionURL</code>
 
+### Providers
+
+#### Google
+
+##### DataControls
+
+Types:
+
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedBucketReference</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKControl</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKControlParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKDisabled</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKDisabledParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKEnabled</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKEnabledParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionActive</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionFailed</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionNotConfigured</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionPending</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionStatus</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedCMEKRegionSuspended</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedDataControls</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedRetiredBucket</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedRetiredKey</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageBucket</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageControl</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageControlParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageDisabled</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageDisabledParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageEnabled</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageEnabledParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageFailedCheck</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionActive</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionFailed</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionNotConfigured</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionPending</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionStatus</a></code>
+- <code><a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">BetaGoogleManagedStorageRegionSuspended</a></code>
+
+Methods:
+
+- <code title="get /v1/user_profiles/{user_profile_id}/providers/google/data_controls">client.beta.userProfiles.providers.google.dataControls.<a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">retrieve</a>(userProfileID, { ...params }) -> BetaGoogleManagedDataControls</code>
+- <code title="post /v1/user_profiles/{user_profile_id}/providers/google/data_controls">client.beta.userProfiles.providers.google.dataControls.<a href="./src/resources/beta/user-profiles/providers/google/data-controls.ts">update</a>(userProfileID, { ...params }) -> BetaGoogleManagedDataControls</code>
+
 ## Dreams
 
 Types:

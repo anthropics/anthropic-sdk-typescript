@@ -75,6 +75,9 @@ TEST_PATHS=(
 	tests/api-resources/beta/webhooks.test.ts
 	tests/api-resources/beta/user-profiles/user-profiles.test.ts
 	tests/api-resources/beta/user-profiles/action-urls.test.ts
+	tests/api-resources/beta/user-profiles/providers/providers.test.ts
+	tests/api-resources/beta/user-profiles/providers/google/google.test.ts
+	tests/api-resources/beta/user-profiles/providers/google/data-controls.test.ts
 	tests/api-resources/beta/dreams.test.ts
 	tests/api-resources/beta/tunnels/tunnels.test.ts
 	tests/api-resources/beta/tunnels/certificates.test.ts
