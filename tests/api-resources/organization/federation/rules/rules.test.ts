@@ -47,7 +47,7 @@ describe('resource rules', () => {
       applies_to_all_workspaces: true,
       description: 'description',
       token_lifetime_seconds: 60,
-      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
+      workspace_id: 'wrkspc_01AbCdEfGhJkLmNpQrStUvWx',
     });
   });
 

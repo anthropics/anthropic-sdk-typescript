@@ -26,7 +26,7 @@ describe('resource cost', () => {
       actor_ids: ['user_01WxYzAbCdEfGhJkMnPqRsTu'],
       actor_types: ['service_account_actor'],
       agent_ids: ['agent_01VHd3EAGJ6PLkP9LM7DDu3f'],
-      api_key_ids: ['apikey_01Rj2N8SVvo6BePZj99NhmiT'],
+      api_key_ids: ['apikey_01BcDeFgHjKmNpQrStUvWxYz'],
       claude_tag_categories: ['engaged'],
       claude_tag_user_ids: ['U0123ABCDEF'],
       context_windows: ['0-200k'],
@@ -50,7 +50,7 @@ describe('resource cost', () => {
       speeds: ['fast'],
       time_bucket_width: '1d',
       user_profile_ids: ['uprof_01M33NeYUQK2WV9PpYcsPHLi'],
-      workspace_ids: ['wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ'],
+      workspace_ids: ['wrkspc_01AbCdEfGhJkLmNpQrStUvWx'],
       betas: ['computer-use-2024-10-22'],
     });
   });

@@ -35,7 +35,7 @@ describe('resource workspaces', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.beta.organization.federation.rules.workspaces.add('federation_rule_id', {
-      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
+      workspace_id: 'wrkspc_01AbCdEfGhJkLmNpQrStUvWx',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -48,7 +48,7 @@ describe('resource workspaces', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.beta.organization.federation.rules.workspaces.add('federation_rule_id', {
-      workspace_id: 'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ',
+      workspace_id: 'wrkspc_01AbCdEfGhJkLmNpQrStUvWx',
       betas: ['computer-use-2024-10-22'],
     });
   });
