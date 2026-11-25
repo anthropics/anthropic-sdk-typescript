@@ -556,7 +556,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         this.#requestOptions(),
       )) {
         this.#ingestHistory(ev, pending);
-        if (ev.type === 'session.status_terminated' || ev.type === 'session.deleted') terminated = true;
+        if (ev.type === 'session.status_terminated' || ev.type === 'session.deleted') {
+          // A later page is irrelevant once history proves the session has ended.
+          terminated = true;
+          break;
+        }
         if (!isIdleNeutral(ev)) lastEndedTurn = endsTurn(ev);
       }
     } catch (e) {

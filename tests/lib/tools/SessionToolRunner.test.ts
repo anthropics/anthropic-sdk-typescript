@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { SessionToolRunner } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner';
 import type { DispatchedToolCall } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
@@ -407,6 +408,74 @@ describe('SessionToolRunner', () => {
       expect(runs).toBe(0);
       expect(calls.send).toHaveLength(0);
       expect(out).toHaveLength(0);
+    },
+  );
+
+  test.each(['session.status_terminated', 'session.deleted'])(
+    '%s in history stops before fetching a later page that would fail',
+    async (terminal) => {
+      const call = {
+        ...customToolUse('ev_stale', 'side_effect'),
+        processed_at: '2026-01-01T00:00:00Z',
+      };
+      const end = { type: terminal, id: 'ev_end', processed_at: '2026-01-01T00:00:01Z' };
+      const requests: string[] = [];
+      let streamSignal: AbortSignal | null | undefined;
+      const client = new Anthropic({
+        apiKey: 'offline-test',
+        baseURL: 'https://example.invalid',
+        maxRetries: 0,
+        fetch: async (input, init) => {
+          const url = new URL(String(input));
+          requests.push(`${init?.method} ${url.pathname}${url.search}`);
+          if (url.pathname.endsWith('/stream')) {
+            streamSignal = init?.signal;
+            const body = new ReadableStream<Uint8Array>({
+              start(controller) {
+                const replay = `event: ${call.type}\ndata: ${JSON.stringify(call)}\n\n`;
+                controller.enqueue(new TextEncoder().encode(replay));
+                init?.signal?.addEventListener('abort', () => controller.close(), { once: true });
+              },
+            });
+            return new Response(body, { headers: { 'content-type': 'text/event-stream' } });
+          }
+          if (init?.method === 'POST') return Response.json({ data: [], session_id: 'sesn_test' });
+          if (url.searchParams.has('page')) {
+            return Response.json(
+              { type: 'error', error: { type: 'api_error', message: 'history unavailable' } },
+              { status: 500 },
+            );
+          }
+          return Response.json({ data: [call, end], next_page: 'next' });
+        },
+      });
+      const run = vi.fn(async () => 'ran');
+      const runner = client.beta.sessions.events.toolRunner('sesn_test', {
+        tools: [makeOkTool('side_effect', run)],
+        maxIdleMs: 0,
+      });
+      let timedOut = false;
+      const watchdog = setTimeout(() => {
+        timedOut = true;
+        runner.abort();
+      }, 1_000);
+      const out: DispatchedToolCall[] = [];
+      try {
+        for await (const result of runner) out.push(result);
+      } finally {
+        clearTimeout(watchdog);
+      }
+
+      expect({ timedOut, runs: run.mock.calls.length, results: out.length, requests }).toEqual({
+        timedOut: false,
+        runs: 0,
+        results: 0,
+        requests: [
+          'GET /v1/sessions/sesn_test/events/stream',
+          'GET /v1/sessions/sesn_test/events?limit=1000',
+        ],
+      });
+      expect(streamSignal?.aborted).toBe(true);
     },
   );
 
