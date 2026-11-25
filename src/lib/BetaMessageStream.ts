@@ -549,7 +549,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     switch (event.type) {
       case 'content_block_delta': {
-        const content = messageSnapshot.content.at(-1)!;
+        const content = messageSnapshot.content[event.index];
+        if (!content) break;
         switch (event.delta.type) {
           case 'text_delta': {
             if (content.type === 'text') {
@@ -617,7 +618,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         break;
       }
       case 'content_block_stop': {
-        this._emit('contentBlock', messageSnapshot.content.at(-1)!);
+        const content = messageSnapshot.content[event.index];
+        if (content) this._emit('contentBlock', content);
         break;
       }
       case 'message_start': {

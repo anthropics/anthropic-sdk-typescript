@@ -124,6 +124,92 @@ function assertToolUseResponse(events: MessageStreamEvent[], message: Message) {
   expect(message).toMatchObject(EXPECTED_TOOL_USE_MESSAGE);
 }
 
+describe.each(['messages', 'beta.messages'])('%s stream callbacks', (api) => {
+  function mockStream(events: unknown[]) {
+    const { fetch, handleStreamEvents } = mockFetch();
+    handleStreamEvents(events);
+    const client = new Anthropic({ apiKey: '...', fetch });
+    const params = {
+      max_tokens: 128,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user' as const, content: 'Check the weather in Paris and Tokyo.' }],
+      tools: [
+        {
+          name: 'weather',
+          input_schema: { type: 'object' as const, properties: { city: { type: 'string' } } },
+        },
+      ],
+    };
+    return { client, params };
+  }
+
+  it('dispatches overlapping tool callbacks by block index', async () => {
+    const frames = await parseSSEFixture(loadFixture('tool_use_response.txt'));
+    const tool = (id: string) => ({ type: 'tool_use', id, name: 'weather', input: {} });
+    const { client, params } = mockStream([
+      frames[0],
+      { type: 'content_block_start', index: 0, content_block: tool('first') },
+      { type: 'content_block_start', index: 1, content_block: tool('second') },
+      {
+        type: 'content_block_delta',
+        index: 1,
+        delta: { type: 'input_json_delta', partial_json: '{"city":"Tokyo"}' },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'input_json_delta', partial_json: '{"city":"Paris"}' },
+      },
+      { type: 'content_block_stop', index: 0 },
+      { type: 'content_block_stop', index: 1 },
+      ...frames.slice(-2),
+    ]);
+    const onInput = vi.fn();
+    const onBlock = vi.fn();
+    const stream =
+      api === 'messages' ?
+        client.messages.stream(params).on('inputJson', onInput).on('contentBlock', onBlock)
+      : client.beta.messages.stream(params).on('inputJson', onInput).on('contentBlock', onBlock);
+    await stream.done();
+
+    expect(onInput.mock.calls).toEqual([
+      ['{"city":"Tokyo"}', { city: 'Tokyo' }],
+      ['{"city":"Paris"}', { city: 'Paris' }],
+    ]);
+    expect(onBlock.mock.calls).toEqual([
+      [{ type: 'tool_use', id: 'first', name: 'weather', input: { city: 'Paris' } }],
+      [{ type: 'tool_use', id: 'second', name: 'weather', input: { city: 'Tokyo' } }],
+    ]);
+  });
+
+  it('passes through events for a missing block without dispatching its callbacks', async () => {
+    const [messageStart, blockStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const missing = [
+      { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'unmatched' } },
+      { type: 'content_block_stop', index: 1 },
+    ];
+    const { client, params } = mockStream([messageStart, blockStart, ...missing, ...rest]);
+    const onText = vi.fn();
+    const onBlock = vi.fn();
+    const stream =
+      api === 'messages' ?
+        client.messages.stream(params).on('text', onText).on('contentBlock', onBlock)
+      : client.beta.messages.stream(params).on('text', onText).on('contentBlock', onBlock);
+    const observed = [];
+    for await (const event of stream) {
+      if ('index' in event && event.index === 1) observed.push(event);
+    }
+
+    expect(observed).toEqual(missing);
+    expect(onText.mock.calls).toEqual([
+      ['Hello', 'Hello'],
+      [' there', 'Hello there'],
+      ['!', 'Hello there!'],
+    ]);
+    expect(onBlock.mock.calls).toEqual([[{ type: 'text', text: 'Hello there!' }]]);
+  });
+});
+
 describe('MessageStream class', () => {
   it('aborts on break', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
