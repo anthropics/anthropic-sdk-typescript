@@ -513,7 +513,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
           {},
           this.#requestOptions(),
         );
-        await this.#reconcile();
+        if (await this.#reconcile()) return;
         for await (const ev of stream) {
           backoff = STREAM_BACKOFF_START_MS;
           if (await this.#handleStreamEvent(ev)) return;
@@ -543,10 +543,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
    * later in the same history is not re-executed. Runs after the live stream is
    * already attached (see {@link SessionToolRunner.#streamLoop}).
    */
-  async #reconcile(): Promise<void> {
+  async #reconcile(): Promise<boolean> {
     const ctrl = this.#controller;
     const pending: DispatchedToolUseEvent[] = [];
     let lastEndedTurn = false;
+    let terminated = false;
     this.#historyRead = false;
     try {
       for await (const ev of this.client.beta.sessions.events.list(
@@ -555,6 +556,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         this.#requestOptions(),
       )) {
         this.#ingestHistory(ev, pending);
+        if (ev.type === 'session.status_terminated' || ev.type === 'session.deleted') {
+          // A later page is irrelevant once history proves the session has ended.
+          terminated = true;
+          break;
+        }
         if (!isIdleNeutral(ev)) lastEndedTurn = endsTurn(ev);
       }
     } catch (e) {
@@ -570,7 +576,16 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       for (const ev of pending) this.#seen.delete(ev.id);
       this.#idleClock.noteHistoryRead(false);
       this.#releaseTerminatedHolds();
-      return;
+      return false;
+    }
+    if (terminated) {
+      this.#idleClock.disarm();
+      this.#logger.info('session terminated in history', {
+        component: 'session-tool-runner',
+        session_id: this.sessionId,
+      });
+      ctrl.abort();
+      return true;
     }
     this.#historyRead = true;
     this.#idleClock.noteHistoryRead(true);
@@ -600,6 +615,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     );
     if (lastEndedTurn && outstanding.length === 0) this.#idleClock.arm();
     else this.#idleClock.disarm();
+    return false;
   }
 
   #ingestHistory(ev: BetaManagedAgentsSessionEvent, pending: DispatchedToolUseEvent[]): void {
