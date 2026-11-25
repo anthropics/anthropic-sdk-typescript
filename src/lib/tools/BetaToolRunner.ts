@@ -68,7 +68,9 @@ export class BetaToolRunner<Stream extends boolean> {
   /** Whether the async iterator has been consumed */
   #consumed = false;
   /** Whether parameters have been mutated since the last API call */
-  #mutated = false;
+  #paramsMutated = false;
+  /** Whether messages have been mutated since the last API call */
+  #messagesMutated = false;
   /** The thread that holds the conversation and sends each turn */
   #thread: BetaMessageThread<any>;
   /** The runner's own settings; every other param is the thread's */
@@ -176,7 +178,8 @@ export class BetaToolRunner<Stream extends boolean> {
     }
 
     this.#consumed = true;
-    this.#mutated = true;
+    this.#paramsMutated = true;
+    this.#messagesMutated = true;
     this.#toolResponse = undefined;
 
     const toolRunnerSpan = guardTracing(this.#thread._client, () =>
@@ -202,7 +205,8 @@ export class BetaToolRunner<Stream extends boolean> {
             continue;
           }
 
-          this.#mutated = false;
+          this.#paramsMutated = false;
+          this.#messagesMutated = false;
           this.#toolResponse = undefined;
           this.#iterationCount++;
           this.#message = undefined;
@@ -213,27 +217,33 @@ export class BetaToolRunner<Stream extends boolean> {
 
           const next = await this.#withToolRunnerSpan(async () => {
             let toAnswer: BetaMessageParam | undefined;
-            if (!this.#mutated) {
-              const message = await this.#message!;
-              const nextStep = determineNextStepFromStopReason(message.stop_reason);
-              this.#lastStopReason = message.stop_reason;
-              if (nextStep === 'stop') {
-                return 'stop';
-              }
-              // On "resume" there is nothing to push: the thread already holds the unfinished reply.
-              if (nextStep === 'resume') {
-                return 'continue';
-              }
-              toAnswer = lastAssistantMessage(this.#thread.messages);
-            } else {
-              // The caller has taken over the history, so the last response no longer says how it ends.
+            const takeCallerHistory = () => {
+              // The caller has taken over the next turn, so the last response no longer says how it ends.
               this.#lastStopReason = null;
               // The thread takes a new history once the turn has ended.
               this.#stream?.abort();
               // Checked first, because a history without the reply starts a new thread, which would take the change.
               this.#thread._state.checkNextTurn(turnParams(this.#thread));
               this.#thread._state.setMessages(callerMessages);
-              toAnswer = callerMessages.at(-1);
+              return callerMessages.at(-1);
+            };
+
+            if (this.#messagesMutated) {
+              toAnswer = takeCallerHistory();
+            } else {
+              const message = await this.#message!;
+              const nextStep = determineNextStepFromStopReason(message.stop_reason);
+              this.#lastStopReason = message.stop_reason;
+              if (this.#paramsMutated && nextStep !== 'run_tools') {
+                toAnswer = takeCallerHistory();
+              } else if (nextStep === 'stop') {
+                return 'stop';
+              } else if (nextStep === 'resume') {
+                // On "resume" there is nothing to push: the thread already holds the unfinished reply.
+                return 'continue';
+              } else {
+                toAnswer = lastAssistantMessage(this.#thread.messages);
+              }
             }
 
             // No tool runs for a turn the thread refuses.
@@ -252,7 +262,7 @@ export class BetaToolRunner<Stream extends boolean> {
                 toolMessage,
                 ...history.slice(answered),
               ]);
-            } else if (!this.#mutated && !this.#thread._state.hasTurnToSend) {
+            } else if (!this.#paramsMutated && !this.#thread._state.hasTurnToSend) {
               return 'stop';
             }
             return 'continue';
@@ -558,7 +568,8 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
-    const params = typeof paramsOrMutator === 'function' ? paramsOrMutator(this.params) : paramsOrMutator;
+    const previousParams = this.params;
+    const params = typeof paramsOrMutator === 'function' ? paramsOrMutator(previousParams) : paramsOrMutator;
     rejectCompactionParam(params);
     if (this.#compaction.status !== 'idle') {
       rejectCompactionEdit(params);
@@ -571,13 +582,15 @@ export class BetaToolRunner<Stream extends boolean> {
     const { settings, threadParams } = splitToolRunnerParams(params);
     rejectRunToolsEagerlyWithoutStream(settings);
     this.#settings = definedEntries(settings);
+    const messagesMutated = !sameMessages(threadParams.messages, previousParams.messages);
     if (this.#messagesWithoutReply) {
       this.#messagesWithoutReply = threadParams.messages;
       this.#thread._state.setParams({ ...threadParams, messages: this.#thread.messages });
     } else {
       this.#thread._state.setParams(threadParams);
     }
-    this.#mutated = true;
+    this.#paramsMutated = true;
+    this.#messagesMutated ||= messagesMutated;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
   }
