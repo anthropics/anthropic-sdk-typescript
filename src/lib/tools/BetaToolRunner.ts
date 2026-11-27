@@ -528,6 +528,7 @@ export class BetaToolRunner<Stream extends boolean> {
   /**
    * Update the parameters for the next API call. This invalidates any cached tool responses. With
    * `runToolsEagerly`, a tool call of the reply that has started doesn't run again.
+   * Replacement message arrays are copied before the runner appends turns.
    *
    * The new params replace the current ones, so a param they leave out is gone: start from `runner.params` to keep the
    * rest. `system` and `tools` cannot change on a message thread: use {@link addTools} and {@link removeTools}, or create
@@ -569,13 +570,15 @@ export class BetaToolRunner<Stream extends boolean> {
     }
     // `thread` only chooses threading when the runner is created, so a later `false` is ignored.
     const { settings, threadParams } = splitToolRunnerParams(params);
+    // Own the replacement history. The caller may reuse or freeze its input array before the next turn.
+    const ownedMessages = [...threadParams.messages];
     rejectRunToolsEagerlyWithoutStream(settings);
     this.#settings = definedEntries(settings);
     if (this.#messagesWithoutReply) {
-      this.#messagesWithoutReply = threadParams.messages;
+      this.#messagesWithoutReply = ownedMessages;
       this.#thread._state.setParams({ ...threadParams, messages: this.#thread.messages });
     } else {
-      this.#thread._state.setParams(threadParams);
+      this.#thread._state.setParams({ ...threadParams, messages: ownedMessages });
     }
     this.#mutated = true;
     // Invalidate cached tool response since parameters changed
