@@ -104,6 +104,19 @@ export function boundedTabURL(url: string): string {
  * text on an is_error result and answers anything else with a 400 that ends the run, so an image a member attached to
  * its refusal is dropped here rather than ending the whole loop. The refusal's text still reaches the model.
  */
+/**
+ * What an `is_error` result says when it would otherwise carry no text. The API
+ * rejects an empty `is_error` result with a 400 that ends the run, so both
+ * runners answer this instead: the model still learns the call failed, and the
+ * developer loses nothing they wrote.
+ */
+export const EMPTY_ERROR_TEXT = 'The tool call failed with an empty error message.';
+
+/** Whether content the API would reject for an `is_error` result needs that placeholder. */
+export function isEmptyErrorContent(content: string | BetaToolsetContent): boolean {
+  return content === '' || (Array.isArray(content) && content.length === 0);
+}
+
 export function errorTextContent(content: string | BetaToolsetContent): string | BetaTextBlockParam[] {
   // The API rejects an `is_error` result whose content is empty or holds a non-text block. Empty text blocks are
   // dropped too, so an error with no text left gets the placeholder from `toolsetResultBlock`.
