@@ -32,6 +32,9 @@ export function transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
 function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const strictSchema: JSONSchema = {};
 
+  // `$schema` is dialect metadata; drop it so it does not pollute `description`.
+  pop(jsonSchema, '$schema');
+
   // `$defs` must be handled before the `$ref` early-return so that a root-level
   // `$ref` with sibling `$defs` keeps its (transformed) definitions.
   const defs = pop(jsonSchema, '$defs');
