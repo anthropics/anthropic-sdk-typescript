@@ -751,6 +751,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       reject: (error: unknown) => void;
     }[] = [];
     let done = false;
+    // The failure that ended the stream, kept so a read that starts after buffered
+    // events are drained still sees it instead of a silent `{ done: true }`.
+    let failure: { error: unknown } | undefined;
 
     this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
@@ -771,6 +774,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.on('abort', (err) => {
       done = true;
+      failure = { error: err };
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -779,6 +783,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.on('error', (err) => {
       done = true;
+      failure = { error: err };
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -789,6 +794,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       next: async (): Promise<IteratorResult<MessageStreamEvent>> => {
         if (!pushQueue.length) {
           if (done) {
+            if (failure) throw failure.error;
             return { value: undefined, done: true };
           }
           return new Promise<MessageStreamEvent | undefined>((resolve, reject) =>
