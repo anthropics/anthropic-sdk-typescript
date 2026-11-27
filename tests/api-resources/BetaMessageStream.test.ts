@@ -351,6 +351,24 @@ describe('BetaMessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('settles a second iteration once the stream has ended', async () => {
+    const lines = (await parseSSEFixture(loadFixture('basic_response.txt'))).map((event) =>
+      JSON.stringify(event),
+    );
+    const stream = BetaMessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    for await (const _event of stream) {
+      // consume it
+    }
+    await stream.done();
+
+    const second: BetaRawMessageStreamEvent[] = [];
+    for await (const event of stream) {
+      second.push(event);
+    }
+    expect(second).toEqual([]);
+  });
+
   it('passes unknown events through with the current snapshot', async () => {
     const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
     const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
